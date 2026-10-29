@@ -51,6 +51,15 @@ body {
   padding: var(--space-6) var(--space-8) var(--space-4);
 }
 
+.page-header__count {
+  margin: 0;
+  color: var(--color-ink-muted);
+}
+
+.page-header__action {
+  margin-left: auto;
+}
+
 .page-header__title {
   margin: 0;
   font-size: var(--text-xl);

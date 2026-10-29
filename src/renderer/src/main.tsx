@@ -2,6 +2,7 @@ import "@fontsource-variable/instrument-sans";
 import "@fontsource/instrument-serif/400-italic.css";
 import "./styles/tokens.css";
 import "./styles/base.css";
+import "./styles/components.css";
 
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
