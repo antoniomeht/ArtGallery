@@ -1,0 +1,29 @@
+:root {
+  /* "White cube": a neutral interface so the artworks provide the colour. */
+  --color-wall: #ffffff;
+  --color-plinth: #f0f0ee;
+  --color-plinth-hover: #e7e7e4;
+  --color-line: #e2e2de;
+  --color-ink: #222222;
+  --color-ink-muted: #646464;
+  --color-accent: #1f3fbf;
+  --color-accent-ink: #ffffff;
+
+  --font-sans: "Instrument Sans Variable", system-ui, sans-serif;
+  --font-title: "Instrument Serif", Georgia, serif;
+
+  --text-sm: 0.8125rem;
+  --text-base: 0.9375rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.75rem;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+
+  --radius-sm: 4px;
+  --sidebar-width: 220px;
+}

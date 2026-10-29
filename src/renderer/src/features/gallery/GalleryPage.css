@@ -1,0 +1,31 @@
+.gallery-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.gallery-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-6);
+  padding: var(--space-8);
+  text-align: center;
+}
+
+/* An empty frame hanging on the wall stands for "nothing here yet". */
+.gallery-empty__frame {
+  width: 168px;
+  aspect-ratio: 4 / 5;
+  border: 1px solid var(--color-ink-muted);
+  outline: 10px solid var(--color-plinth);
+  outline-offset: -11px;
+}
+
+.gallery-empty__text {
+  margin: 0;
+  max-width: 32ch;
+  color: var(--color-ink-muted);
+}
