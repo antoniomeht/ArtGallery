@@ -6,11 +6,11 @@ Inventario personal de cuadros, pinturas y dibujos para Windows y macOS. Funcion
 
 ## Tecnologías
 
-| Pieza         | Elección                         | Motivo                                                                                             |
-| ------------- | -------------------------------- | -------------------------------------------------------------------------------------------------- |
-| Escritorio    | Electron 44                      | Un único código TypeScript para Windows y macOS, generación de PDF integrada y empaquetado maduro. |
-| Interfaz      | React 19 + CSS propio            | Componentes sencillos y diseño a medida sin dependencias de estilos.                               |
-| Build         | electron-vite + electron-builder | Desarrollo con recarga rápida e instaladores NSIS (Windows) y DMG (macOS).                         |
+| Pieza      | Elección                         | Motivo                                                                                             |
+| ---------- | -------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Escritorio | Electron 44                      | Un único código TypeScript para Windows y macOS, generación de PDF integrada y empaquetado maduro. |
+| Interfaz   | React 19 + CSS propio            | Componentes sencillos y diseño a medida sin dependencias de estilos.                               |
+| Build      | electron-vite + electron-builder | Desarrollo con recarga rápida e instaladores NSIS (Windows) y DMG (macOS).                         |
 
 Se descartó Tauri por ahora: genera binarios más pequeños, pero exige mantener una segunda base de código en Rust y su generación de PDF depende del WebView de cada sistema.
 
