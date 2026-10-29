@@ -1,0 +1,41 @@
+# Dependencies and build output
+node_modules/
+out/
+dist/
+release/
+coverage/
+*.tsbuildinfo
+
+# Logs and OS files
+*.log
+.DS_Store
+Thumbs.db
+
+# Local environment and secrets
+.env
+.env.*
+
+# Editor and tool configuration
+.vscode/
+.idea/
+.claude/
+.editorconfig
+.prettierrc*
+.prettierignore
+.node-version
+.nvmrc
+
+# Internal notes
+docs/
+
+# Generated application icons (built from build/icon.svg)
+build/icon.png
+build/icon.ico
+build/icon.icns
+
+# User data that must never be committed
+*.sqlite
+*.sqlite3
+*.db
+*.artgallery
+*.agbackup
