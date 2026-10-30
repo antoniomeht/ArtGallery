@@ -1,0 +1,27 @@
+appId: io.github.antoniomeht.artgallery
+productName: ArtGallery
+directories:
+  output: release/${version}
+files:
+  - out/**
+  - package.json
+artifactName: ${productName}-${version}-${os}-${arch}.${ext}
+
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  # User data lives outside the install folder and is kept on uninstall.
+  deleteAppDataOnUninstall: false
+
+mac:
+  category: public.app-category.graphics-design
+  target:
+    - target: dmg
+      arch: [universal]
+  # Unsigned until a Developer ID certificate is configured.
+  identity: null
