@@ -4,10 +4,13 @@
   --color-plinth: #f0f0ee;
   --color-plinth-hover: #e7e7e4;
   --color-line: #e2e2de;
+  --color-line-strong: #c9c9c4;
   --color-ink: #222222;
   --color-ink-muted: #646464;
   --color-accent: #1f3fbf;
+  --color-accent-hover: #1a35a3;
   --color-accent-ink: #ffffff;
+  --color-danger: #b3261e;
 
   --font-sans: "Instrument Sans Variable", system-ui, sans-serif;
   --font-title: "Instrument Serif", Georgia, serif;
@@ -25,5 +28,6 @@
   --space-8: 2rem;
 
   --radius-sm: 4px;
+  --radius-md: 8px;
   --sidebar-width: 220px;
 }

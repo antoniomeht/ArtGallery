@@ -5,6 +5,10 @@ directories:
 files:
   - out/**
   - package.json
+# sharp loads native libvips binaries, which cannot run from inside the asar.
+asarUnpack:
+  - node_modules/sharp/**
+  - node_modules/@img/**
 artifactName: ${productName}-${version}-${os}-${arch}.${ext}
 
 win:
@@ -22,6 +26,8 @@ mac:
   category: public.app-category.graphics-design
   target:
     - target: dmg
-      arch: [universal]
+      # sharp ships one native binary per architecture; Intel builds are
+      # pending a dedicated x64 runner.
+      arch: [arm64]
   # Unsigned until a Developer ID certificate is configured.
   identity: null
