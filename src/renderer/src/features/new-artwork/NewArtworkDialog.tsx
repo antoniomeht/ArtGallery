@@ -1,5 +1,6 @@
 import { ImagePlus, X } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import { Field } from "../../components/Field";
 import "./NewArtworkDialog.css";
 
 interface NewArtworkDialogProps {
@@ -58,29 +59,21 @@ export function NewArtworkDialog({
           Nueva obra
         </h2>
 
-        <label className="field">
-          <span className="field__label">Título</span>
-          <input
-            className="field__input"
-            value={title}
-            onChange={(event) => setTitle(event.target.value)}
-            required
-            maxLength={300}
-            autoFocus
-          />
-        </label>
-
-        <label className="field">
-          <span className="field__label">
-            Artista <span className="field__hint">(opcional)</span>
-          </span>
-          <input
-            className="field__input"
-            value={artist}
-            onChange={(event) => setArtist(event.target.value)}
-            maxLength={300}
-          />
-        </label>
+        <Field
+          label="Título"
+          value={title}
+          onChange={setTitle}
+          required
+          maxLength={300}
+          autoFocus
+        />
+        <Field
+          label="Artista"
+          hint="opcional"
+          value={artist}
+          onChange={setArtist}
+          maxLength={300}
+        />
 
         <div className="field">
           <span className="field__label">Imágenes</span>

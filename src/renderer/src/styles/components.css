@@ -76,6 +76,50 @@
   color: var(--color-ink-muted);
 }
 
+.field__error {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-danger);
+}
+
+.field__input[aria-invalid="true"] {
+  border-color: var(--color-danger);
+}
+
+textarea.field__input {
+  padding: var(--space-2) var(--space-3);
+  resize: vertical;
+}
+
+.checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 36px;
+}
+
+.checkbox input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-accent);
+}
+
+.tag {
+  padding: 2px var(--space-2);
+  border: 1px solid var(--color-line-strong);
+  border-radius: 999px;
+  font-size: var(--text-sm);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 .field__input {
   min-height: 36px;
   padding: 0 var(--space-3);
