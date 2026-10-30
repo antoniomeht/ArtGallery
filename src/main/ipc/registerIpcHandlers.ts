@@ -1,15 +1,24 @@
 import { BrowserWindow, dialog, ipcMain } from "electron";
 import { IpcChannel } from "../../shared/api";
-import type { NewArtwork } from "../../shared/artwork";
+import type { ArtworkFieldsInput, NewArtwork } from "../../shared/artwork";
 import { SUPPORTED_IMAGE_EXTENSIONS } from "../images/imageStore";
 import type { InventoryService } from "../inventory/inventoryService";
 
 export function registerIpcHandlers(inventory: InventoryService): void {
   ipcMain.handle(IpcChannel.listArtworks, () => inventory.listArtworks());
 
-  // The payload is validated by the service before anything is written.
+  ipcMain.handle(IpcChannel.getArtwork, (_event, id: string) =>
+    inventory.getArtwork(id),
+  );
+
+  // Payloads are validated by the service before anything is written.
   ipcMain.handle(IpcChannel.createArtwork, (_event, input: NewArtwork) =>
     inventory.createArtwork(input),
+  );
+  ipcMain.handle(
+    IpcChannel.updateArtwork,
+    (_event, id: string, fields: ArtworkFieldsInput) =>
+      inventory.updateArtwork(id, fields),
   );
 
   ipcMain.handle(IpcChannel.pickImages, async (event) => {
