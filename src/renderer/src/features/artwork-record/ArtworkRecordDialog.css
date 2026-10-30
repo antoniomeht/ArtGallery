@@ -1,0 +1,215 @@
+/* Full-window record, like opening a photo from a phone gallery. */
+.record {
+  width: 100vw;
+  max-width: none;
+  height: 100vh;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: none;
+  color: var(--color-ink);
+  background: var(--color-wall);
+}
+
+.record[open] {
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+.record__toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-line);
+}
+
+.record__status {
+  padding: var(--space-8);
+  color: var(--color-ink-muted);
+}
+
+.record__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 400px);
+  min-height: 0;
+}
+
+.record__panel {
+  overflow-y: auto;
+  padding: var(--space-8);
+  border-left: 1px solid var(--color-line);
+}
+
+@media (max-width: 900px) {
+  .record__layout {
+    grid-template-columns: 1fr;
+    overflow-y: auto;
+  }
+
+  .record__panel {
+    overflow: visible;
+    border-left: none;
+  }
+}
+
+.viewer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-height: 0;
+  padding: var(--space-6);
+  background: var(--color-plinth);
+}
+
+.viewer--empty {
+  align-items: center;
+  justify-content: center;
+  color: var(--color-ink-muted);
+}
+
+.viewer__image {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  object-fit: contain;
+}
+
+.viewer__strip {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.viewer__thumb {
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  border: 2px solid transparent;
+  background: none;
+  cursor: pointer;
+}
+
+.viewer__thumb[aria-pressed="true"] {
+  border-color: var(--color-accent);
+}
+
+.viewer__thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Museum wall label: artist, italic title with year, medium and size. */
+.label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.label__heading p,
+.label__title {
+  margin: 0;
+}
+
+.label__artist {
+  font-weight: 600;
+}
+
+.label__title {
+  font-size: var(--text-xl);
+  font-weight: 400;
+}
+
+.label__details {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-line);
+}
+
+.label__detail {
+  display: grid;
+  grid-template-columns: 7rem 1fr;
+}
+
+.label__detail dt {
+  color: var(--color-ink-muted);
+}
+
+.label__detail dd {
+  margin: 0;
+}
+
+.label__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.label__text h3 {
+  margin: 0 0 var(--space-1);
+  font-size: var(--text-base);
+  font-weight: 600;
+}
+
+.label__text p {
+  margin: 0;
+  max-width: 60ch;
+  white-space: pre-line;
+}
+
+.artwork-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.artwork-form__title {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+
+.artwork-form__row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  align-items: end;
+  gap: var(--space-3);
+}
+
+.artwork-form__row--dimensions {
+  grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+}
+
+.artwork-form__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.artwork-form__error {
+  margin: 0;
+  color: var(--color-danger);
+}
+
+.artwork-form__actions {
+  position: sticky;
+  bottom: calc(-1 * var(--space-8));
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding: var(--space-4) 0;
+  background: var(--color-wall);
+}
