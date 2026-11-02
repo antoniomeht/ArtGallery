@@ -6,7 +6,8 @@ Inventario personal de cuadros, pinturas y dibujos para Windows y macOS. Funcion
 
 ## Funciones disponibles
 
-- Galería en cuadrícula con las imágenes como protagonistas.
+- Galería en cuadrícula con las imágenes como protagonistas, ordenable por fecha de incorporación, título (sin distinguir tildes ni mayúsculas) o año.
+- Selección múltiple con acciones en bloque: cambiar el estado o mover a la papelera, con opción de deshacer.
 - Alta de obras pidiendo solo lo imprescindible: título (obligatorio), artista e imágenes. La primera imagen es la principal.
 - Las fotografías se copian al almacenamiento de ArtGallery: la obra sigue funcionando aunque se mueva o borre el archivo original.
 - Ficha de cada obra con estilo de cartela de museo y edición de todos los campos: artista, categoría, técnica y soporte, año (exacto o aproximado), alto, ancho y profundidad con unidades, descripción, notas, etiquetas, ubicación, estado (disponible, expuesta, prestada, vendida u otro) y precio con moneda.
