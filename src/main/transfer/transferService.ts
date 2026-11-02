@@ -1,0 +1,138 @@
+import { randomUUID } from "node:crypto";
+import { rm, writeFile } from "node:fs/promises";
+import { basename, join } from "node:path";
+import type { Artwork } from "../../shared/artwork";
+import type {
+  DuplicatePolicy,
+  ExportResult,
+  ImportPreviewResult,
+  ImportResult,
+} from "../../shared/transfer";
+import type { ImageStore } from "../images/imageStore";
+import type { InventoryService } from "../inventory/inventoryService";
+import { toExportArtwork } from "../package/exportArtwork";
+import { PackageError } from "../package/packageFormat";
+import { readPackage, type ValidatedPackage } from "../package/readPackage";
+import { restoredArtworks } from "../package/restoredArtworks";
+import { writePackage } from "../package/writePackage";
+import { toCsv } from "./csv";
+import { planImport, resolveImport, type ImportPlan } from "./importPlan";
+
+export interface TransferServiceOptions {
+  inventory: InventoryService;
+  images: ImageStore;
+  /** Scratch space where packages are validated before importing. */
+  workDir: string;
+  appVersion: string;
+  now?: () => Date;
+}
+
+interface ImportSession {
+  pkg: ValidatedPackage;
+  plan: ImportPlan;
+}
+
+/** Exports artworks to packages or CSV and imports packages. */
+export class TransferService {
+  private readonly sessions = new Map<string, ImportSession>();
+  private readonly now: () => Date;
+
+  constructor(private readonly options: TransferServiceOptions) {
+    this.now = options.now ?? (() => new Date());
+  }
+
+  /** `ids` null means every artwork outside the trash. */
+  async exportPackage(
+    destination: string,
+    ids: readonly string[] | null,
+  ): Promise<ExportResult> {
+    const artworks = this.artworksToExport(ids);
+    await writePackage(destination, {
+      kind: "artworks",
+      artworks: artworks.map((artwork) =>
+        toExportArtwork(artwork, this.options.images),
+      ),
+      appVersion: this.options.appVersion,
+      now: this.now(),
+    });
+    return { path: destination, artworks: artworks.length };
+  }
+
+  async exportCsv(
+    destination: string,
+    ids: readonly string[] | null,
+  ): Promise<ExportResult> {
+    const artworks = this.artworksToExport(ids);
+    await writeFile(destination, toCsv(artworks), "utf8");
+    return { path: destination, artworks: artworks.length };
+  }
+
+  /**
+   * Validates the whole package and reports what importing it would do.
+   * Nothing is written to the inventory until `applyImport`.
+   */
+  async previewImport(path: string): Promise<ImportPreviewResult> {
+    const sessionId = randomUUID();
+    let pkg: ValidatedPackage;
+    try {
+      pkg = await readPackage(path, this.stagingDir(sessionId));
+    } catch (error) {
+      if (error instanceof PackageError)
+        return { ok: false, reason: error.code };
+      throw error;
+    }
+    const plan = planImport(
+      pkg.data.artworks,
+      this.options.inventory.artworkIds(),
+    );
+    this.sessions.set(sessionId, { pkg, plan });
+    return {
+      ok: true,
+      preview: {
+        sessionId,
+        fileName: basename(path),
+        newCount: plan.fresh.length,
+        duplicates: plan.duplicates.map(({ id, title }) => ({ id, title })),
+        trashedSkipped: plan.trashedSkipped,
+      },
+    };
+  }
+
+  async applyImport(
+    sessionId: string,
+    policy: DuplicatePolicy,
+  ): Promise<ImportResult> {
+    const session = this.sessions.get(sessionId);
+    if (!session) throw new Error(`Unknown import session: ${sessionId}`);
+    try {
+      const { artworks, ...counts } = resolveImport(session.plan, policy, {
+        newId: randomUUID,
+        now: this.now(),
+      });
+      await this.options.inventory.importArtworks(
+        restoredArtworks(session.pkg, artworks),
+      );
+      return counts;
+    } finally {
+      await this.cancelImport(sessionId);
+    }
+  }
+
+  /** Discards a previewed package and its extracted files. */
+  async cancelImport(sessionId: string): Promise<void> {
+    this.sessions.delete(sessionId);
+    await rm(this.stagingDir(sessionId), { recursive: true, force: true });
+  }
+
+  private artworksToExport(ids: readonly string[] | null): Artwork[] {
+    const { inventory } = this.options;
+    const artworks = ids
+      ? ids.map((id) => inventory.getArtwork(id))
+      : inventory.listAllArtworks();
+    return artworks.filter((artwork) => !artwork.deletedAt);
+  }
+
+  private stagingDir(sessionId: string): string {
+    return join(this.options.workDir, `import-${sessionId}`);
+  }
+}
