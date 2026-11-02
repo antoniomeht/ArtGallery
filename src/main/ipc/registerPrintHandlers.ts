@@ -1,6 +1,8 @@
 import { ipcMain } from "electron";
 import { z } from "zod";
 import { IpcChannel } from "../../shared/api";
+import { labelOptionsSchema } from "../../shared/labels";
+import { printSourceSchema } from "../../shared/print";
 import type { ExhibitionService } from "../exhibitions/exhibitionService";
 import { handlePrintReady, printToPdf } from "../print/printToPdf";
 import { showSaveDialog } from "./dialogs";
@@ -29,6 +31,29 @@ export function registerPrintHandlers(exhibitions: ExhibitionService): void {
         { kind: "catalog", exhibitionId: id, includePrices },
         path,
       );
+      return { path };
+    },
+  );
+
+  ipcMain.handle(
+    IpcChannel.exportLabelsPdf,
+    async (event, source: unknown, options: unknown) => {
+      const job = {
+        kind: "labels" as const,
+        source: printSourceSchema.parse(source),
+        options: labelOptionsSchema.parse(options),
+      };
+      const name =
+        "exhibitionId" in job.source
+          ? exhibitions.get(job.source.exhibitionId).name
+          : "seleccion";
+      const path = await showSaveDialog(event.sender, {
+        title: "Guardar cartelas en PDF",
+        defaultPath: `Cartelas - ${safeFileName(name)}.pdf`,
+        filters: [{ name: "PDF", extensions: ["pdf"] }],
+      });
+      if (!path) return null;
+      await printToPdf(job, path);
       return { path };
     },
   );

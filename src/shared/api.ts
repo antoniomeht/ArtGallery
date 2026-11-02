@@ -14,6 +14,8 @@ import type {
   ExhibitionFieldsInput,
   ExhibitionSummary,
 } from "./exhibition";
+import type { LabelOptions } from "./labels";
+import type { PrintSource } from "./print";
 import type { Settings } from "./settings";
 import type {
   DuplicatePolicy,
@@ -68,6 +70,11 @@ export interface ArtGalleryApi {
     exhibitionId: string,
     options: { includePrices: boolean },
   ): Promise<{ path: string } | null>;
+  /** Asks where to save and writes the labels as PDF on A4 sheets. */
+  exportLabelsPdf(
+    source: PrintSource,
+    options: LabelOptions,
+  ): Promise<{ path: string } | null>;
   /** Called by the print window once its document is fully drawn. */
   printReady(): void;
   getBackupOverview(): Promise<BackupOverview>;
@@ -117,6 +124,7 @@ export const IpcChannel = {
   setExhibitionArtworks: "exhibitions:set-artworks",
   addToExhibition: "exhibitions:add-artworks",
   exportCatalogPdf: "print:catalog",
+  exportLabelsPdf: "print:labels",
   printReady: "print:ready",
   getBackupOverview: "backups:overview",
   updateSettings: "settings:update",
