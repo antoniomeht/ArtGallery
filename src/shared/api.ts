@@ -63,6 +63,13 @@ export interface ArtGalleryApi {
     artworkIds: string[],
   ): Promise<ExhibitionDetail>;
   addToExhibition(id: string, artworkIds: string[]): Promise<ExhibitionDetail>;
+  /** Asks where to save and writes the exhibition catalogue as PDF. */
+  exportCatalogPdf(
+    exhibitionId: string,
+    options: { includePrices: boolean },
+  ): Promise<{ path: string } | null>;
+  /** Called by the print window once its document is fully drawn. */
+  printReady(): void;
   getBackupOverview(): Promise<BackupOverview>;
   updateSettings(changes: Partial<Settings>): Promise<Settings>;
   createBackup(): Promise<BackupInfo>;
@@ -109,6 +116,8 @@ export const IpcChannel = {
   deleteExhibition: "exhibitions:delete",
   setExhibitionArtworks: "exhibitions:set-artworks",
   addToExhibition: "exhibitions:add-artworks",
+  exportCatalogPdf: "print:catalog",
+  printReady: "print:ready",
   getBackupOverview: "backups:overview",
   updateSettings: "settings:update",
   createBackup: "backups:create",
