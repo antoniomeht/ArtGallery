@@ -1,11 +1,26 @@
 import { useEffect, useState, type ReactNode } from "react";
 import type { PrintJob } from "../../../../shared/print";
 import { CatalogDocument } from "./CatalogDocument";
-import { loadExhibitionArtworks, type PrintData } from "./printData";
+import { LabelSheets } from "./LabelSheets";
+import { loadExhibitionArtworks, loadSourceArtworks } from "./printData";
 import "./print.css";
 
 interface PrintDocumentProps {
   job: PrintJob;
+}
+
+/** Loads what the job needs and returns the document to print. */
+async function renderJob(job: PrintJob): Promise<ReactNode> {
+  switch (job.kind) {
+    case "catalog": {
+      const data = await loadExhibitionArtworks(job.exhibitionId);
+      return <CatalogDocument {...data} includePrices={job.includePrices} />;
+    }
+    case "labels": {
+      const artworks = await loadSourceArtworks(job.source);
+      return <LabelSheets artworks={artworks} options={job.options} />;
+    }
+  }
 }
 
 /**
@@ -13,25 +28,21 @@ interface PrintDocumentProps {
  * ready, it tells the main process, which saves it as PDF.
  */
 export function PrintDocument({ job }: PrintDocumentProps) {
-  const [data, setData] = useState<PrintData | null>(null);
+  const [content, setContent] = useState<ReactNode | null>(null);
 
   useEffect(() => {
-    void loadExhibitionArtworks(job.exhibitionId).then(setData);
-  }, [job.exhibitionId]);
+    void renderJob(job).then(setContent);
+  }, [job]);
 
   useEffect(() => {
-    if (!data) return;
+    if (!content) return;
     const images = [...document.images].map((image) =>
       image.decode().catch(() => undefined),
     );
     void Promise.all([...images, document.fonts.ready]).then(() =>
       window.artGallery.printReady(),
     );
-  }, [data]);
+  }, [content]);
 
-  if (!data) return null;
-  const documents: Record<PrintJob["kind"], ReactNode> = {
-    catalog: <CatalogDocument {...data} includePrices={job.includePrices} />,
-  };
-  return documents[job.kind];
+  return content;
 }

@@ -1,4 +1,4 @@
-import { FileDown, Landmark, Trash2 } from "lucide-react";
+import { FileDown, Landmark, Tags, Trash2 } from "lucide-react";
 import {
   ARTWORK_STATUSES,
   type ArtworkStatus,
@@ -14,6 +14,7 @@ interface SelectionToolbarProps {
   onMoveToTrash: () => void;
   onExport: () => void;
   onAddToExhibition: () => void;
+  onPrintLabels: () => void;
   onDone: () => void;
 }
 
@@ -26,6 +27,7 @@ export function SelectionToolbar({
   onMoveToTrash,
   onExport,
   onAddToExhibition,
+  onPrintLabels,
   onDone,
 }: SelectionToolbarProps) {
   const hasSelection = selectedCount > 0;
@@ -81,6 +83,15 @@ export function SelectionToolbar({
       >
         <FileDown aria-hidden size={16} />
         Exportar…
+      </button>
+      <button
+        type="button"
+        className="button"
+        disabled={!hasSelection}
+        onClick={onPrintLabels}
+      >
+        <Tags aria-hidden size={16} />
+        Cartelas…
       </button>
       <button
         type="button"

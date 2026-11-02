@@ -1,4 +1,13 @@
 import { z } from "zod";
+import { labelOptionsSchema } from "./labels";
+
+/** Artworks to print: an exhibition in its order, or a chosen list. */
+export const printSourceSchema = z.union([
+  z.object({ exhibitionId: z.string().min(1) }),
+  z.object({ artworkIds: z.array(z.string().min(1)).min(1).max(10_000) }),
+]);
+
+export type PrintSource = z.infer<typeof printSourceSchema>;
 
 /** A document the print window renders and saves as PDF. */
 export const printJobSchema = z.discriminatedUnion("kind", [
@@ -6,6 +15,11 @@ export const printJobSchema = z.discriminatedUnion("kind", [
     kind: z.literal("catalog"),
     exhibitionId: z.string().min(1),
     includePrices: z.boolean(),
+  }),
+  z.object({
+    kind: z.literal("labels"),
+    source: printSourceSchema,
+    options: labelOptionsSchema,
   }),
 ]);
 

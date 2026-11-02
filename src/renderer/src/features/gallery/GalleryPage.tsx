@@ -6,6 +6,7 @@ import { ActionNotice } from "../../components/ActionNotice";
 import { useActionNotice } from "../../hooks/useActionNotice";
 import { useArtworkList } from "../../hooks/useArtworkList";
 import { ArtworkRecordDialog } from "../artwork-record/ArtworkRecordDialog";
+import { LabelsDialog } from "../labels/LabelsDialog";
 import { AddToExhibitionDialog } from "./AddToExhibitionDialog";
 import { NewArtworkDialog } from "../new-artwork/NewArtworkDialog";
 import { GalleryGrid } from "./GalleryGrid";
@@ -29,6 +30,7 @@ export function GalleryPage() {
   /** Null outside selection mode. */
   const [selectedIds, setSelectedIds] = useState<Set<string> | null>(null);
   const [isChoosingExhibition, setIsChoosingExhibition] = useState(false);
+  const [isPrintingLabels, setIsPrintingLabels] = useState(false);
 
   const artworks = state.status === "ready" ? state.artworks : [];
   const isSelecting = selectedIds !== null;
@@ -96,6 +98,7 @@ export function GalleryPage() {
                     }
                   }}
                   onAddToExhibition={() => setIsChoosingExhibition(true)}
+                  onPrintLabels={() => setIsPrintingLabels(true)}
                   onDone={() => setSelectedIds(null)}
                 />
               ) : (
@@ -176,6 +179,16 @@ export function GalleryPage() {
         />
       )}
 
+      {isPrintingLabels && selectedIds && (
+        <LabelsDialog
+          source={{ artworkIds: [...selectedIds] }}
+          onClose={() => setIsPrintingLabels(false)}
+          onSaved={(path) => {
+            setIsPrintingLabels(false);
+            setNotice({ message: `Cartelas guardadas en ${path}` });
+          }}
+        />
+      )}
       {isChoosingExhibition && selectedIds && (
         <AddToExhibitionDialog
           artworkCount={selectedIds.size}
