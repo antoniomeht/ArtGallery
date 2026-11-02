@@ -26,6 +26,19 @@ export function registerTransferHandlers(transfer: TransferService): void {
     return path ? transfer.exportPackage(path, selection) : null;
   });
 
+  ipcMain.handle(
+    IpcChannel.exportExhibition,
+    async (event, exhibitionId: unknown) => {
+      const id = z.string().min(1).parse(exhibitionId);
+      const path = await showSaveDialog(event.sender, {
+        title: "Exportar exposición",
+        defaultPath: `ArtGallery-exposicion-${today()}${PACKAGE_EXTENSION}`,
+        filters: [PACKAGE_FILTER],
+      });
+      return path ? transfer.exportExhibition(path, id) : null;
+    },
+  );
+
   ipcMain.handle(IpcChannel.exportCsv, async (event, ids: unknown) => {
     const selection = idsSchema.parse(ids);
     const path = await showSaveDialog(event.sender, {

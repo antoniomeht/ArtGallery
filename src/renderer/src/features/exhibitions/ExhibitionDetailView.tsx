@@ -2,6 +2,7 @@ import {
   ArrowDown,
   ArrowLeft,
   ArrowUp,
+  FileDown,
   Pencil,
   Plus,
   Trash2,
@@ -11,6 +12,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { ExhibitionDetail } from "../../../../shared/exhibition";
 import { formatDateRange } from "../../../../shared/exhibitionFormat";
 import { thumbnailUrl } from "../../../../shared/media";
+import { ActionNotice, type NoticeAction } from "../../components/ActionNotice";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { ChooseArtworksDialog } from "./ChooseArtworksDialog";
 import { ExhibitionFormDialog } from "./ExhibitionFormDialog";
@@ -29,6 +31,7 @@ export function ExhibitionDetailView({
   const [exhibition, setExhibition] = useState<ExhibitionDetail | null>(null);
   const [failed, setFailed] = useState(false);
   const [dialog, setDialog] = useState<Dialog>(null);
+  const [notice, setNotice] = useState<NoticeAction | null>(null);
 
   const load = useCallback(() => {
     window.artGallery
@@ -92,6 +95,21 @@ export function ExhibitionDetailView({
           >
             <Pencil aria-hidden size={16} />
             Editar
+          </button>
+          <button
+            type="button"
+            className="button"
+            onClick={async () => {
+              const result = await window.artGallery.exportExhibition(
+                exhibition.id,
+              );
+              if (result) {
+                setNotice({ message: `Exposición exportada a ${result.path}` });
+              }
+            }}
+          >
+            <FileDown aria-hidden size={16} />
+            Exportar…
           </button>
           <button
             type="button"
@@ -220,6 +238,8 @@ export function ExhibitionDetailView({
           }}
         />
       )}
+
+      <ActionNotice action={notice} onDismiss={() => setNotice(null)} />
     </section>
   );
 }

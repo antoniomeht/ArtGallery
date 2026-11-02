@@ -45,6 +45,8 @@ const api: ArtGalleryApi = {
   openFolder: (which) => ipcRenderer.invoke(IpcChannel.openFolder, which),
   exportPackage: (artworkIds) =>
     ipcRenderer.invoke(IpcChannel.exportPackage, artworkIds),
+  exportExhibition: (exhibitionId) =>
+    ipcRenderer.invoke(IpcChannel.exportExhibition, exhibitionId),
   exportCsv: (artworkIds) =>
     ipcRenderer.invoke(IpcChannel.exportCsv, artworkIds),
   previewImport: () => ipcRenderer.invoke(IpcChannel.previewImport),

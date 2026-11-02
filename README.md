@@ -9,7 +9,7 @@ Inventario personal de cuadros, pinturas y dibujos para Windows y macOS. Funcion
 - Galería en cuadrícula con las imágenes como protagonistas, ordenable por fecha de incorporación, título (sin distinguir tildes ni mayúsculas) o año.
 - Exposiciones con nombre, lugar, fechas y descripción, y una selección ordenada de obras. Se pueden añadir obras desde la exposición o desde la selección múltiple de la galería.
 - Copias de seguridad manuales y automáticas (diarias o semanales) con retención configurable, verificación completa de cada copia y restauración segura.
-- Exportación de todo el inventario o de una selección a un archivo `.artgallery` portátil, e importación con resumen previo y elección de qué hacer con las obras que ya existen (mantener, sustituir o duplicar).
+- Exportación de todo el inventario, de una selección o de una exposición (con sus obras y su orden) a un archivo `.artgallery` portátil, e importación con resumen previo y elección de qué hacer con lo que ya existe (mantener, sustituir o duplicar).
 - Exportación de metadatos a CSV (separado por `;`, con BOM UTF-8 para Excel y protegido frente a fórmulas). El CSV no incluye imágenes y no sustituye a una copia de seguridad.
 - Búsqueda de texto en todos los campos (título, artista, técnica, soporte, descripción, notas, ubicación y etiquetas), sin distinguir tildes ni mayúsculas, combinable con filtros de estado, categoría, artista, técnica, etiqueta, ubicación y rango de años.
 - Selección múltiple con acciones en bloque: cambiar el estado o mover a la papelera, con opción de deshacer.

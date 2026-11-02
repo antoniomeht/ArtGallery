@@ -88,6 +88,7 @@ void app.whenReady().then(() => {
 
   const transfer = new TransferService({
     inventory,
+    exhibitions,
     images: imageStore,
     workDir: join(dataDir, "tmp"),
     appVersion: app.getVersion(),

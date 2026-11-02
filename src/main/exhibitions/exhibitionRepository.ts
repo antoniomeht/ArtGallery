@@ -145,6 +145,22 @@ export class ExhibitionRepository {
     ).map(({ id }) => this.findById(id)!);
   }
 
+  /** Inserts the exhibitions, replacing any with the same id. */
+  upsertAll(exhibitions: readonly Exhibition[]): void {
+    transaction(this.db, () => {
+      exhibitions.forEach((exhibition) => {
+        this.delete(exhibition.id);
+        this.insert(exhibition);
+      });
+    });
+  }
+
+  listAllIds(): string[] {
+    return (
+      this.db.prepare("SELECT id FROM exhibitions").all() as { id: string }[]
+    ).map(({ id }) => id);
+  }
+
   /** Replaces every exhibition; meant to run inside a restore transaction. */
   replaceAll(exhibitions: readonly Exhibition[]): void {
     transaction(this.db, () => {
