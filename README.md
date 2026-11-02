@@ -2,12 +2,14 @@
 
 Inventario personal de cuadros, pinturas y dibujos para Windows y macOS. Funciona sin conexión, sin cuentas y sin servicios externos: los datos y las imágenes se guardan en el propio equipo.
 
-> **Estado:** en desarrollo. Ya se pueden añadir obras, verlas en la galería, consultar y editar su ficha completa, gestionar sus imágenes y recuperar obras desde la papelera, además de buscar y filtrar el inventario. También hace copias de seguridad manuales y automáticas y las restaura. La importación/exportación y las exposiciones llegarán en próximas entregas.
+> **Estado:** en desarrollo. Ya se pueden añadir obras, verlas en la galería, consultar y editar su ficha completa, gestionar sus imágenes y recuperar obras desde la papelera, además de buscar y filtrar el inventario. También hace copias de seguridad manuales y automáticas y las restaura. Permite exportar e importar obras entre equipos y exportar los metadatos a CSV. Las exposiciones llegarán en una próxima entrega.
 
 ## Funciones disponibles
 
 - Galería en cuadrícula con las imágenes como protagonistas, ordenable por fecha de incorporación, título (sin distinguir tildes ni mayúsculas) o año.
 - Copias de seguridad manuales y automáticas (diarias o semanales) con retención configurable, verificación completa de cada copia y restauración segura.
+- Exportación de todo el inventario o de una selección a un archivo `.artgallery` portátil, e importación con resumen previo y elección de qué hacer con las obras que ya existen (mantener, sustituir o duplicar).
+- Exportación de metadatos a CSV (separado por `;`, con BOM UTF-8 para Excel y protegido frente a fórmulas). El CSV no incluye imágenes y no sustituye a una copia de seguridad.
 - Búsqueda de texto en todos los campos (título, artista, técnica, soporte, descripción, notas, ubicación y etiquetas), sin distinguir tildes ni mayúsculas, combinable con filtros de estado, categoría, artista, técnica, etiqueta, ubicación y rango de años.
 - Selección múltiple con acciones en bloque: cambiar el estado o mover a la papelera, con opción de deshacer.
 - Alta de obras pidiendo solo lo imprescindible: título (obligatorio), artista e imágenes. La primera imagen es la principal.
