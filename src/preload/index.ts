@@ -24,6 +24,17 @@ const api: ArtGalleryApi = {
   deleteFromTrash: (artworkIds) =>
     ipcRenderer.invoke(IpcChannel.deleteFromTrash, artworkIds),
   emptyTrash: () => ipcRenderer.invoke(IpcChannel.emptyTrash),
+  listExhibitions: () => ipcRenderer.invoke(IpcChannel.listExhibitions),
+  getExhibition: (id) => ipcRenderer.invoke(IpcChannel.getExhibition, id),
+  createExhibition: (fields) =>
+    ipcRenderer.invoke(IpcChannel.createExhibition, fields),
+  updateExhibition: (id, fields) =>
+    ipcRenderer.invoke(IpcChannel.updateExhibition, id, fields),
+  deleteExhibition: (id) => ipcRenderer.invoke(IpcChannel.deleteExhibition, id),
+  setExhibitionArtworks: (id, artworkIds) =>
+    ipcRenderer.invoke(IpcChannel.setExhibitionArtworks, id, artworkIds),
+  addToExhibition: (id, artworkIds) =>
+    ipcRenderer.invoke(IpcChannel.addToExhibition, id, artworkIds),
   getBackupOverview: () => ipcRenderer.invoke(IpcChannel.getBackupOverview),
   updateSettings: (changes) =>
     ipcRenderer.invoke(IpcChannel.updateSettings, changes),

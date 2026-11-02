@@ -2,10 +2,13 @@ import { app, BrowserWindow, shell } from "electron";
 import { join } from "node:path";
 import { BackupService } from "./backup/backupService";
 import { openDatabase } from "./database/openDatabase";
+import { ExhibitionRepository } from "./exhibitions/exhibitionRepository";
+import { ExhibitionService } from "./exhibitions/exhibitionService";
 import { ImageStore } from "./images/imageStore";
 import { ArtworkRepository } from "./inventory/artworkRepository";
 import { InventoryService } from "./inventory/inventoryService";
 import { registerBackupHandlers } from "./ipc/registerBackupHandlers";
+import { registerExhibitionHandlers } from "./ipc/registerExhibitionHandlers";
 import { registerIpcHandlers } from "./ipc/registerIpcHandlers";
 import { registerTransferHandlers } from "./ipc/registerTransferHandlers";
 import {
@@ -60,7 +63,13 @@ void app.whenReady().then(() => {
   const dataDir = app.getPath("userData");
   const db = openDatabase(join(dataDir, "artgallery.sqlite"));
   const imageStore = new ImageStore(join(dataDir, "images"));
-  const inventory = new InventoryService(new ArtworkRepository(db), imageStore);
+  const exhibitionRepository = new ExhibitionRepository(db);
+  const inventory = new InventoryService({
+    artworks: new ArtworkRepository(db),
+    exhibitions: exhibitionRepository,
+    images: imageStore,
+  });
+  const exhibitions = new ExhibitionService(exhibitionRepository);
   const settings = new SettingsStore(join(dataDir, "settings.json"));
   // Backups live outside the app data, so they survive an uninstall that
   // removes it, and are easy to find and copy elsewhere.
@@ -86,6 +95,7 @@ void app.whenReady().then(() => {
 
   handleMediaRequests(imageStore);
   registerIpcHandlers(inventory);
+  registerExhibitionHandlers(exhibitions);
   registerBackupHandlers({ backups, settings, dataFolder: dataDir });
   registerTransferHandlers(transfer);
   createMainWindow();
