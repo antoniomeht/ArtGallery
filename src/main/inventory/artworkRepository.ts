@@ -2,14 +2,17 @@ import type { DatabaseSync } from "node:sqlite";
 import type {
   Artwork,
   ArtworkFields,
+  ArtworkFilter,
   ArtworkImage,
   ArtworkSort,
   ArtworkStatus,
   ArtworkSummary,
   DimensionUnit,
+  FilterOptions,
 } from "../../shared/artwork";
 import { transaction } from "../database/transaction";
 import type { StoredImage } from "../images/imageStore";
+import { buildFilterConditions } from "./artworkFilter";
 
 export interface NewArtworkRecord {
   id: string;
@@ -228,17 +231,54 @@ export class ArtworkRepository {
   listSummaries({
     inTrash = false,
     sort = "recent",
-  }: { inTrash?: boolean; sort?: ArtworkSort } = {}): ArtworkSummary[] {
+    filter = {},
+  }: {
+    inTrash?: boolean;
+    sort?: ArtworkSort;
+    filter?: ArtworkFilter;
+  } = {}): ArtworkSummary[] {
+    const conditions = buildFilterConditions(filter);
+    const where = [
+      `a.deleted_at IS ${inTrash ? "NOT NULL" : "NULL"}`,
+      ...conditions.map(({ sql }) => sql),
+    ].join(" AND ");
     return this.db
       .prepare(
         `SELECT a.id, a.title, a.artist, a.created_at AS createdAt,
                 a.deleted_at AS deletedAt, i.id AS primaryImageId
          FROM artworks a
          LEFT JOIN artwork_images i ON i.artwork_id = a.id AND i.position = 0
-         WHERE a.deleted_at IS ${inTrash ? "NOT NULL" : "NULL"}
+         WHERE ${where}
          ORDER BY ${inTrash ? "a.deleted_at DESC" : ORDER_BY[sort]}`,
       )
-      .all() as unknown as ArtworkSummary[];
+      .all(
+        ...conditions.flatMap(({ params }) => params),
+      ) as unknown as ArtworkSummary[];
+  }
+
+  /** Distinct values outside the trash, one spelling per accent/case variant. */
+  listFilterOptions(): FilterOptions {
+    const distinct = (column: string, from = "artworks a") =>
+      (
+        this.db
+          .prepare(
+            `SELECT MIN(${column}) AS value FROM ${from}
+             WHERE a.deleted_at IS NULL AND ${column} IS NOT NULL
+             GROUP BY sort_key(${column}) ORDER BY sort_key(${column})`,
+          )
+          .all() as { value: string }[]
+      ).map(({ value }) => value);
+
+    return {
+      categories: distinct("a.category"),
+      artists: distinct("a.artist"),
+      techniques: distinct("a.technique"),
+      locations: distinct("a.location"),
+      tags: distinct(
+        "t.tag",
+        "artwork_tags t JOIN artworks a ON a.id = t.artwork_id",
+      ),
+    };
   }
 
   setStatus(

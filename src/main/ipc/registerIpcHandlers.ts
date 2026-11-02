@@ -16,6 +16,9 @@ export function registerIpcHandlers(inventory: InventoryService): void {
   ipcMain.handle(IpcChannel.listArtworks, (_event, query?: ArtworkQuery) =>
     inventory.listArtworks(query),
   );
+  ipcMain.handle(IpcChannel.listFilterOptions, () =>
+    inventory.listFilterOptions(),
+  );
   ipcMain.handle(
     IpcChannel.setStatus,
     (_event, ids: unknown, status: unknown) =>

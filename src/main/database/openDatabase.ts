@@ -1,14 +1,6 @@
 import { DatabaseSync } from "node:sqlite";
 import { migrate } from "./migrations";
-
-/** Accent- and case-insensitive key, so "Ángel" sorts next to "angel". */
-function sortKey(value: unknown): string | null {
-  if (typeof value !== "string") return null;
-  return value
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .toLocaleLowerCase("es");
-}
+import { sortKey } from "./sortKey";
 
 export function openDatabase(filePath: string): DatabaseSync {
   const db = new DatabaseSync(filePath);
