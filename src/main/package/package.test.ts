@@ -164,7 +164,7 @@ describe("artgallery package", () => {
     await zipWith(file, {
       "manifest.json": MANIFEST.replace(
         '"formatVersion":1',
-        '"formatVersion":2',
+        '"formatVersion":99',
       ),
       "data.json": JSON.stringify({ artworks: [] }),
     });
@@ -172,6 +172,45 @@ describe("artgallery package", () => {
     await expectPackageError(
       readPackage(file, join(dir, "staging")),
       "unsupported-version",
+    );
+  });
+
+  it("still reads packages from format v1, which had no exhibitions", async () => {
+    const dir = await useTempDir();
+    const file = join(dir, "v1.artgallery");
+    await zipWith(file, {
+      "manifest.json": MANIFEST,
+      "data.json": JSON.stringify({ artworks: [] }),
+    });
+
+    const read = await readPackage(file, join(dir, "staging"));
+
+    expect(read.manifest.formatVersion).toBe(1);
+    expect(read.data.exhibitions).toEqual([]);
+  });
+
+  it("rejects exhibitions that refer to artworks outside the package", async () => {
+    const dir = await useTempDir();
+    const file = join(dir, "broken.artgallery");
+    await zipWith(file, {
+      "manifest.json": MANIFEST,
+      "data.json": JSON.stringify({
+        artworks: [],
+        exhibitions: [
+          {
+            id: "0b5f2c1e-8a6e-4f4b-9b1a-2f0c3d4e5f60",
+            name: "Marinas",
+            artworkIds: ["1b5f2c1e-8a6e-4f4b-9b1a-2f0c3d4e5f61"],
+            createdAt: "2026-11-02T10:00:00.000Z",
+            updatedAt: "2026-11-02T10:00:00.000Z",
+          },
+        ],
+      }),
+    });
+
+    await expectPackageError(
+      readPackage(file, join(dir, "staging")),
+      "invalid-data",
     );
   });
 

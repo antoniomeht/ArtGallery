@@ -80,6 +80,26 @@ describe("backups", () => {
     after.db.close();
   });
 
+  it("brings exhibitions back with their artworks in order", async () => {
+    const root = await useTempDir();
+    const app = openApp(root);
+    const marina = await addArtwork(app, "Marina");
+    const retrato = await addArtwork(app, "Retrato");
+    const { id } = app.exhibitions.create({ name: "Colección", venue: "Sala" });
+    app.exhibitions.addArtworks(id, [retrato.id, marina.id]);
+    const backup = await app.backups.createBackup();
+    app.exhibitions.delete(id);
+
+    await app.backups.restore(backup.path);
+
+    expect(app.exhibitions.get(id)).toMatchObject({
+      name: "Colección",
+      venue: "Sala",
+      artworkIds: [retrato.id, marina.id],
+    });
+    app.db.close();
+  });
+
   it("saves the current inventory before replacing it", async () => {
     const root = await useTempDir();
     const app = openApp(root);

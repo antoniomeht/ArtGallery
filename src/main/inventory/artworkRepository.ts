@@ -104,6 +104,11 @@ const placeholders = (values: readonly unknown[]) =>
 export class ArtworkRepository {
   constructor(private readonly db: DatabaseSync) {}
 
+  /** Runs `work` in one transaction, together with other repositories. */
+  inTransaction<T>(work: () => T): T {
+    return transaction(this.db, work);
+  }
+
   insert(artwork: NewArtworkRecord, images: readonly StoredImage[]): void {
     transaction(this.db, () => {
       this.db

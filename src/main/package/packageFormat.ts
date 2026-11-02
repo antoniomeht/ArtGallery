@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { artworkFieldsSchema } from "../../shared/artwork";
+import { exhibitionBaseSchema } from "../../shared/exhibition";
 import type { PackageFailure } from "../../shared/transfer";
 import { SUPPORTED_IMAGE_EXTENSIONS } from "../images/imageStore";
 
@@ -7,14 +8,15 @@ import { SUPPORTED_IMAGE_EXTENSIONS } from "../images/imageStore";
  * Portable `.artgallery` package (a ZIP file):
  *
  *   manifest.json          what the package is, see `manifestSchema`
- *   data.json              artworks with their metadata, see `packageDataSchema`
+ *   data.json              artworks and exhibitions, see `packageDataSchema`
  *   images/<id>.<ext>      exact copies of the original images
  *
  * Paths inside the package are always relative, so a package can move to
  * another computer. Thumbnails are not included: they are rebuilt on import.
  */
 export const PACKAGE_FORMAT = "artgallery";
-export const PACKAGE_FORMAT_VERSION = 1;
+/** v2 added exhibitions; v1 packages are still read, with none. */
+export const PACKAGE_FORMAT_VERSION = 2;
 export const PACKAGE_EXTENSION = ".artgallery";
 
 export const MANIFEST_ENTRY = "manifest.json";
@@ -65,8 +67,19 @@ export const packageArtworkSchema = artworkFieldsSchema.extend({
 
 export type PackageArtwork = z.infer<typeof packageArtworkSchema>;
 
+export const packageExhibitionSchema = exhibitionBaseSchema.extend({
+  id: z.string().regex(UUID),
+  /** Ids of artworks in this package, in exhibition order. */
+  artworkIds: z.array(z.string().regex(UUID)),
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
+});
+
+export type PackageExhibition = z.infer<typeof packageExhibitionSchema>;
+
 export const packageDataSchema = z.object({
   artworks: z.array(packageArtworkSchema),
+  exhibitions: z.array(packageExhibitionSchema).default([]),
 });
 
 export type PackageData = z.infer<typeof packageDataSchema>;

@@ -65,6 +65,7 @@ export class BackupService {
       artworks: inventory
         .listAllArtworks()
         .map((artwork) => toExportArtwork(artwork, images)),
+      exhibitions: inventory.listAllExhibitions(),
       appVersion,
       now: this.now(),
     });
@@ -152,6 +153,7 @@ export class BackupService {
           : null;
       await inventory.replaceInventory(
         restoredArtworks(backup, backup.data.artworks),
+        backup.data.exhibitions,
       );
       return { ok: true, safetyBackup: safety?.fileName ?? null };
     });

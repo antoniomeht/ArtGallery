@@ -99,6 +99,7 @@ async function extract(
   }
   const data = parse(packageDataSchema, rawData, "data.json is not valid.");
   checkImages(data, extracted);
+  checkExhibitions(data);
 
   return {
     manifest,
@@ -130,6 +131,20 @@ function checkImages(
   const unlisted = [...extracted.keys()].find((file) => !listed.has(file));
   if (unlisted) {
     throw new PackageError("unsafe-entry", `Unlisted image: ${unlisted}`);
+  }
+}
+
+/** Exhibitions may only refer to artworks inside the same package. */
+function checkExhibitions(data: PackageData): void {
+  const ids = new Set(data.artworks.map(({ id }) => id));
+  const broken = data.exhibitions.find(({ artworkIds }) =>
+    artworkIds.some((id) => !ids.has(id)),
+  );
+  if (broken) {
+    throw new PackageError(
+      "invalid-data",
+      `Exhibition refers to missing artworks: ${broken.name}`,
+    );
   }
 }
 
