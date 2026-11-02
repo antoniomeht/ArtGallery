@@ -74,6 +74,7 @@ export interface ArtGalleryApi {
   openFolder(which: "backups" | "data"): Promise<void>;
   /** Asks where to save; null ids exports every artwork outside the trash. */
   exportPackage(artworkIds: string[] | null): Promise<ExportResult | null>;
+  exportExhibition(exhibitionId: string): Promise<ExportResult | null>;
   exportCsv(artworkIds: string[] | null): Promise<ExportResult | null>;
   /** Asks for a package and validates it; null if the user cancels. */
   previewImport(): Promise<ImportPreviewResult | null>;
@@ -116,6 +117,7 @@ export const IpcChannel = {
   chooseBackupFile: "backups:choose-file",
   openFolder: "shell:open-folder",
   exportPackage: "transfer:export-package",
+  exportExhibition: "transfer:export-exhibition",
   exportCsv: "transfer:export-csv",
   previewImport: "transfer:preview-import",
   applyImport: "transfer:apply-import",
