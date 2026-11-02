@@ -1,5 +1,6 @@
 import { Plus } from "lucide-react";
 import { useState } from "react";
+import { ArtworkRecordDialog } from "../artwork-record/ArtworkRecordDialog";
 import { NewArtworkDialog } from "../new-artwork/NewArtworkDialog";
 import { GalleryGrid } from "./GalleryGrid";
 import { useArtworks } from "./useArtworks";
@@ -8,6 +9,7 @@ import "./GalleryPage.css";
 export function GalleryPage() {
   const { state, reload } = useArtworks();
   const [isAdding, setIsAdding] = useState(false);
+  const [openArtworkId, setOpenArtworkId] = useState<string | null>(null);
   const openNewArtwork = () => setIsAdding(true);
 
   return (
@@ -68,7 +70,7 @@ export function GalleryPage() {
       )}
 
       {state.status === "ready" && state.artworks.length > 0 && (
-        <GalleryGrid artworks={state.artworks} />
+        <GalleryGrid artworks={state.artworks} onOpen={setOpenArtworkId} />
       )}
 
       {isAdding && (
@@ -78,6 +80,13 @@ export function GalleryPage() {
             setIsAdding(false);
             reload();
           }}
+        />
+      )}
+      {openArtworkId && (
+        <ArtworkRecordDialog
+          artworkId={openArtworkId}
+          onClose={() => setOpenArtworkId(null)}
+          onChanged={reload}
         />
       )}
     </section>

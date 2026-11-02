@@ -1,6 +1,9 @@
 import { randomUUID } from "node:crypto";
 import {
+  artworkFieldsSchema,
   newArtworkSchema,
+  type Artwork,
+  type ArtworkFieldsInput,
   type ArtworkSummary,
   type NewArtwork,
 } from "../../shared/artwork";
@@ -18,6 +21,20 @@ export class InventoryService {
     return this.artworks.listSummaries();
   }
 
+  getArtwork(id: string): Artwork {
+    const artwork = this.artworks.findById(id);
+    if (!artwork) throw new Error(`Artwork not found: ${id}`);
+    return artwork;
+  }
+
+  updateArtwork(id: string, input: ArtworkFieldsInput): Artwork {
+    const fields = artworkFieldsSchema.parse(input);
+    if (!this.artworks.update(id, fields, this.now().toISOString())) {
+      throw new Error(`Artwork not found: ${id}`);
+    }
+    return this.getArtwork(id);
+  }
+
   /**
    * Copies the images into the store and then saves the artwork. If any step
    * fails, the copied files are removed so no orphan data is left behind.
@@ -33,7 +50,7 @@ export class InventoryService {
       const record = {
         id: randomUUID(),
         title,
-        artist: artist || null,
+        artist,
         createdAt: this.now().toISOString(),
       };
       this.artworks.insert(record, stored);

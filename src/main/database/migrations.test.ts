@@ -2,7 +2,8 @@ import { DatabaseSync } from "node:sqlite";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { useTempDir } from "../testing/fixtures";
-import { getSchemaVersion, LATEST_SCHEMA_VERSION } from "./migrations";
+import { existsSync } from "node:fs";
+import { getSchemaVersion, LATEST_SCHEMA_VERSION, migrate } from "./migrations";
 import { openDatabase } from "./openDatabase";
 
 describe("database migrations", () => {
@@ -28,6 +29,42 @@ describe("database migrations", () => {
       { title: "Marina" },
     ]);
     second.close();
+  });
+
+  it("keeps data and saves a copy before upgrading an older database", async () => {
+    const file = join(await useTempDir(), "artgallery.sqlite");
+    const v1 = new DatabaseSync(file);
+    migrate(v1, { targetVersion: 1 });
+    v1.prepare(
+      "INSERT INTO artworks (id, title, created_at, updated_at) VALUES ('a1', 'Marina', 'now', 'now')",
+    ).run();
+    v1.close();
+
+    const upgraded = openDatabase(file);
+
+    expect(getSchemaVersion(upgraded)).toBe(LATEST_SCHEMA_VERSION);
+    expect(
+      upgraded.prepare("SELECT title, status FROM artworks").all(),
+    ).toEqual([{ title: "Marina", status: "available" }]);
+    upgraded.close();
+
+    const backup = new DatabaseSync(
+      file.replace(".sqlite", ".before-update-v1.sqlite"),
+    );
+    expect(getSchemaVersion(backup)).toBe(1);
+    expect(backup.prepare("SELECT title FROM artworks").all()).toEqual([
+      { title: "Marina" },
+    ]);
+    backup.close();
+  });
+
+  it("does not create a backup for a brand-new database", async () => {
+    const dir = await useTempDir();
+    openDatabase(join(dir, "artgallery.sqlite")).close();
+
+    expect(existsSync(join(dir, "artgallery.before-update-v0.sqlite"))).toBe(
+      false,
+    );
   });
 
   it("refuses to open a database created by a newer version of the app", async () => {

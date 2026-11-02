@@ -2,13 +2,14 @@
 
 Inventario personal de cuadros, pinturas y dibujos para Windows y macOS. Funciona sin conexión, sin cuentas y sin servicios externos: los datos y las imágenes se guardan en el propio equipo.
 
-> **Estado:** en desarrollo. Ya se pueden añadir obras con título, artista e imágenes y verlas en la galería. La ficha completa, la edición, la búsqueda, las copias de seguridad, la importación/exportación y las exposiciones llegarán en próximas entregas.
+> **Estado:** en desarrollo. Ya se pueden añadir obras, verlas en la galería y consultar y editar su ficha completa. La gestión de imágenes desde la ficha, la papelera, la búsqueda, las copias de seguridad, la importación/exportación y las exposiciones llegarán en próximas entregas.
 
 ## Funciones disponibles
 
 - Galería en cuadrícula con las imágenes como protagonistas.
 - Alta de obras pidiendo solo lo imprescindible: título (obligatorio), artista e imágenes. La primera imagen es la principal.
 - Las fotografías se copian al almacenamiento de ArtGallery: la obra sigue funcionando aunque se mueva o borre el archivo original.
+- Ficha de cada obra con estilo de cartela de museo y edición de todos los campos: artista, categoría, técnica y soporte, año (exacto o aproximado), alto, ancho y profundidad con unidades, descripción, notas, etiquetas, ubicación, estado (disponible, expuesta, prestada, vendida u otro) y precio con moneda.
 
 ## Tecnologías
 
@@ -31,6 +32,8 @@ La base de datos y las imágenes viven en la carpeta de datos del usuario, fuera
 | macOS   | `~/Library/Application Support/ArtGallery` |
 
 Dentro hay `artgallery.sqlite` (inventario), `images/originals` (copias exactas de las fotografías) e `images/thumbnails` (miniaturas WebP). El instalador de Windows está configurado para conservar esta carpeta al desinstalar.
+
+Cuando una actualización de la aplicación cambia la estructura de la base de datos, antes de migrarla se guarda una copia completa junto a ella (`artgallery.before-update-v<N>.sqlite`).
 
 ## Desarrollo
 

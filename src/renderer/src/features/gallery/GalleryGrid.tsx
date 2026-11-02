@@ -4,14 +4,19 @@ import "./GalleryGrid.css";
 
 interface GalleryGridProps {
   artworks: readonly ArtworkSummary[];
+  onOpen: (artworkId: string) => void;
 }
 
-export function GalleryGrid({ artworks }: GalleryGridProps) {
+export function GalleryGrid({ artworks, onOpen }: GalleryGridProps) {
   return (
     <ul className="gallery-grid" aria-label="Obras">
       {artworks.map((artwork) => (
         <li key={artwork.id} className="gallery-grid__item">
-          <figure className="gallery-tile">
+          <button
+            type="button"
+            className="gallery-tile"
+            onClick={() => onOpen(artwork.id)}
+          >
             {artwork.primaryImageId ? (
               <img
                 className="gallery-tile__image"
@@ -23,13 +28,13 @@ export function GalleryGrid({ artworks }: GalleryGridProps) {
             ) : (
               <div className="gallery-tile__placeholder" aria-hidden />
             )}
-            <figcaption className="gallery-tile__caption">
+            <span className="gallery-tile__caption">
               <span className="artwork-title">{artwork.title}</span>
               {artwork.artist && (
                 <span className="gallery-tile__artist">{artwork.artist}</span>
               )}
-            </figcaption>
-          </figure>
+            </span>
+          </button>
         </li>
       ))}
     </ul>

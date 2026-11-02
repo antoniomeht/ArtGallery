@@ -69,6 +69,96 @@ describe("InventoryService", () => {
     db.close();
   });
 
+  it("saves every field of the artwork record", async () => {
+    const dataDir = await useTempDir();
+    const session = await openInventory(dataDir);
+    const { id } = await session.service.createArtwork({
+      title: "Marina",
+      imagePaths: [],
+    });
+
+    session.service.updateArtwork(id, {
+      title: "Marina al atardecer",
+      artist: "Ana Ruiz",
+      category: "Pintura",
+      technique: "Óleo",
+      support: "Lienzo",
+      year: 1998,
+      yearApproximate: true,
+      height: 65,
+      width: 81,
+      depth: 3.5,
+      dimensionUnit: "cm",
+      description: "Vista del puerto.",
+      notes: "Marco original.",
+      tags: ["mar", "puerto", "mar"],
+      location: "Salón",
+      status: "loaned",
+      price: 1250.5,
+      currency: "EUR",
+    });
+    session.db.close();
+
+    const reopened = await openInventory(dataDir);
+    expect(reopened.service.getArtwork(id)).toMatchObject({
+      title: "Marina al atardecer",
+      artist: "Ana Ruiz",
+      year: 1998,
+      yearApproximate: true,
+      depth: 3.5,
+      tags: ["mar", "puerto"],
+      status: "loaned",
+      price: 1250.5,
+    });
+    reopened.db.close();
+  });
+
+  it("stores blank optional fields as empty", async () => {
+    const dataDir = await useTempDir();
+    const { db, service } = await openInventory(dataDir);
+    const { id } = await service.createArtwork({
+      title: "Boceto",
+      imagePaths: [],
+    });
+
+    const updated = service.updateArtwork(id, {
+      title: "Boceto",
+      artist: "   ",
+      notes: "",
+    });
+
+    expect(updated).toMatchObject({ artist: null, notes: null, price: null });
+    db.close();
+  });
+
+  it("rejects invalid values without changing the artwork", async () => {
+    const dataDir = await useTempDir();
+    const { db, service } = await openInventory(dataDir);
+    const { id } = await service.createArtwork({
+      title: "Boceto",
+      imagePaths: [],
+    });
+
+    expect(() =>
+      service.updateArtwork(id, { title: "Boceto", height: -10 }),
+    ).toThrow();
+    expect(() =>
+      service.updateArtwork(id, { title: "Boceto", currency: "euros" }),
+    ).toThrow();
+    expect(service.getArtwork(id).height).toBeNull();
+    db.close();
+  });
+
+  it("reports when the artwork does not exist", async () => {
+    const dataDir = await useTempDir();
+    const { db, service } = await openInventory(dataDir);
+
+    expect(() => service.updateArtwork("missing", { title: "X" })).toThrow(
+      /not found/,
+    );
+    db.close();
+  });
+
   it("requires a title", async () => {
     const dataDir = await useTempDir();
     const { db, service } = await openInventory(dataDir);
