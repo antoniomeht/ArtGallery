@@ -64,8 +64,8 @@ export function ExhibitionsPage() {
       {exhibitions?.length === 0 && (
         <div className="gallery-empty">
           <p className="gallery-empty__text">
-            Agrupa obras en una exposición con su lugar y sus fechas, y
-            ordénalas como se van a mostrar.
+            Agrupa obras en una exposición con su lugar y sus fechas, ordénalas
+            y prepara su catálogo y sus cartelas en PDF.
           </p>
           {createButton}
         </div>

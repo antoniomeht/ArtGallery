@@ -1,0 +1,34 @@
+.labels-dialog {
+  display: grid;
+  grid-template-columns: minmax(220px, 280px) 1fr;
+  gap: var(--space-6);
+}
+
+@media (max-width: 720px) {
+  .labels-dialog {
+    grid-template-columns: 1fr;
+  }
+}
+
+.labels-dialog__options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.labels-dialog__summary {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-ink-muted);
+}
+
+/* The label is drawn at real size on a grey table, scrolling if large. */
+.labels-dialog__preview {
+  display: grid;
+  place-items: center;
+  min-height: 240px;
+  max-height: 60vh;
+  padding: var(--space-6);
+  overflow: auto;
+  background: var(--color-plinth);
+}
