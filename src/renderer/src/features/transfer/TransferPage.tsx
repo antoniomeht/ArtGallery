@@ -10,12 +10,55 @@ import { IMPORT_FAILURE_MESSAGES } from "./transferLabels";
 import "./TransferPage.css";
 
 const POLICY_LABELS: Record<DuplicatePolicy, string> = {
-  skip: "Mantener las de mi inventario y no importarlas",
-  replace: "Sustituirlas por la versión del archivo",
-  copy: "Importarlas como obras nuevas (duplicadas)",
+  skip: "Mantener lo que ya tengo y no importarlo",
+  replace: "Sustituirlo por la versión del archivo",
+  copy: "Importarlo como elementos nuevos (duplicados)",
 };
 
 const count = (n: number) => (n === 1 ? "1 obra" : `${n} obras`);
+const exhibitionCount = (n: number) =>
+  n === 1 ? "1 exposición" : `${n} exposiciones`;
+
+/** What importing the package would do, one sentence per line. */
+function summaryLines(preview: ImportPreview): string[] {
+  const { newCount, duplicates, newExhibitions, duplicateExhibitions } =
+    preview;
+  const plural = (n: number, one: string, many: string) =>
+    n === 1 ? one : many.replace("#", String(n));
+  return [
+    newCount === 0
+      ? "Ninguna obra nueva."
+      : plural(
+          newCount,
+          "Se añadirá 1 obra nueva.",
+          "Se añadirán # obras nuevas.",
+        ),
+    duplicates.length > 0 &&
+      plural(
+        duplicates.length,
+        "1 obra ya está en tu inventario.",
+        "# obras ya están en tu inventario.",
+      ),
+    newExhibitions > 0 &&
+      plural(
+        newExhibitions,
+        "Se añadirá 1 exposición.",
+        "Se añadirán # exposiciones.",
+      ),
+    duplicateExhibitions.length > 0 &&
+      plural(
+        duplicateExhibitions.length,
+        "1 exposición ya está en tu inventario.",
+        "# exposiciones ya están en tu inventario.",
+      ),
+    preview.trashedSkipped > 0 &&
+      plural(
+        preview.trashedSkipped,
+        "1 obra estaba en la papelera de origen y no se importará.",
+        "# obras estaban en la papelera de origen y no se importarán.",
+      ),
+  ].filter((line): line is string => Boolean(line));
+}
 
 export function TransferPage() {
   const [preview, setPreview] = useState<ImportPreview | null>(null);
@@ -81,6 +124,7 @@ export function TransferPage() {
         `${count(result.added)} añadidas`,
         result.replaced > 0 && `${result.replaced} sustituidas`,
         result.skipped > 0 && `${result.skipped} sin cambios`,
+        result.exhibitions > 0 && exhibitionCount(result.exhibitions),
       ].filter(Boolean);
       setNotice({ message: `Importación completada: ${parts.join(", ")}.` });
     }, "No se pudo completar la importación. Tu inventario no se ha modificado.");
@@ -160,29 +204,16 @@ export function TransferPage() {
                 {preview.fileName}
               </h3>
               <ul className="import-preview__summary">
-                <li>
-                  {preview.newCount === 0
-                    ? "Ninguna obra nueva."
-                    : `${count(preview.newCount)} nuevas se añadirán.`}
-                </li>
-                {preview.duplicates.length > 0 && (
-                  <li>
-                    {count(preview.duplicates.length)} ya están en tu
-                    inventario.
-                  </li>
-                )}
-                {preview.trashedSkipped > 0 && (
-                  <li>
-                    {count(preview.trashedSkipped)} estaban en la papelera de
-                    origen y no se importarán.
-                  </li>
-                )}
+                {summaryLines(preview).map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
               </ul>
 
-              {preview.duplicates.length > 0 && (
+              {(preview.duplicates.length > 0 ||
+                preview.duplicateExhibitions.length > 0) && (
                 <fieldset className="import-preview__policy">
                   <legend className="field__label">
-                    Obras que ya están en tu inventario
+                    Lo que ya está en tu inventario
                   </legend>
                   {DUPLICATE_POLICIES.map((option) => (
                     <label key={option} className="checkbox">
@@ -203,6 +234,9 @@ export function TransferPage() {
                         <li key={id} className="artwork-title">
                           {title}
                         </li>
+                      ))}
+                      {preview.duplicateExhibitions.map(({ id, name }) => (
+                        <li key={id}>Exposición «{name}»</li>
                       ))}
                     </ul>
                   </details>
