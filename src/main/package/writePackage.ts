@@ -11,6 +11,7 @@ import {
   PACKAGE_FORMAT_VERSION,
   type PackageArtwork,
   type PackageData,
+  type PackageExhibition,
   type PackageKind,
   type PackageManifest,
 } from "./packageFormat";
@@ -23,6 +24,8 @@ export type ExportArtwork = Omit<PackageArtwork, "images"> & {
 export interface WritePackageOptions {
   kind: PackageKind;
   artworks: readonly ExportArtwork[];
+  /** Must only refer to artworks in `artworks`. */
+  exhibitions?: readonly PackageExhibition[];
   appVersion: string;
   now?: Date;
 }
@@ -34,7 +37,13 @@ export interface WritePackageOptions {
  */
 export async function writePackage(
   destination: string,
-  { kind, artworks, appVersion, now = new Date() }: WritePackageOptions,
+  {
+    kind,
+    artworks,
+    exhibitions = [],
+    appVersion,
+    now = new Date(),
+  }: WritePackageOptions,
 ): Promise<PackageManifest> {
   const imageCount = artworks.reduce(
     (sum, { images }) => sum + images.length,
@@ -84,6 +93,7 @@ export async function writePackage(
           ...hashes.get(id)!,
         })),
       })),
+      exhibitions: [...exhibitions],
     };
     callback(null, Readable.from([jsonBuffer(data)]));
   });

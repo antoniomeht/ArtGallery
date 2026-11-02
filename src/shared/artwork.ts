@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { optionalNumber, optionalText } from "./fields";
 
 export const ARTWORK_STATUSES = [
   "available",
@@ -11,19 +12,6 @@ export type ArtworkStatus = (typeof ARTWORK_STATUSES)[number];
 
 export const DIMENSION_UNITS = ["cm", "in"] as const;
 export type DimensionUnit = (typeof DIMENSION_UNITS)[number];
-
-/** Optional free text: blank input is stored as null. */
-const optionalText = (maxLength: number) =>
-  z
-    .string()
-    .trim()
-    .max(maxLength)
-    .nullish()
-    .transform((value) => value || null);
-
-/** Optional number: missing input is stored as null. */
-const optionalNumber = (schema: z.ZodNumber) =>
-  schema.nullish().transform((value) => value ?? null);
 
 const optionalMeasure = optionalNumber(z.number().positive().max(100_000));
 

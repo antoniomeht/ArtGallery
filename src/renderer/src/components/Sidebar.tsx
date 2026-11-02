@@ -2,17 +2,20 @@ import {
   ArrowLeftRight,
   HardDriveDownload,
   Images,
+  Landmark,
   Search,
   Trash2,
   type LucideIcon,
 } from "lucide-react";
 import "./Sidebar.css";
 
-export type Section = "gallery" | "search" | "transfer" | "backups" | "trash";
+export type Section =
+  "gallery" | "search" | "exhibitions" | "transfer" | "backups" | "trash";
 
 const SECTIONS: { id: Section; label: string; icon: LucideIcon }[] = [
   { id: "gallery", label: "Galería", icon: Images },
   { id: "search", label: "Búsqueda y filtros", icon: Search },
+  { id: "exhibitions", label: "Exposiciones", icon: Landmark },
   { id: "transfer", label: "Exportación e importación", icon: ArrowLeftRight },
   { id: "backups", label: "Copias y ajustes", icon: HardDriveDownload },
 ];

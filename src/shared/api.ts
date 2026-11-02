@@ -8,6 +8,12 @@ import type {
   NewArtwork,
 } from "./artwork";
 import type { BackupInfo, RestoreResult } from "./backup";
+import type {
+  Exhibition,
+  ExhibitionDetail,
+  ExhibitionFieldsInput,
+  ExhibitionSummary,
+} from "./exhibition";
 import type { Settings } from "./settings";
 import type {
   DuplicatePolicy,
@@ -42,6 +48,21 @@ export interface ArtGalleryApi {
   /** Permanent: removes the artworks and their images. */
   deleteFromTrash(artworkIds: string[]): Promise<void>;
   emptyTrash(): Promise<void>;
+  listExhibitions(): Promise<ExhibitionSummary[]>;
+  getExhibition(id: string): Promise<ExhibitionDetail>;
+  createExhibition(fields: ExhibitionFieldsInput): Promise<Exhibition>;
+  updateExhibition(
+    id: string,
+    fields: ExhibitionFieldsInput,
+  ): Promise<Exhibition>;
+  /** Deletes the exhibition only; its artworks stay in the inventory. */
+  deleteExhibition(id: string): Promise<void>;
+  /** Sets the artworks and their order. */
+  setExhibitionArtworks(
+    id: string,
+    artworkIds: string[],
+  ): Promise<ExhibitionDetail>;
+  addToExhibition(id: string, artworkIds: string[]): Promise<ExhibitionDetail>;
   getBackupOverview(): Promise<BackupOverview>;
   updateSettings(changes: Partial<Settings>): Promise<Settings>;
   createBackup(): Promise<BackupInfo>;
@@ -80,6 +101,13 @@ export const IpcChannel = {
   restoreFromTrash: "trash:restore",
   deleteFromTrash: "trash:delete",
   emptyTrash: "trash:empty",
+  listExhibitions: "exhibitions:list",
+  getExhibition: "exhibitions:get",
+  createExhibition: "exhibitions:create",
+  updateExhibition: "exhibitions:update",
+  deleteExhibition: "exhibitions:delete",
+  setExhibitionArtworks: "exhibitions:set-artworks",
+  addToExhibition: "exhibitions:add-artworks",
   getBackupOverview: "backups:overview",
   updateSettings: "settings:update",
   createBackup: "backups:create",

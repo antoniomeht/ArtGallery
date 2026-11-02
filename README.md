@@ -2,11 +2,12 @@
 
 Inventario personal de cuadros, pinturas y dibujos para Windows y macOS. Funciona sin conexión, sin cuentas y sin servicios externos: los datos y las imágenes se guardan en el propio equipo.
 
-> **Estado:** en desarrollo. Ya se pueden añadir obras, verlas en la galería, consultar y editar su ficha completa, gestionar sus imágenes y recuperar obras desde la papelera, además de buscar y filtrar el inventario. También hace copias de seguridad manuales y automáticas y las restaura. Permite exportar e importar obras entre equipos y exportar los metadatos a CSV. Las exposiciones llegarán en una próxima entrega.
+> **Estado:** en desarrollo. Ya se pueden añadir obras, verlas en la galería, consultar y editar su ficha completa, gestionar sus imágenes y recuperar obras desde la papelera, además de buscar y filtrar el inventario. También hace copias de seguridad manuales y automáticas y las restaura. Permite exportar e importar obras entre equipos y exportar los metadatos a CSV. También organiza exposiciones con su selección ordenada de obras; el catálogo en PDF y las cartelas llegarán en una próxima entrega.
 
 ## Funciones disponibles
 
 - Galería en cuadrícula con las imágenes como protagonistas, ordenable por fecha de incorporación, título (sin distinguir tildes ni mayúsculas) o año.
+- Exposiciones con nombre, lugar, fechas y descripción, y una selección ordenada de obras. Se pueden añadir obras desde la exposición o desde la selección múltiple de la galería.
 - Copias de seguridad manuales y automáticas (diarias o semanales) con retención configurable, verificación completa de cada copia y restauración segura.
 - Exportación de todo el inventario o de una selección a un archivo `.artgallery` portátil, e importación con resumen previo y elección de qué hacer con las obras que ya existen (mantener, sustituir o duplicar).
 - Exportación de metadatos a CSV (separado por `;`, con BOM UTF-8 para Excel y protegido frente a fórmulas). El CSV no incluye imágenes y no sustituye a una copia de seguridad.
@@ -66,11 +67,11 @@ Desde **Copias y ajustes**:
 
 Las copias de seguridad y las exportaciones usan un mismo formato documentado y versionado: un archivo ZIP con extensión `.artgallery`.
 
-| Entrada             | Contenido                                                                                                                                                                       |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `manifest.json`     | `format: "artgallery"`, `formatVersion` (actualmente `1`), `kind` (`backup` para el inventario completo o `artworks` para una selección), fecha, versión de la app y recuentos. |
-| `data.json`         | Obras con todos sus campos, etiquetas, fechas y la lista ordenada de imágenes (la primera es la principal), cada una con su ruta relativa, tamaño y SHA-256.                    |
-| `images/<id>.<ext>` | Copia exacta de cada imagen original. Las miniaturas no se incluyen: se regeneran al importar.                                                                                  |
+| Entrada             | Contenido                                                                                                                                                                                                                         |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `manifest.json`     | `format: "artgallery"`, `formatVersion` (actualmente `2`; se siguen leyendo paquetes `1`), `kind` (`backup` para el inventario completo o `artworks` para una selección), fecha, versión de la app y recuentos.                   |
+| `data.json`         | Obras con todos sus campos, etiquetas, fechas y la lista ordenada de imágenes (la primera es la principal), cada una con su ruta relativa, tamaño y SHA-256. Desde la versión 2, también las exposiciones con sus obras en orden. |
+| `images/<id>.<ext>` | Copia exacta de cada imagen original. Las miniaturas no se incluyen: se regeneran al importar.                                                                                                                                    |
 
 Al leer un paquete, ArtGallery:
 

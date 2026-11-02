@@ -2,7 +2,7 @@ import { useId, type InputHTMLAttributes } from "react";
 
 type InputProps = Pick<
   InputHTMLAttributes<HTMLInputElement>,
-  "inputMode" | "list" | "maxLength" | "autoFocus" | "required"
+  "inputMode" | "list" | "maxLength" | "autoFocus" | "required" | "type"
 >;
 
 interface FieldProps extends InputProps {

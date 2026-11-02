@@ -11,6 +11,8 @@ import {
   type FilterOptions,
   type NewArtwork,
 } from "../../shared/artwork";
+import type { Exhibition } from "../../shared/exhibition";
+import type { ExhibitionRepository } from "../exhibitions/exhibitionRepository";
 import type { ImageStore, StoredImage } from "../images/imageStore";
 import type { ArtworkRepository } from "./artworkRepository";
 
@@ -19,12 +21,25 @@ export type RestoredArtwork = Omit<Artwork, "images"> & {
   imagePaths: string[];
 };
 
+export interface InventoryServiceOptions {
+  artworks: ArtworkRepository;
+  exhibitions: ExhibitionRepository;
+  images: ImageStore;
+  now?: () => Date;
+}
+
 export class InventoryService {
-  constructor(
-    private readonly artworks: ArtworkRepository,
-    private readonly images: ImageStore,
-    private readonly now: () => Date = () => new Date(),
-  ) {}
+  private readonly artworks: ArtworkRepository;
+  private readonly exhibitions: ExhibitionRepository;
+  private readonly images: ImageStore;
+  private readonly now: () => Date;
+
+  constructor(options: InventoryServiceOptions) {
+    this.artworks = options.artworks;
+    this.exhibitions = options.exhibitions;
+    this.images = options.images;
+    this.now = options.now ?? (() => new Date());
+  }
 
   listArtworks(query: ArtworkQuery = {}): ArtworkSummary[] {
     const { sort, ...filter } = artworkQuerySchema.parse(query);
@@ -49,12 +64,24 @@ export class InventoryService {
    * database is replaced in one transaction; the old image files are removed
    * only after that succeeds. On failure the inventory stays as it was.
    */
-  async replaceInventory(artworks: readonly RestoredArtwork[]): Promise<void> {
+  async replaceInventory(
+    artworks: readonly RestoredArtwork[],
+    exhibitions: readonly Exhibition[],
+  ): Promise<void> {
     await this.writeRestored(
       artworks,
       this.artworks.listAllImages(),
-      (complete) => this.artworks.replaceAll(complete),
+      (complete) =>
+        this.artworks.inTransaction(() => {
+          this.artworks.replaceAll(complete);
+          this.exhibitions.replaceAll(exhibitions);
+        }),
     );
+  }
+
+  /** Every exhibition, for backups. */
+  listAllExhibitions(): Exhibition[] {
+    return this.exhibitions.listAll();
   }
 
   /**
