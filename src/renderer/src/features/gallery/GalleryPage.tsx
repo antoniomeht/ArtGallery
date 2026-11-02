@@ -2,7 +2,8 @@ import { Plus } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import type { ArtworkSort, ArtworkStatus } from "../../../../shared/artwork";
 import { STATUS_LABELS } from "../../../../shared/artworkFormat";
-import { ActionNotice, type NoticeAction } from "../../components/ActionNotice";
+import { ActionNotice } from "../../components/ActionNotice";
+import { useActionNotice } from "../../hooks/useActionNotice";
 import { useArtworkList } from "../../hooks/useArtworkList";
 import { ArtworkRecordDialog } from "../artwork-record/ArtworkRecordDialog";
 import { NewArtworkDialog } from "../new-artwork/NewArtworkDialog";
@@ -21,11 +22,11 @@ export function GalleryPage() {
     [sort],
   );
   const { state, reload } = useArtworkList(listArtworks);
+  const { notice, setNotice, moveToTrash } = useActionNotice(reload);
   const [isAdding, setIsAdding] = useState(false);
   const [openArtworkId, setOpenArtworkId] = useState<string | null>(null);
   /** Null outside selection mode. */
   const [selectedIds, setSelectedIds] = useState<Set<string> | null>(null);
-  const [notice, setNotice] = useState<NoticeAction | null>(null);
 
   const artworks = state.status === "ready" ? state.artworks : [];
   const isSelecting = selectedIds !== null;
@@ -46,18 +47,6 @@ export function GalleryPage() {
       else next.add(artworkId);
       return next;
     });
-  }
-
-  async function moveToTrash(ids: string[], message: string) {
-    await window.artGallery.moveToTrash(ids);
-    setNotice({
-      message,
-      undo: async () => {
-        await window.artGallery.restoreFromTrash(ids);
-        reload();
-      },
-    });
-    reload();
   }
 
   async function setStatus(ids: string[], status: ArtworkStatus) {

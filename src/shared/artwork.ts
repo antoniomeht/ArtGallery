@@ -92,11 +92,41 @@ export const ARTWORK_SORTS = [
 ] as const;
 export type ArtworkSort = (typeof ARTWORK_SORTS)[number];
 
-export const artworkQuerySchema = z.object({
+const filterValue = z.string().trim().min(1).max(300).optional();
+const filterYear = z.number().int().min(-5000).max(3000).optional();
+
+export const artworkFilterSchema = z.object({
+  /** Free text; every word must appear in some field. */
+  text: z.string().trim().max(300).optional(),
+  statuses: z
+    .array(z.enum(ARTWORK_STATUSES))
+    .max(ARTWORK_STATUSES.length)
+    .optional(),
+  category: filterValue,
+  artist: filterValue,
+  technique: filterValue,
+  tag: filterValue,
+  location: filterValue,
+  yearFrom: filterYear,
+  yearTo: filterYear,
+});
+
+export type ArtworkFilter = z.output<typeof artworkFilterSchema>;
+
+export const artworkQuerySchema = artworkFilterSchema.extend({
   sort: z.enum(ARTWORK_SORTS).default("recent"),
 });
 
 export type ArtworkQuery = z.input<typeof artworkQuerySchema>;
+
+/** Distinct values in the inventory, offered as filter choices. */
+export interface FilterOptions {
+  categories: string[];
+  artists: string[];
+  techniques: string[];
+  tags: string[];
+  locations: string[];
+}
 
 export interface ArtworkSummary {
   id: string;

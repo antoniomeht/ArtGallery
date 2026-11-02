@@ -1,10 +1,11 @@
-import { Images, Trash2, type LucideIcon } from "lucide-react";
+import { Images, Search, Trash2, type LucideIcon } from "lucide-react";
 import "./Sidebar.css";
 
-export type Section = "gallery" | "trash";
+export type Section = "gallery" | "search" | "trash";
 
 const SECTIONS: { id: Section; label: string; icon: LucideIcon }[] = [
   { id: "gallery", label: "Galería", icon: Images },
+  { id: "search", label: "Búsqueda y filtros", icon: Search },
 ];
 
 /** Shown apart, at the bottom, so it does not compete with daily sections. */

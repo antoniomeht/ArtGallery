@@ -8,6 +8,7 @@ import {
   type ArtworkQuery,
   type ArtworkStatus,
   type ArtworkSummary,
+  type FilterOptions,
   type NewArtwork,
 } from "../../shared/artwork";
 import type { ImageStore, StoredImage } from "../images/imageStore";
@@ -21,7 +22,12 @@ export class InventoryService {
   ) {}
 
   listArtworks(query: ArtworkQuery = {}): ArtworkSummary[] {
-    return this.artworks.listSummaries(artworkQuerySchema.parse(query));
+    const { sort, ...filter } = artworkQuerySchema.parse(query);
+    return this.artworks.listSummaries({ sort, filter });
+  }
+
+  listFilterOptions(): FilterOptions {
+    return this.artworks.listFilterOptions();
   }
 
   setStatus(ids: readonly string[], status: ArtworkStatus): void {
