@@ -85,20 +85,44 @@ export class InventoryService {
   }
 
   /**
-   * Adds complete artworks, keeping their ids. An artwork whose id already
-   * exists is replaced, images included. All of it in one transaction.
+   * Adds complete artworks and exhibitions, keeping their ids; any with an
+   * existing id is replaced, images included. All of it in one transaction.
+   * Exhibitions only keep references to artworks that end up in the
+   * inventory.
    */
-  async importArtworks(artworks: readonly RestoredArtwork[]): Promise<void> {
+  async importArtworks(
+    artworks: readonly RestoredArtwork[],
+    exhibitions: readonly Exhibition[] = [],
+  ): Promise<void> {
+    const available = new Set([
+      ...this.artworks.listAllIds(),
+      ...artworks.map(({ id }) => id),
+    ]);
     await this.writeRestored(
       artworks,
       this.artworks.listImagesOf(artworks.map(({ id }) => id)),
-      (complete) => this.artworks.upsertAll(complete),
+      (complete) =>
+        this.artworks.inTransaction(() => {
+          this.artworks.upsertAll(complete);
+          this.exhibitions.upsertAll(
+            exhibitions.map((exhibition) => ({
+              ...exhibition,
+              artworkIds: exhibition.artworkIds.filter((id) =>
+                available.has(id),
+              ),
+            })),
+          );
+        }),
     );
   }
 
   /** Ids of every artwork, including those in the trash. */
   artworkIds(): Set<string> {
     return new Set(this.artworks.listAllIds());
+  }
+
+  exhibitionIds(): Set<string> {
+    return new Set(this.exhibitions.listAllIds());
   }
 
   listTrash(): ArtworkSummary[] {
