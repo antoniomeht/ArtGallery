@@ -1,6 +1,7 @@
 import type { Artwork } from "../../../../shared/artwork";
 import {
   formatDimensions,
+  formatMedium,
   formatPrice,
   formatYear,
   STATUS_LABELS,
@@ -12,9 +13,7 @@ interface ArtworkLabelProps {
 
 /** Read-only record laid out like a museum wall label, then the details. */
 export function ArtworkLabel({ artwork }: ArtworkLabelProps) {
-  const techniqueAndSupport = [artwork.technique, artwork.support]
-    .filter(Boolean)
-    .join(" sobre ");
+  const medium = formatMedium(artwork);
   const details: [string, string | null][] = [
     ["Categoría", artwork.category],
     ["Estado", STATUS_LABELS[artwork.status]],
@@ -30,7 +29,7 @@ export function ArtworkLabel({ artwork }: ArtworkLabelProps) {
           <span className="artwork-title">{artwork.title}</span>
           {formatYear(artwork) && <span>, {formatYear(artwork)}</span>}
         </h2>
-        {techniqueAndSupport && <p>{techniqueAndSupport}</p>}
+        {medium && <p>{medium}</p>}
         {formatDimensions(artwork) && <p>{formatDimensions(artwork)}</p>}
       </header>
 
