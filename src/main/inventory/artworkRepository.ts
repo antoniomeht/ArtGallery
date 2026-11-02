@@ -3,6 +3,7 @@ import type {
   Artwork,
   ArtworkFields,
   ArtworkImage,
+  ArtworkSort,
   ArtworkStatus,
   ArtworkSummary,
   DimensionUnit,
@@ -40,6 +41,14 @@ interface ArtworkRow {
   updated_at: string;
   deleted_at: string | null;
 }
+
+const ORDER_BY: Record<ArtworkSort, string> = {
+  recent: "a.created_at DESC",
+  oldest: "a.created_at ASC",
+  title: "sort_key(a.title), a.created_at DESC",
+  "year-asc": "a.year ASC NULLS LAST, sort_key(a.title)",
+  "year-desc": "a.year DESC NULLS LAST, sort_key(a.title)",
+};
 
 /** `?, ?, ?` for an SQL `IN (...)` list. */
 const placeholders = (values: readonly unknown[]) =>
@@ -216,7 +225,10 @@ export class ArtworkRepository {
     };
   }
 
-  listSummaries({ inTrash = false } = {}): ArtworkSummary[] {
+  listSummaries({
+    inTrash = false,
+    sort = "recent",
+  }: { inTrash?: boolean; sort?: ArtworkSort } = {}): ArtworkSummary[] {
     return this.db
       .prepare(
         `SELECT a.id, a.title, a.artist, a.created_at AS createdAt,
@@ -224,9 +236,23 @@ export class ArtworkRepository {
          FROM artworks a
          LEFT JOIN artwork_images i ON i.artwork_id = a.id AND i.position = 0
          WHERE a.deleted_at IS ${inTrash ? "NOT NULL" : "NULL"}
-         ORDER BY ${inTrash ? "a.deleted_at" : "a.created_at"} DESC`,
+         ORDER BY ${inTrash ? "a.deleted_at DESC" : ORDER_BY[sort]}`,
       )
       .all() as unknown as ArtworkSummary[];
+  }
+
+  setStatus(
+    ids: readonly string[],
+    status: ArtworkStatus,
+    updatedAt: string,
+  ): void {
+    if (ids.length === 0) return;
+    this.db
+      .prepare(
+        `UPDATE artworks SET status = ?, updated_at = ?
+         WHERE id IN (${placeholders(ids)})`,
+      )
+      .run(status, updatedAt, ...ids);
   }
 
   /** Moves the given artworks into the trash (or out with `null`). */

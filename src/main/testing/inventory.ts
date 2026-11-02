@@ -5,9 +5,9 @@ import { ArtworkRepository } from "../inventory/artworkRepository";
 import { InventoryService } from "../inventory/inventoryService";
 
 /** Opens the inventory stored in `dataDir`, as the app does on startup. */
-export function openInventory(dataDir: string) {
+export function openInventory(dataDir: string, now?: () => Date) {
   const db = openDatabase(join(dataDir, "artgallery.sqlite"));
   const images = new ImageStore(join(dataDir, "images"));
-  const service = new InventoryService(new ArtworkRepository(db), images);
+  const service = new InventoryService(new ArtworkRepository(db), images, now);
   return { db, images, service };
 }

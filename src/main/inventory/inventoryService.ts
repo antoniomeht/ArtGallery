@@ -1,9 +1,12 @@
 import { randomUUID } from "node:crypto";
 import {
   artworkFieldsSchema,
+  artworkQuerySchema,
   newArtworkSchema,
   type Artwork,
   type ArtworkFieldsInput,
+  type ArtworkQuery,
+  type ArtworkStatus,
   type ArtworkSummary,
   type NewArtwork,
 } from "../../shared/artwork";
@@ -17,8 +20,12 @@ export class InventoryService {
     private readonly now: () => Date = () => new Date(),
   ) {}
 
-  listArtworks(): ArtworkSummary[] {
-    return this.artworks.listSummaries();
+  listArtworks(query: ArtworkQuery = {}): ArtworkSummary[] {
+    return this.artworks.listSummaries(artworkQuerySchema.parse(query));
+  }
+
+  setStatus(ids: readonly string[], status: ArtworkStatus): void {
+    this.artworks.setStatus(ids, status, this.timestamp());
   }
 
   listTrash(): ArtworkSummary[] {

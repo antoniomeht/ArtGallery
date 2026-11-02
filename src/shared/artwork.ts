@@ -83,6 +83,21 @@ export interface Artwork extends ArtworkFields {
   deletedAt: string | null;
 }
 
+export const ARTWORK_SORTS = [
+  "recent",
+  "oldest",
+  "title",
+  "year-asc",
+  "year-desc",
+] as const;
+export type ArtworkSort = (typeof ARTWORK_SORTS)[number];
+
+export const artworkQuerySchema = z.object({
+  sort: z.enum(ARTWORK_SORTS).default("recent"),
+});
+
+export type ArtworkQuery = z.input<typeof artworkQuerySchema>;
+
 export interface ArtworkSummary {
   id: string;
   title: string;
