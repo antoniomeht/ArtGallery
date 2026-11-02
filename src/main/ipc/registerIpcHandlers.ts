@@ -20,6 +20,21 @@ export function registerIpcHandlers(inventory: InventoryService): void {
     (_event, id: string, fields: ArtworkFieldsInput) =>
       inventory.updateArtwork(id, fields),
   );
+  ipcMain.handle(
+    IpcChannel.addImages,
+    (_event, artworkId: string, imagePaths: string[]) =>
+      inventory.addImages(artworkId, imagePaths),
+  );
+  ipcMain.handle(
+    IpcChannel.removeImage,
+    (_event, artworkId: string, imageId: string) =>
+      inventory.removeImage(artworkId, imageId),
+  );
+  ipcMain.handle(
+    IpcChannel.setPrimaryImage,
+    (_event, artworkId: string, imageId: string) =>
+      inventory.setPrimaryImage(artworkId, imageId),
+  );
 
   ipcMain.handle(IpcChannel.pickImages, async (event) => {
     const window = BrowserWindow.fromWebContents(event.sender);

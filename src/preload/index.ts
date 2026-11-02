@@ -7,6 +7,12 @@ const api: ArtGalleryApi = {
   createArtwork: (input) => ipcRenderer.invoke(IpcChannel.createArtwork, input),
   updateArtwork: (id, fields) =>
     ipcRenderer.invoke(IpcChannel.updateArtwork, id, fields),
+  addImages: (artworkId, imagePaths) =>
+    ipcRenderer.invoke(IpcChannel.addImages, artworkId, imagePaths),
+  removeImage: (artworkId, imageId) =>
+    ipcRenderer.invoke(IpcChannel.removeImage, artworkId, imageId),
+  setPrimaryImage: (artworkId, imageId) =>
+    ipcRenderer.invoke(IpcChannel.setPrimaryImage, artworkId, imageId),
   pickImages: () => ipcRenderer.invoke(IpcChannel.pickImages),
 };
 

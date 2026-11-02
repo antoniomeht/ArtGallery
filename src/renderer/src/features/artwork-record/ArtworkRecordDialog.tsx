@@ -91,7 +91,13 @@ export function ArtworkRecordDialog({
 
       {state.status === "ready" && (
         <div className="record__layout">
-          <ImageViewer artwork={state.artwork} />
+          <ImageViewer
+            artwork={state.artwork}
+            onArtworkChange={(artwork) => {
+              setState({ status: "ready", artwork });
+              onChanged();
+            }}
+          />
           <div className="record__panel">
             {isEditing ? (
               <ArtworkForm

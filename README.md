@@ -2,7 +2,7 @@
 
 Inventario personal de cuadros, pinturas y dibujos para Windows y macOS. Funciona sin conexión, sin cuentas y sin servicios externos: los datos y las imágenes se guardan en el propio equipo.
 
-> **Estado:** en desarrollo. Ya se pueden añadir obras, verlas en la galería y consultar y editar su ficha completa. La gestión de imágenes desde la ficha, la papelera, la búsqueda, las copias de seguridad, la importación/exportación y las exposiciones llegarán en próximas entregas.
+> **Estado:** en desarrollo. Ya se pueden añadir obras, verlas en la galería, consultar y editar su ficha completa y gestionar sus imágenes. La papelera, la búsqueda, las copias de seguridad, la importación/exportación y las exposiciones llegarán en próximas entregas.
 
 ## Funciones disponibles
 
@@ -10,6 +10,7 @@ Inventario personal de cuadros, pinturas y dibujos para Windows y macOS. Funcion
 - Alta de obras pidiendo solo lo imprescindible: título (obligatorio), artista e imágenes. La primera imagen es la principal.
 - Las fotografías se copian al almacenamiento de ArtGallery: la obra sigue funcionando aunque se mueva o borre el archivo original.
 - Ficha de cada obra con estilo de cartela de museo y edición de todos los campos: artista, categoría, técnica y soporte, año (exacto o aproximado), alto, ancho y profundidad con unidades, descripción, notas, etiquetas, ubicación, estado (disponible, expuesta, prestada, vendida u otro) y precio con moneda.
+- Gestión de imágenes desde la ficha: añadir más, elegir la principal (la portada en la galería) y quitar imágenes con confirmación.
 
 ## Tecnologías
 

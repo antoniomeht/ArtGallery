@@ -1,27 +1,15 @@
 import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { openDatabase } from "../database/openDatabase";
-import { ImageStore } from "../images/imageStore";
 import { createTestImage, listFiles, useTempDir } from "../testing/fixtures";
-import { ArtworkRepository } from "./artworkRepository";
-import { InventoryService } from "./inventoryService";
-
-async function openInventory(dataDir: string) {
-  const db = openDatabase(join(dataDir, "artgallery.sqlite"));
-  const service = new InventoryService(
-    new ArtworkRepository(db),
-    new ImageStore(join(dataDir, "images")),
-  );
-  return { db, service };
-}
+import { openInventory } from "../testing/inventory";
 
 describe("InventoryService", () => {
   it("finds an artwork with its image after the app is reopened", async () => {
     const dataDir = await useTempDir();
     const photo = await createTestImage(join(dataDir, "photo.jpg"));
 
-    const session = await openInventory(dataDir);
+    const session = openInventory(dataDir);
     const created = await session.service.createArtwork({
       title: "Bodegón con limones",
       artist: "Ana Ruiz",
@@ -29,7 +17,7 @@ describe("InventoryService", () => {
     });
     session.db.close();
 
-    const reopened = await openInventory(dataDir);
+    const reopened = openInventory(dataDir);
     expect(reopened.service.listArtworks()).toEqual([created]);
     expect(created.primaryImageId).not.toBeNull();
     reopened.db.close();
@@ -37,7 +25,7 @@ describe("InventoryService", () => {
 
   it("uses the first image as the primary one", async () => {
     const dataDir = await useTempDir();
-    const { db, service } = await openInventory(dataDir);
+    const { db, service } = openInventory(dataDir);
     const first = await createTestImage(join(dataDir, "first.png"));
     const second = await createTestImage(join(dataDir, "second.png"));
 
@@ -55,7 +43,7 @@ describe("InventoryService", () => {
 
   it("saves nothing when one of the images is invalid", async () => {
     const dataDir = await useTempDir();
-    const { db, service } = await openInventory(dataDir);
+    const { db, service } = openInventory(dataDir);
     const valid = await createTestImage(join(dataDir, "valid.jpg"));
     const broken = join(dataDir, "broken.jpg");
     await writeFile(broken, "corrupted");
@@ -71,7 +59,7 @@ describe("InventoryService", () => {
 
   it("saves every field of the artwork record", async () => {
     const dataDir = await useTempDir();
-    const session = await openInventory(dataDir);
+    const session = openInventory(dataDir);
     const { id } = await session.service.createArtwork({
       title: "Marina",
       imagePaths: [],
@@ -99,7 +87,7 @@ describe("InventoryService", () => {
     });
     session.db.close();
 
-    const reopened = await openInventory(dataDir);
+    const reopened = openInventory(dataDir);
     expect(reopened.service.getArtwork(id)).toMatchObject({
       title: "Marina al atardecer",
       artist: "Ana Ruiz",
@@ -115,7 +103,7 @@ describe("InventoryService", () => {
 
   it("stores blank optional fields as empty", async () => {
     const dataDir = await useTempDir();
-    const { db, service } = await openInventory(dataDir);
+    const { db, service } = openInventory(dataDir);
     const { id } = await service.createArtwork({
       title: "Boceto",
       imagePaths: [],
@@ -133,7 +121,7 @@ describe("InventoryService", () => {
 
   it("rejects invalid values without changing the artwork", async () => {
     const dataDir = await useTempDir();
-    const { db, service } = await openInventory(dataDir);
+    const { db, service } = openInventory(dataDir);
     const { id } = await service.createArtwork({
       title: "Boceto",
       imagePaths: [],
@@ -151,7 +139,7 @@ describe("InventoryService", () => {
 
   it("reports when the artwork does not exist", async () => {
     const dataDir = await useTempDir();
-    const { db, service } = await openInventory(dataDir);
+    const { db, service } = openInventory(dataDir);
 
     expect(() => service.updateArtwork("missing", { title: "X" })).toThrow(
       /not found/,
@@ -161,7 +149,7 @@ describe("InventoryService", () => {
 
   it("requires a title", async () => {
     const dataDir = await useTempDir();
-    const { db, service } = await openInventory(dataDir);
+    const { db, service } = openInventory(dataDir);
 
     await expect(
       service.createArtwork({ title: "   ", imagePaths: [] }),
