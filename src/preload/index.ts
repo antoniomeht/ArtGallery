@@ -13,6 +13,14 @@ const api: ArtGalleryApi = {
     ipcRenderer.invoke(IpcChannel.removeImage, artworkId, imageId),
   setPrimaryImage: (artworkId, imageId) =>
     ipcRenderer.invoke(IpcChannel.setPrimaryImage, artworkId, imageId),
+  listTrash: () => ipcRenderer.invoke(IpcChannel.listTrash),
+  moveToTrash: (artworkIds) =>
+    ipcRenderer.invoke(IpcChannel.moveToTrash, artworkIds),
+  restoreFromTrash: (artworkIds) =>
+    ipcRenderer.invoke(IpcChannel.restoreFromTrash, artworkIds),
+  deleteFromTrash: (artworkIds) =>
+    ipcRenderer.invoke(IpcChannel.deleteFromTrash, artworkIds),
+  emptyTrash: () => ipcRenderer.invoke(IpcChannel.emptyTrash),
   pickImages: () => ipcRenderer.invoke(IpcChannel.pickImages),
 };
 
