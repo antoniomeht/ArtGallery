@@ -8,7 +8,7 @@ interface GalleryGridProps {
   /** When set, the grid is in selection mode and tiles toggle selection. */
   selectedIds: ReadonlySet<string> | null;
   onOpen: (artworkId: string) => void;
-  onToggle: (artworkId: string) => void;
+  onToggle?: (artworkId: string) => void;
 }
 
 export function GalleryGrid({
@@ -28,7 +28,7 @@ export function GalleryGrid({
               className="gallery-tile"
               aria-pressed={selectedIds ? isSelected : undefined}
               onClick={() =>
-                selectedIds ? onToggle(artwork.id) : onOpen(artwork.id)
+                selectedIds ? onToggle?.(artwork.id) : onOpen(artwork.id)
               }
             >
               {artwork.primaryImageId ? (
