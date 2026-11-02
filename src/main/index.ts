@@ -2,6 +2,7 @@ import { app, BrowserWindow, shell } from "electron";
 import { join } from "node:path";
 import { BackupService } from "./backup/backupService";
 import { openDatabase } from "./database/openDatabase";
+import { seedDemoInventory } from "./demo/demoInventory";
 import { ExhibitionRepository } from "./exhibitions/exhibitionRepository";
 import { ExhibitionService } from "./exhibitions/exhibitionService";
 import { ImageStore } from "./images/imageStore";
@@ -53,7 +54,16 @@ function createMainWindow(): BrowserWindow {
 
 registerMediaScheme();
 
-void app.whenReady().then(() => {
+// `npm run demo` opens the app on its own data folder filled with fictional
+// artworks, so it never touches real data. Only available in development.
+const isDemo = !app.isPackaged && process.argv.includes("--demo");
+if (isDemo) {
+  const demoDir = join(app.getAppPath(), ".demo");
+  app.setPath("userData", join(demoDir, "data"));
+  app.setPath("documents", join(demoDir, "documents"));
+}
+
+void app.whenReady().then(async () => {
   // Per-user data folder: %APPDATA%\ArtGallery on Windows and
   // ~/Library/Application Support/ArtGallery on macOS.
   const dataDir = app.getPath("userData");
@@ -89,6 +99,14 @@ void app.whenReady().then(() => {
     workDir: join(dataDir, "tmp"),
     appVersion: app.getVersion(),
   });
+
+  if (isDemo) {
+    await seedDemoInventory({
+      inventory,
+      exhibitions,
+      workDir: join(dataDir, "tmp", "demo"),
+    });
+  }
 
   handleMediaRequests(imageStore);
   registerIpcHandlers(inventory);
