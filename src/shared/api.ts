@@ -9,6 +9,12 @@ import type {
 } from "./artwork";
 import type { BackupInfo, RestoreResult } from "./backup";
 import type { Settings } from "./settings";
+import type {
+  DuplicatePolicy,
+  ExportResult,
+  ImportPreviewResult,
+  ImportResult,
+} from "./transfer";
 
 export interface BackupOverview {
   /** Where backups are written and looked for. */
@@ -45,6 +51,16 @@ export interface ArtGalleryApi {
   chooseBackupFolder(): Promise<string | null>;
   chooseBackupFile(): Promise<string | null>;
   openFolder(which: "backups" | "data"): Promise<void>;
+  /** Asks where to save; null ids exports every artwork outside the trash. */
+  exportPackage(artworkIds: string[] | null): Promise<ExportResult | null>;
+  exportCsv(artworkIds: string[] | null): Promise<ExportResult | null>;
+  /** Asks for a package and validates it; null if the user cancels. */
+  previewImport(): Promise<ImportPreviewResult | null>;
+  applyImport(
+    sessionId: string,
+    policy: DuplicatePolicy,
+  ): Promise<ImportResult>;
+  cancelImport(sessionId: string): Promise<void>;
   /** Opens the system file picker and returns the chosen image paths. */
   pickImages(): Promise<string[]>;
 }
@@ -71,5 +87,10 @@ export const IpcChannel = {
   chooseBackupFolder: "backups:choose-folder",
   chooseBackupFile: "backups:choose-file",
   openFolder: "shell:open-folder",
+  exportPackage: "transfer:export-package",
+  exportCsv: "transfer:export-csv",
+  previewImport: "transfer:preview-import",
+  applyImport: "transfer:apply-import",
+  cancelImport: "transfer:cancel-import",
   pickImages: "dialog:pick-images",
 } as const satisfies Record<keyof ArtGalleryApi, string>;

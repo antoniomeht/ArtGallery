@@ -6,7 +6,7 @@ import { settingsSchema } from "../../shared/settings";
 import type { BackupService } from "../backup/backupService";
 import { PACKAGE_EXTENSION } from "../package/packageFormat";
 import type { SettingsStore } from "../settings/settingsStore";
-import { showOpenDialog } from "./showOpenDialog";
+import { showOpenDialog } from "./dialogs";
 
 interface BackupHandlerOptions {
   backups: BackupService;

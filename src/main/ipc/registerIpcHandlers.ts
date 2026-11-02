@@ -9,7 +9,7 @@ import {
 } from "../../shared/artwork";
 import { SUPPORTED_IMAGE_EXTENSIONS } from "../images/imageStore";
 import type { InventoryService } from "../inventory/inventoryService";
-import { showOpenDialog } from "./showOpenDialog";
+import { showOpenDialog } from "./dialogs";
 
 const artworkIdsSchema = z.array(z.string().min(1)).max(10_000);
 

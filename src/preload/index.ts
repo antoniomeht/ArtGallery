@@ -32,6 +32,15 @@ const api: ArtGalleryApi = {
   chooseBackupFolder: () => ipcRenderer.invoke(IpcChannel.chooseBackupFolder),
   chooseBackupFile: () => ipcRenderer.invoke(IpcChannel.chooseBackupFile),
   openFolder: (which) => ipcRenderer.invoke(IpcChannel.openFolder, which),
+  exportPackage: (artworkIds) =>
+    ipcRenderer.invoke(IpcChannel.exportPackage, artworkIds),
+  exportCsv: (artworkIds) =>
+    ipcRenderer.invoke(IpcChannel.exportCsv, artworkIds),
+  previewImport: () => ipcRenderer.invoke(IpcChannel.previewImport),
+  applyImport: (sessionId, policy) =>
+    ipcRenderer.invoke(IpcChannel.applyImport, sessionId, policy),
+  cancelImport: (sessionId) =>
+    ipcRenderer.invoke(IpcChannel.cancelImport, sessionId),
   pickImages: () => ipcRenderer.invoke(IpcChannel.pickImages),
 };
 
