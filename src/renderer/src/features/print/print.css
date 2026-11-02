@@ -91,3 +91,58 @@
 .catalog-entry__detail {
   color: #333333;
 }
+
+/* Label sheets carry their own margins, so their pages have none. */
+@page labels {
+  size: A4;
+  margin: 0;
+}
+
+.label-sheet {
+  page: labels;
+  display: grid;
+  align-content: start;
+  box-sizing: border-box;
+  width: 210mm;
+  height: 297mm;
+  break-after: page;
+  background: #ffffff;
+}
+
+.label-sheet:last-child {
+  break-after: auto;
+}
+
+.label-card {
+  --label-scale: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: calc(0.8mm * var(--label-scale));
+  box-sizing: border-box;
+  padding: calc(5mm * var(--label-scale));
+  overflow: hidden;
+  /* Dashed edge to cut along; light enough not to show if cut slightly in. */
+  border: 0.2mm dashed #b5b5b5;
+  color: #000000;
+  background: #ffffff;
+  font-size: calc(3.4mm * var(--label-scale));
+  line-height: 1.3;
+}
+
+.label-card p {
+  margin: 0;
+}
+
+.label-card__artist {
+  font-weight: 600;
+}
+
+.label-card__title {
+  font-size: 1.15em;
+}
+
+.label-card__detail {
+  font-size: 0.85em;
+  color: #333333;
+}
