@@ -4,12 +4,14 @@ import type {
   ArtworkQuery,
   ArtworkStatus,
   ArtworkSummary,
+  FilterOptions,
   NewArtwork,
 } from "./artwork";
 
 /** Contract exposed by the preload script as `window.artGallery`. */
 export interface ArtGalleryApi {
   listArtworks(query?: ArtworkQuery): Promise<ArtworkSummary[]>;
+  listFilterOptions(): Promise<FilterOptions>;
   getArtwork(id: string): Promise<Artwork>;
   createArtwork(input: NewArtwork): Promise<ArtworkSummary>;
   updateArtwork(id: string, fields: ArtworkFieldsInput): Promise<Artwork>;
@@ -29,6 +31,7 @@ export interface ArtGalleryApi {
 
 export const IpcChannel = {
   listArtworks: "artworks:list",
+  listFilterOptions: "artworks:filter-options",
   getArtwork: "artworks:get",
   createArtwork: "artworks:create",
   updateArtwork: "artworks:update",
