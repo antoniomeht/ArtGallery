@@ -1,18 +1,40 @@
-import { Images } from "lucide-react";
+import { Images, Trash2, type LucideIcon } from "lucide-react";
 import "./Sidebar.css";
 
-export function Sidebar() {
+export type Section = "gallery" | "trash";
+
+const SECTIONS: { id: Section; label: string; icon: LucideIcon }[] = [
+  { id: "gallery", label: "Galería", icon: Images },
+];
+
+/** Shown apart, at the bottom, so it does not compete with daily sections. */
+const TRASH = { id: "trash", label: "Papelera", icon: Trash2 } as const;
+
+interface SidebarProps {
+  current: Section;
+  onNavigate: (section: Section) => void;
+}
+
+export function Sidebar({ current, onNavigate }: SidebarProps) {
+  const renderLink = ({ id, label, icon: Icon }: (typeof SECTIONS)[number]) => (
+    <li key={id}>
+      <button
+        type="button"
+        className="sidebar__link"
+        aria-current={current === id ? "page" : undefined}
+        onClick={() => onNavigate(id)}
+      >
+        <Icon aria-hidden size={18} strokeWidth={1.75} />
+        {label}
+      </button>
+    </li>
+  );
+
   return (
     <nav className="sidebar" aria-label="Secciones">
       <p className="sidebar__brand">ArtGallery</p>
-      <ul className="sidebar__list">
-        <li>
-          <a className="sidebar__link" href="#galeria" aria-current="page">
-            <Images aria-hidden size={18} strokeWidth={1.75} />
-            Galería
-          </a>
-        </li>
-      </ul>
+      <ul className="sidebar__list">{SECTIONS.map(renderLink)}</ul>
+      <ul className="sidebar__list sidebar__list--end">{renderLink(TRASH)}</ul>
     </nav>
   );
 }

@@ -50,6 +50,11 @@ const migrations: readonly string[] = [
     PRIMARY KEY (artwork_id, tag)
   );
   `,
+  `
+  -- Artworks in the trash keep all their data until deleted permanently.
+  ALTER TABLE artworks ADD COLUMN deleted_at TEXT;
+  CREATE INDEX artworks_deleted_at ON artworks (deleted_at);
+  `,
 ];
 
 export const LATEST_SCHEMA_VERSION = migrations.length;

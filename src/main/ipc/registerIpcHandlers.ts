@@ -1,8 +1,11 @@
 import { BrowserWindow, dialog, ipcMain } from "electron";
+import { z } from "zod";
 import { IpcChannel } from "../../shared/api";
 import type { ArtworkFieldsInput, NewArtwork } from "../../shared/artwork";
 import { SUPPORTED_IMAGE_EXTENSIONS } from "../images/imageStore";
 import type { InventoryService } from "../inventory/inventoryService";
+
+const artworkIdsSchema = z.array(z.string().min(1)).max(10_000);
 
 export function registerIpcHandlers(inventory: InventoryService): void {
   ipcMain.handle(IpcChannel.listArtworks, () => inventory.listArtworks());
@@ -35,6 +38,18 @@ export function registerIpcHandlers(inventory: InventoryService): void {
     (_event, artworkId: string, imageId: string) =>
       inventory.setPrimaryImage(artworkId, imageId),
   );
+
+  ipcMain.handle(IpcChannel.listTrash, () => inventory.listTrash());
+  ipcMain.handle(IpcChannel.moveToTrash, (_event, ids: unknown) =>
+    inventory.moveToTrash(artworkIdsSchema.parse(ids)),
+  );
+  ipcMain.handle(IpcChannel.restoreFromTrash, (_event, ids: unknown) =>
+    inventory.restoreFromTrash(artworkIdsSchema.parse(ids)),
+  );
+  ipcMain.handle(IpcChannel.deleteFromTrash, (_event, ids: unknown) =>
+    inventory.deleteFromTrash(artworkIdsSchema.parse(ids)),
+  );
+  ipcMain.handle(IpcChannel.emptyTrash, () => inventory.deleteFromTrash());
 
   ipcMain.handle(IpcChannel.pickImages, async (event) => {
     const window = BrowserWindow.fromWebContents(event.sender);

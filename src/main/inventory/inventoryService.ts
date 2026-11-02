@@ -21,6 +21,29 @@ export class InventoryService {
     return this.artworks.listSummaries();
   }
 
+  listTrash(): ArtworkSummary[] {
+    return this.artworks.listSummaries({ inTrash: true });
+  }
+
+  /** Recoverable: the artworks keep all their data and images. */
+  moveToTrash(ids: readonly string[]): void {
+    this.artworks.setDeletedAt(ids, this.timestamp());
+  }
+
+  restoreFromTrash(ids: readonly string[]): void {
+    this.artworks.setDeletedAt(ids, null);
+  }
+
+  /**
+   * Permanently deletes artworks that are in the trash (all of them when
+   * `ids` is omitted). Artworks outside the trash are never touched.
+   */
+  async deleteFromTrash(ids?: readonly string[]): Promise<void> {
+    const images = this.artworks.deleteFromTrash(ids);
+    // Files go only after the database change is committed.
+    await Promise.all(images.map((image) => this.images.deleteImage(image)));
+  }
+
   getArtwork(id: string): Artwork {
     const artwork = this.artworks.findById(id);
     if (!artwork) throw new Error(`Artwork not found: ${id}`);
@@ -45,7 +68,11 @@ export class InventoryService {
         createdAt: this.timestamp(),
       };
       this.artworks.insert(record, stored);
-      return { ...record, primaryImageId: stored[0]?.id ?? null };
+      return {
+        ...record,
+        primaryImageId: stored[0]?.id ?? null,
+        deletedAt: null,
+      };
     });
   }
 

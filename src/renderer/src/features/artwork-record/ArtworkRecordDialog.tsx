@@ -1,4 +1,4 @@
-import { ArrowLeft, Pencil } from "lucide-react";
+import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { Artwork } from "../../../../shared/artwork";
 import { ArtworkForm } from "./ArtworkForm";
@@ -11,6 +11,7 @@ interface ArtworkRecordDialogProps {
   onClose: () => void;
   /** Called after the artwork is saved, so the gallery can refresh. */
   onChanged: () => void;
+  onMovedToTrash: (artwork: Artwork) => void;
 }
 
 type RecordState =
@@ -22,6 +23,7 @@ export function ArtworkRecordDialog({
   artworkId,
   onClose,
   onChanged,
+  onMovedToTrash,
 }: ArtworkRecordDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [state, setState] = useState<RecordState>({ status: "loading" });
@@ -66,14 +68,27 @@ export function ArtworkRecordDialog({
           Galería
         </button>
         {state.status === "ready" && !isEditing && (
-          <button
-            type="button"
-            className="button"
-            onClick={() => setIsEditing(true)}
-          >
-            <Pencil aria-hidden size={16} />
-            Editar
-          </button>
+          <div className="record__actions">
+            <button
+              type="button"
+              className="button"
+              onClick={async () => {
+                await window.artGallery.moveToTrash([state.artwork.id]);
+                onMovedToTrash(state.artwork);
+              }}
+            >
+              <Trash2 aria-hidden size={16} />
+              Mover a la papelera
+            </button>
+            <button
+              type="button"
+              className="button"
+              onClick={() => setIsEditing(true)}
+            >
+              <Pencil aria-hidden size={16} />
+              Editar
+            </button>
+          </div>
         )}
       </header>
 

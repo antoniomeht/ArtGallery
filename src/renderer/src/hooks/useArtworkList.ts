@@ -1,25 +1,26 @@
 import { useCallback, useEffect, useState } from "react";
-import type { ArtworkSummary } from "../../../../shared/artwork";
+import type { ArtworkSummary } from "../../../shared/artwork";
 
-export type ArtworksState =
+export type ArtworkListState =
   | { status: "loading" }
   | { status: "error" }
   | { status: "ready"; artworks: ArtworkSummary[] };
 
-export function useArtworks() {
-  const [state, setState] = useState<ArtworksState>({ status: "loading" });
+/** Loads a list of artworks with `load` and reloads it on demand. */
+export function useArtworkList(load: () => Promise<ArtworkSummary[]>) {
+  const [state, setState] = useState<ArtworkListState>({ status: "loading" });
   const [version, setVersion] = useState(0);
 
   useEffect(() => {
     let isCurrent = true;
-    window.artGallery.listArtworks().then(
+    load().then(
       (artworks) => isCurrent && setState({ status: "ready", artworks }),
       () => isCurrent && setState({ status: "error" }),
     );
     return () => {
       isCurrent = false;
     };
-  }, [version]);
+  }, [load, version]);
 
   const reload = useCallback(() => setVersion((current) => current + 1), []);
 

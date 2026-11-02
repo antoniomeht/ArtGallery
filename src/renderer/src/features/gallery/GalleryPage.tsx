@@ -1,13 +1,20 @@
 import { Plus } from "lucide-react";
 import { useState } from "react";
+import type { ArtworkSummary } from "../../../../shared/artwork";
+import { useArtworkList } from "../../hooks/useArtworkList";
 import { ArtworkRecordDialog } from "../artwork-record/ArtworkRecordDialog";
 import { NewArtworkDialog } from "../new-artwork/NewArtworkDialog";
 import { GalleryGrid } from "./GalleryGrid";
-import { useArtworks } from "./useArtworks";
 import "./GalleryPage.css";
 
+const listArtworks = () => window.artGallery.listArtworks();
+
 export function GalleryPage() {
-  const { state, reload } = useArtworks();
+  const { state, reload } = useArtworkList(listArtworks);
+  const [trashed, setTrashed] = useState<Pick<
+    ArtworkSummary,
+    "id" | "title"
+  > | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [openArtworkId, setOpenArtworkId] = useState<string | null>(null);
   const openNewArtwork = () => setIsAdding(true);
@@ -87,8 +94,40 @@ export function GalleryPage() {
           artworkId={openArtworkId}
           onClose={() => setOpenArtworkId(null)}
           onChanged={reload}
+          onMovedToTrash={(artwork) => {
+            setOpenArtworkId(null);
+            setTrashed(artwork);
+            reload();
+          }}
         />
       )}
+
+      <div className="notice-region" role="status">
+        {trashed && (
+          <div className="notice">
+            <span>«{trashed.title}» se ha movido a la papelera.</span>
+            <button
+              type="button"
+              className="notice__action"
+              onClick={async () => {
+                await window.artGallery.restoreFromTrash([trashed.id]);
+                setTrashed(null);
+                reload();
+              }}
+            >
+              Deshacer
+            </button>
+            <button
+              type="button"
+              className="icon-button notice__close"
+              aria-label="Cerrar aviso"
+              onClick={() => setTrashed(null)}
+            >
+              ×
+            </button>
+          </div>
+        )}
+      </div>
     </section>
   );
 }

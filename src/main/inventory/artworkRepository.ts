@@ -38,7 +38,12 @@ interface ArtworkRow {
   currency: string;
   created_at: string;
   updated_at: string;
+  deleted_at: string | null;
 }
+
+/** `?, ?, ?` for an SQL `IN (...)` list. */
+const placeholders = (values: readonly unknown[]) =>
+  values.map(() => "?").join(", ");
 
 export class ArtworkRepository {
   constructor(private readonly db: DatabaseSync) {}
@@ -207,19 +212,55 @@ export class ArtworkRepository {
       images,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
+      deletedAt: row.deleted_at,
     };
   }
 
-  listSummaries(): ArtworkSummary[] {
+  listSummaries({ inTrash = false } = {}): ArtworkSummary[] {
     return this.db
       .prepare(
         `SELECT a.id, a.title, a.artist, a.created_at AS createdAt,
-                i.id AS primaryImageId
+                a.deleted_at AS deletedAt, i.id AS primaryImageId
          FROM artworks a
          LEFT JOIN artwork_images i ON i.artwork_id = a.id AND i.position = 0
-         ORDER BY a.created_at DESC`,
+         WHERE a.deleted_at IS ${inTrash ? "NOT NULL" : "NULL"}
+         ORDER BY ${inTrash ? "a.deleted_at" : "a.created_at"} DESC`,
       )
       .all() as unknown as ArtworkSummary[];
+  }
+
+  /** Moves the given artworks into the trash (or out with `null`). */
+  setDeletedAt(ids: readonly string[], deletedAt: string | null): number {
+    if (ids.length === 0) return 0;
+    const { changes } = this.db
+      .prepare(
+        `UPDATE artworks SET deleted_at = ?
+         WHERE id IN (${placeholders(ids)})
+           AND deleted_at IS ${deletedAt ? "NULL" : "NOT NULL"}`,
+      )
+      .run(deletedAt, ...ids);
+    return Number(changes);
+  }
+
+  /**
+   * Deletes artworks that are in the trash (all of them when `ids` is
+   * omitted) and returns their images so the files can be removed.
+   */
+  deleteFromTrash(ids?: readonly string[]): StoredImage[] {
+    return transaction(this.db, () => {
+      const filter = ids
+        ? `deleted_at IS NOT NULL AND id IN (${placeholders(ids)})`
+        : "deleted_at IS NOT NULL";
+      const params = ids ?? [];
+      const images = this.db
+        .prepare(
+          `SELECT id, file_name AS fileName FROM artwork_images
+           WHERE artwork_id IN (SELECT id FROM artworks WHERE ${filter})`,
+        )
+        .all(...params) as unknown as StoredImage[];
+      this.db.prepare(`DELETE FROM artworks WHERE ${filter}`).run(...params);
+      return images;
+    });
   }
 
   private insertImages(

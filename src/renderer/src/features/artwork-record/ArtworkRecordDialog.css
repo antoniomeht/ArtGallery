@@ -24,6 +24,11 @@
   border-bottom: 1px solid var(--color-line);
 }
 
+.record__actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
 .record__status {
   padding: var(--space-8);
   color: var(--color-ink-muted);

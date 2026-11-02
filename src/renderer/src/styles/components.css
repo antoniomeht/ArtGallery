@@ -166,6 +166,40 @@ textarea.field__input {
   font-weight: 600;
 }
 
+/* Short-lived confirmation of an action, with a way to undo it. */
+.notice-region {
+  position: fixed;
+  right: var(--space-6);
+  bottom: var(--space-6);
+  z-index: 1;
+}
+
+.notice {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  color: #ffffff;
+  background: var(--color-ink);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.2);
+}
+
+.notice__action {
+  padding: var(--space-1) var(--space-2);
+  border: none;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-weight: 600;
+  color: #c7d2ff;
+  background: none;
+  cursor: pointer;
+}
+
+.notice__close {
+  color: #ffffff;
+}
+
 .dialog__message {
   margin: 0;
   max-width: 60ch;

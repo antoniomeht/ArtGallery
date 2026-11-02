@@ -14,6 +14,12 @@ export interface ArtGalleryApi {
   addImages(artworkId: string, imagePaths: string[]): Promise<Artwork>;
   removeImage(artworkId: string, imageId: string): Promise<Artwork>;
   setPrimaryImage(artworkId: string, imageId: string): Promise<Artwork>;
+  listTrash(): Promise<ArtworkSummary[]>;
+  moveToTrash(artworkIds: string[]): Promise<void>;
+  restoreFromTrash(artworkIds: string[]): Promise<void>;
+  /** Permanent: removes the artworks and their images. */
+  deleteFromTrash(artworkIds: string[]): Promise<void>;
+  emptyTrash(): Promise<void>;
   /** Opens the system file picker and returns the chosen image paths. */
   pickImages(): Promise<string[]>;
 }
@@ -26,5 +32,10 @@ export const IpcChannel = {
   addImages: "artworks:add-images",
   removeImage: "artworks:remove-image",
   setPrimaryImage: "artworks:set-primary-image",
+  listTrash: "trash:list",
+  moveToTrash: "trash:move",
+  restoreFromTrash: "trash:restore",
+  deleteFromTrash: "trash:delete",
+  emptyTrash: "trash:empty",
   pickImages: "dialog:pick-images",
 } as const satisfies Record<keyof ArtGalleryApi, string>;
