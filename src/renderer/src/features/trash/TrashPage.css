@@ -1,0 +1,53 @@
+.trash-page__intro,
+.trash-page__status,
+.trash-page__error {
+  margin: 0;
+  padding: 0 var(--space-8) var(--space-4);
+  max-width: 72ch;
+  color: var(--color-ink-muted);
+}
+
+.trash-page__error {
+  color: var(--color-danger);
+}
+
+.trash-list {
+  margin: 0;
+  padding: 0 var(--space-8) var(--space-8);
+  list-style: none;
+}
+
+.trash-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.trash-item__image {
+  flex: none;
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  background: var(--color-plinth);
+}
+
+.trash-item__text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.trash-item__meta {
+  font-size: var(--text-sm);
+  color: var(--color-ink-muted);
+}
+
+.trash-item__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
