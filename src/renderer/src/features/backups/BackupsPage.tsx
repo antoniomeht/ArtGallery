@@ -106,12 +106,12 @@ export function BackupsPage() {
       )}
 
       {overview && (
-        <div className="backups-page__content">
-          <section className="settings-section" aria-labelledby="backup-now">
-            <h2 id="backup-now" className="settings-section__title">
+        <div className="page-sections">
+          <section className="page-section" aria-labelledby="backup-now">
+            <h2 id="backup-now" className="page-section__title">
               Copias de seguridad
             </h2>
-            <p className="settings-section__text">
+            <p className="page-section__text">
               Una copia guarda en un solo archivo todo el inventario, incluida
               la papelera, y los originales de todas las imágenes. Cada copia se
               comprueba completa al terminar.
@@ -181,11 +181,11 @@ export function BackupsPage() {
                 </select>
               </label>
             </div>
-            <p className="settings-section__hint">
+            <p className="page-section__hint">
               Las copias manuales nunca se borran automáticamente.
             </p>
 
-            <div className="settings-section__actions">
+            <div className="page-section__actions">
               <button
                 type="button"
                 className="button button--primary"
@@ -203,9 +203,9 @@ export function BackupsPage() {
             )}
           </section>
 
-          <section className="settings-section" aria-labelledby="backup-list">
-            <div className="settings-section__heading">
-              <h2 id="backup-list" className="settings-section__title">
+          <section className="page-section" aria-labelledby="backup-list">
+            <div className="page-section__heading">
+              <h2 id="backup-list" className="page-section__title">
                 Copias disponibles
               </h2>
               <button
@@ -218,12 +218,12 @@ export function BackupsPage() {
               </button>
             </div>
             {busy === "restore" && (
-              <p className="settings-section__text" role="status">
+              <p className="page-section__text" role="status">
                 Restaurando copia… No cierres la aplicación.
               </p>
             )}
             {overview.backups.length === 0 ? (
-              <p className="settings-section__text">
+              <p className="page-section__text">
                 Todavía no hay copias en esta carpeta.
               </p>
             ) : (
@@ -264,11 +264,11 @@ export function BackupsPage() {
             )}
           </section>
 
-          <section className="settings-section" aria-labelledby="data-safety">
-            <h2 id="data-safety" className="settings-section__title">
+          <section className="page-section" aria-labelledby="data-safety">
+            <h2 id="data-safety" className="page-section__title">
               Qué se conserva si desinstalas
             </h2>
-            <ul className="settings-section__list">
+            <ul className="page-section__list">
               <li>
                 El inventario y las imágenes están en{" "}
                 <span className="folder-inline">{overview.dataFolder}</span>. El
