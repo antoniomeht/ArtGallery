@@ -35,6 +35,16 @@
   background: var(--color-accent-hover);
 }
 
+.button--danger {
+  border-color: var(--color-danger);
+  color: #ffffff;
+  background: var(--color-danger);
+}
+
+.button--danger:hover {
+  background: var(--color-danger-hover);
+}
+
 .icon-button {
   display: inline-grid;
   place-items: center;
@@ -154,6 +164,11 @@ textarea.field__input {
   margin: 0;
   font-size: var(--text-lg);
   font-weight: 600;
+}
+
+.dialog__message {
+  margin: 0;
+  max-width: 60ch;
 }
 
 .dialog__error {
