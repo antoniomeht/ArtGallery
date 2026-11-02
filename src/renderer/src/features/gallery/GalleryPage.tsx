@@ -6,6 +6,7 @@ import { ActionNotice } from "../../components/ActionNotice";
 import { useActionNotice } from "../../hooks/useActionNotice";
 import { useArtworkList } from "../../hooks/useArtworkList";
 import { ArtworkRecordDialog } from "../artwork-record/ArtworkRecordDialog";
+import { AddToExhibitionDialog } from "./AddToExhibitionDialog";
 import { NewArtworkDialog } from "../new-artwork/NewArtworkDialog";
 import { GalleryGrid } from "./GalleryGrid";
 import { GalleryToolbar } from "./GalleryToolbar";
@@ -27,6 +28,7 @@ export function GalleryPage() {
   const [openArtworkId, setOpenArtworkId] = useState<string | null>(null);
   /** Null outside selection mode. */
   const [selectedIds, setSelectedIds] = useState<Set<string> | null>(null);
+  const [isChoosingExhibition, setIsChoosingExhibition] = useState(false);
 
   const artworks = state.status === "ready" ? state.artworks : [];
   const isSelecting = selectedIds !== null;
@@ -93,6 +95,7 @@ export function GalleryPage() {
                       });
                     }
                   }}
+                  onAddToExhibition={() => setIsChoosingExhibition(true)}
                   onDone={() => setSelectedIds(null)}
                 />
               ) : (
@@ -169,6 +172,23 @@ export function GalleryPage() {
               [artwork.id],
               `«${artwork.title}» se ha movido a la papelera.`,
             );
+          }}
+        />
+      )}
+
+      {isChoosingExhibition && selectedIds && (
+        <AddToExhibitionDialog
+          artworkCount={selectedIds.size}
+          onClose={() => setIsChoosingExhibition(false)}
+          onChoose={async (exhibition) => {
+            setIsChoosingExhibition(false);
+            await window.artGallery.addToExhibition(exhibition.id, [
+              ...selectedIds,
+            ]);
+            setNotice({
+              message: `${countLabel(selectedIds.size)} añadidas a «${exhibition.name}».`,
+            });
+            setSelectedIds(null);
           }}
         />
       )}

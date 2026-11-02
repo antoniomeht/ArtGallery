@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Sidebar, type Section } from "./components/Sidebar";
 import { BackupsPage } from "./features/backups/BackupsPage";
+import { ExhibitionsPage } from "./features/exhibitions/ExhibitionsPage";
 import { GalleryPage } from "./features/gallery/GalleryPage";
 import { SearchPage } from "./features/search/SearchPage";
 import { TransferPage } from "./features/transfer/TransferPage";
@@ -17,6 +18,7 @@ export function App() {
       <main className="app-main">
         {section === "gallery" && <GalleryPage />}
         {section === "search" && <SearchPage />}
+        {section === "exhibitions" && <ExhibitionsPage />}
         {section === "transfer" && <TransferPage />}
         {section === "backups" && <BackupsPage />}
         {section === "trash" && <TrashPage />}
