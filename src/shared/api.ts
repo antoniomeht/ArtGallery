@@ -7,6 +7,17 @@ import type {
   FilterOptions,
   NewArtwork,
 } from "./artwork";
+import type { BackupInfo, RestoreResult } from "./backup";
+import type { Settings } from "./settings";
+
+export interface BackupOverview {
+  /** Where backups are written and looked for. */
+  folder: string;
+  /** Where the database and images live. */
+  dataFolder: string;
+  settings: Settings;
+  backups: BackupInfo[];
+}
 
 /** Contract exposed by the preload script as `window.artGallery`. */
 export interface ArtGalleryApi {
@@ -25,6 +36,15 @@ export interface ArtGalleryApi {
   /** Permanent: removes the artworks and their images. */
   deleteFromTrash(artworkIds: string[]): Promise<void>;
   emptyTrash(): Promise<void>;
+  getBackupOverview(): Promise<BackupOverview>;
+  updateSettings(changes: Partial<Settings>): Promise<Settings>;
+  createBackup(): Promise<BackupInfo>;
+  /** Validates the backup and replaces the inventory with its contents. */
+  restoreBackup(path: string): Promise<RestoreResult>;
+  /** Returns the chosen folder, already saved in the settings, or null. */
+  chooseBackupFolder(): Promise<string | null>;
+  chooseBackupFile(): Promise<string | null>;
+  openFolder(which: "backups" | "data"): Promise<void>;
   /** Opens the system file picker and returns the chosen image paths. */
   pickImages(): Promise<string[]>;
 }
@@ -44,5 +64,12 @@ export const IpcChannel = {
   restoreFromTrash: "trash:restore",
   deleteFromTrash: "trash:delete",
   emptyTrash: "trash:empty",
+  getBackupOverview: "backups:overview",
+  updateSettings: "settings:update",
+  createBackup: "backups:create",
+  restoreBackup: "backups:restore",
+  chooseBackupFolder: "backups:choose-folder",
+  chooseBackupFile: "backups:choose-file",
+  openFolder: "shell:open-folder",
   pickImages: "dialog:pick-images",
 } as const satisfies Record<keyof ArtGalleryApi, string>;

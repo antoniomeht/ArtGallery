@@ -1,14 +1,19 @@
 import { app, BrowserWindow, shell } from "electron";
 import { join } from "node:path";
+import { BackupService } from "./backup/backupService";
 import { openDatabase } from "./database/openDatabase";
 import { ImageStore } from "./images/imageStore";
 import { ArtworkRepository } from "./inventory/artworkRepository";
 import { InventoryService } from "./inventory/inventoryService";
+import { registerBackupHandlers } from "./ipc/registerBackupHandlers";
 import { registerIpcHandlers } from "./ipc/registerIpcHandlers";
 import {
   handleMediaRequests,
   registerMediaScheme,
 } from "./media/mediaProtocol";
+import { SettingsStore } from "./settings/settingsStore";
+
+const HOUR_MS = 60 * 60 * 1000;
 
 function createMainWindow(): BrowserWindow {
   const window = new BrowserWindow({
@@ -54,10 +59,35 @@ void app.whenReady().then(() => {
   const db = openDatabase(join(dataDir, "artgallery.sqlite"));
   const imageStore = new ImageStore(join(dataDir, "images"));
   const inventory = new InventoryService(new ArtworkRepository(db), imageStore);
+  const settings = new SettingsStore(join(dataDir, "settings.json"));
+  // Backups live outside the app data, so they survive an uninstall that
+  // removes it, and are easy to find and copy elsewhere.
+  const backups = new BackupService({
+    inventory,
+    images: imageStore,
+    settings,
+    defaultFolder: join(
+      app.getPath("documents"),
+      "ArtGallery",
+      "Copias de seguridad",
+    ),
+    workDir: join(dataDir, "tmp"),
+    appVersion: app.getVersion(),
+  });
 
   handleMediaRequests(imageStore);
   registerIpcHandlers(inventory);
+  registerBackupHandlers({ backups, settings, dataFolder: dataDir });
   createMainWindow();
+
+  const runAutomaticBackup = () =>
+    backups
+      .runAutomaticIfDue()
+      .catch((error: unknown) =>
+        console.error("Automatic backup failed", error),
+      );
+  setTimeout(runAutomaticBackup, 10_000);
+  setInterval(runAutomaticBackup, HOUR_MS);
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createMainWindow();

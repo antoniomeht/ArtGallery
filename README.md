@@ -2,11 +2,12 @@
 
 Inventario personal de cuadros, pinturas y dibujos para Windows y macOS. Funciona sin conexión, sin cuentas y sin servicios externos: los datos y las imágenes se guardan en el propio equipo.
 
-> **Estado:** en desarrollo. Ya se pueden añadir obras, verlas en la galería, consultar y editar su ficha completa, gestionar sus imágenes y recuperar obras desde la papelera, además de buscar y filtrar el inventario. Las copias de seguridad, la importación/exportación y las exposiciones llegarán en próximas entregas.
+> **Estado:** en desarrollo. Ya se pueden añadir obras, verlas en la galería, consultar y editar su ficha completa, gestionar sus imágenes y recuperar obras desde la papelera, además de buscar y filtrar el inventario. También hace copias de seguridad manuales y automáticas y las restaura. La importación/exportación y las exposiciones llegarán en próximas entregas.
 
 ## Funciones disponibles
 
 - Galería en cuadrícula con las imágenes como protagonistas, ordenable por fecha de incorporación, título (sin distinguir tildes ni mayúsculas) o año.
+- Copias de seguridad manuales y automáticas (diarias o semanales) con retención configurable, verificación completa de cada copia y restauración segura.
 - Búsqueda de texto en todos los campos (título, artista, técnica, soporte, descripción, notas, ubicación y etiquetas), sin distinguir tildes ni mayúsculas, combinable con filtros de estado, categoría, artista, técnica, etiqueta, ubicación y rango de años.
 - Selección múltiple con acciones en bloque: cambiar el estado o mover a la papelera, con opción de deshacer.
 - Alta de obras pidiendo solo lo imprescindible: título (obligatorio), artista e imágenes. La primera imagen es la principal.
@@ -38,6 +39,26 @@ La base de datos y las imágenes viven en la carpeta de datos del usuario, fuera
 Dentro hay `artgallery.sqlite` (inventario), `images/originals` (copias exactas de las fotografías) e `images/thumbnails` (miniaturas WebP). El instalador de Windows está configurado para conservar esta carpeta al desinstalar.
 
 Cuando una actualización de la aplicación cambia la estructura de la base de datos, antes de migrarla se guarda una copia completa junto a ella (`artgallery.before-update-v<N>.sqlite`).
+
+## Copias de seguridad y recuperación
+
+Desde **Copias y ajustes**:
+
+- **Qué incluye una copia**: un archivo `.artgallery` con todo el inventario (papelera incluida) y los originales de todas las imágenes. Tras escribirla, ArtGallery la vuelve a leer completa y comprueba cada imagen antes de darla por buena.
+- **Dónde se guarda**: por defecto en `Documentos/ArtGallery/Copias de seguridad`, fuera de la instalación y de la carpeta de datos. La carpeta se puede cambiar, por ejemplo a un disco externo o a una carpeta sincronizada.
+- **Copias automáticas**: diarias (por defecto), semanales o desactivadas. Se comprueban al iniciar la aplicación y cada hora mientras está abierta, y no se crean si el inventario está vacío. Se conservan las más recientes (10 por defecto); las copias manuales nunca se borran automáticamente.
+- **Restaurar**:
+  1. ArtGallery valida la copia entera; si algo falla, el inventario no se toca.
+  2. Guarda el inventario actual como copia «antes de restaurar».
+  3. Sustituye el inventario en una sola transacción.
+
+  Se puede restaurar desde la lista o desde cualquier archivo `.artgallery`.
+
+### Qué ocurre al desinstalar y reinstalar
+
+- **Se conserva, si el sistema lo permite:** la carpeta de datos. El instalador de Windows no la borra, pero el usuario, otras herramientas o una limpieza del sistema sí pueden eliminarla. En macOS, arrastrar la app a la papelera no la elimina.
+- **Depende de ti:** las copias de seguridad. Tras reinstalar, ArtGallery busca las copias en la carpeta por defecto y las muestra para restaurarlas. Si las moviste, basta con elegir su carpeta o abrir el archivo.
+- **No se puede recuperar:** si se han eliminado tanto la carpeta de datos como todas las copias, el inventario se pierde. Conviene guardar copias también fuera del equipo.
 
 ## Formato portátil `.artgallery`
 
