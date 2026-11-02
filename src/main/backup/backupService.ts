@@ -12,6 +12,7 @@ import type { InventoryService } from "../inventory/inventoryService";
 import { toExportArtwork } from "../package/exportArtwork";
 import { PACKAGE_EXTENSION, PackageError } from "../package/packageFormat";
 import { readManifest, readPackage } from "../package/readPackage";
+import { restoredArtworks } from "../package/restoredArtworks";
 import { writePackage } from "../package/writePackage";
 import type { SettingsStore } from "../settings/settingsStore";
 
@@ -150,10 +151,7 @@ export class BackupService {
           ? await this.createBackup("before-restore")
           : null;
       await inventory.replaceInventory(
-        backup.data.artworks.map(({ images, ...artwork }) => ({
-          ...artwork,
-          imagePaths: images.map((image) => backup.imagePath(image.file)),
-        })),
+        restoredArtworks(backup, backup.data.artworks),
       );
       return { ok: true, safetyBackup: safety?.fileName ?? null };
     });

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { artworkFieldsSchema } from "../../shared/artwork";
+import type { PackageFailure } from "../../shared/transfer";
 import { SUPPORTED_IMAGE_EXTENSIONS } from "../images/imageStore";
 
 /**
@@ -70,15 +71,7 @@ export const packageDataSchema = z.object({
 
 export type PackageData = z.infer<typeof packageDataSchema>;
 
-export const PACKAGE_ERROR_CODES = [
-  "not-a-package",
-  "unsupported-version",
-  "unsafe-entry",
-  "invalid-data",
-  "missing-image",
-  "corrupted-image",
-] as const;
-export type PackageErrorCode = (typeof PACKAGE_ERROR_CODES)[number];
+export type PackageErrorCode = PackageFailure;
 
 export class PackageError extends Error {
   constructor(
