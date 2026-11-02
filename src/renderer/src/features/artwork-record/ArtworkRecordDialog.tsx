@@ -11,7 +11,7 @@ interface ArtworkRecordDialogProps {
   onClose: () => void;
   /** Called after the artwork is saved, so the gallery can refresh. */
   onChanged: () => void;
-  onMovedToTrash: (artwork: Artwork) => void;
+  onMoveToTrash: (artwork: Artwork) => void;
 }
 
 type RecordState =
@@ -23,7 +23,7 @@ export function ArtworkRecordDialog({
   artworkId,
   onClose,
   onChanged,
-  onMovedToTrash,
+  onMoveToTrash,
 }: ArtworkRecordDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [state, setState] = useState<RecordState>({ status: "loading" });
@@ -72,10 +72,7 @@ export function ArtworkRecordDialog({
             <button
               type="button"
               className="button"
-              onClick={async () => {
-                await window.artGallery.moveToTrash([state.artwork.id]);
-                onMovedToTrash(state.artwork);
-              }}
+              onClick={() => onMoveToTrash(state.artwork)}
             >
               <Trash2 aria-hidden size={16} />
               Mover a la papelera
