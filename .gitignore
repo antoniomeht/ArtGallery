@@ -34,6 +34,7 @@ build/icon.ico
 build/icon.icns
 
 # User data that must never be committed
+.demo/
 *.sqlite
 *.sqlite3
 *.db
