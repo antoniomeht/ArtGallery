@@ -16,6 +16,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
+    "icon": "node scripts/build-icon.mjs",
+    "prepackage": "npm run icon",
     "package": "npm run build && electron-builder --publish never"
   },
   "devDependencies": {
