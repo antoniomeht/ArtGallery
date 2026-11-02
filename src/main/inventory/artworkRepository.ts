@@ -1,4 +1,4 @@
-import type { DatabaseSync } from "node:sqlite";
+import type { DatabaseSync, SQLInputValue } from "node:sqlite";
 import type {
   Artwork,
   ArtworkFields,
@@ -52,6 +52,50 @@ const ORDER_BY: Record<ArtworkSort, string> = {
   "year-asc": "a.year ASC NULLS LAST, sort_key(a.title)",
   "year-desc": "a.year DESC NULLS LAST, sort_key(a.title)",
 };
+
+/** Editable columns, in the order `fieldValues` returns their values. */
+const FIELD_COLUMNS = [
+  "title",
+  "artist",
+  "category",
+  "technique",
+  "support",
+  "year",
+  "year_approximate",
+  "height",
+  "width",
+  "depth",
+  "dimension_unit",
+  "description",
+  "notes",
+  "location",
+  "status",
+  "price_cents",
+  "currency",
+];
+
+function fieldValues(fields: ArtworkFields): SQLInputValue[] {
+  return [
+    fields.title,
+    fields.artist,
+    fields.category,
+    fields.technique,
+    fields.support,
+    fields.year,
+    fields.yearApproximate ? 1 : 0,
+    fields.height,
+    fields.width,
+    fields.depth,
+    fields.dimensionUnit,
+    fields.description,
+    fields.notes,
+    fields.location,
+    fields.status,
+    // Prices are stored in cents to avoid floating point rounding.
+    fields.price == null ? null : Math.round(fields.price * 100),
+    fields.currency,
+  ];
+}
 
 /** `?, ?, ?` for an SQL `IN (...)` list. */
 const placeholders = (values: readonly unknown[]) =>
@@ -142,45 +186,42 @@ export class ArtworkRepository {
   /** Returns false when no artwork has the given id. */
   update(id: string, fields: ArtworkFields, updatedAt: string): boolean {
     return transaction(this.db, () => {
+      const assignments = FIELD_COLUMNS.map((column) => `${column} = ?`);
       const { changes } = this.db
         .prepare(
-          `UPDATE artworks SET
-             title = ?, artist = ?, category = ?, technique = ?, support = ?,
-             year = ?, year_approximate = ?, height = ?, width = ?, depth = ?,
-             dimension_unit = ?, description = ?, notes = ?, location = ?,
-             status = ?, price_cents = ?, currency = ?, updated_at = ?
+          `UPDATE artworks SET ${assignments.join(", ")}, updated_at = ?
            WHERE id = ?`,
         )
-        .run(
-          fields.title,
-          fields.artist,
-          fields.category,
-          fields.technique,
-          fields.support,
-          fields.year,
-          fields.yearApproximate ? 1 : 0,
-          fields.height,
-          fields.width,
-          fields.depth,
-          fields.dimensionUnit,
-          fields.description,
-          fields.notes,
-          fields.location,
-          fields.status,
-          fields.price == null ? null : Math.round(fields.price * 100),
-          fields.currency,
-          updatedAt,
-          id,
-        );
+        .run(...fieldValues(fields), updatedAt, id);
       if (changes === 0) return false;
 
-      this.db.prepare("DELETE FROM artwork_tags WHERE artwork_id = ?").run(id);
-      const insertTag = this.db.prepare(
-        "INSERT OR IGNORE INTO artwork_tags (artwork_id, tag) VALUES (?, ?)",
-      );
-      fields.tags.forEach((tag) => insertTag.run(id, tag));
+      this.writeTags(id, fields.tags);
       return true;
     });
+  }
+
+  /**
+   * Replaces the whole inventory with `artworks`, keeping their ids, dates
+   * and image order. Everything happens in one transaction.
+   */
+  replaceAll(artworks: readonly Artwork[]): void {
+    transaction(this.db, () => {
+      this.db.exec("DELETE FROM artworks");
+      for (const artwork of artworks) this.insertComplete(artwork);
+    });
+  }
+
+  /** Every artwork id, including those in the trash. */
+  listAllIds(): string[] {
+    return (
+      this.db.prepare("SELECT id FROM artworks").all() as { id: string }[]
+    ).map(({ id }) => id);
+  }
+
+  listAllImages(): StoredImage[] {
+    return this.db
+      .prepare("SELECT id, file_name AS fileName FROM artwork_images")
+      .all() as unknown as StoredImage[];
   }
 
   findById(id: string): Artwork | null {
@@ -327,6 +368,34 @@ export class ArtworkRepository {
       this.db.prepare(`DELETE FROM artworks WHERE ${filter}`).run(...params);
       return images;
     });
+  }
+
+  private insertComplete(artwork: Artwork): void {
+    this.db
+      .prepare(
+        `INSERT INTO artworks
+           (id, ${FIELD_COLUMNS.join(", ")}, created_at, updated_at, deleted_at)
+         VALUES (?, ${placeholders(FIELD_COLUMNS)}, ?, ?, ?)`,
+      )
+      .run(
+        artwork.id,
+        ...fieldValues(artwork),
+        artwork.createdAt,
+        artwork.updatedAt,
+        artwork.deletedAt,
+      );
+    this.writeTags(artwork.id, artwork.tags);
+    this.insertImages(artwork.id, artwork.images, 0);
+  }
+
+  private writeTags(artworkId: string, tags: readonly string[]): void {
+    this.db
+      .prepare("DELETE FROM artwork_tags WHERE artwork_id = ?")
+      .run(artworkId);
+    const insertTag = this.db.prepare(
+      "INSERT OR IGNORE INTO artwork_tags (artwork_id, tag) VALUES (?, ?)",
+    );
+    tags.forEach((tag) => insertTag.run(artworkId, tag));
   }
 
   private insertImages(

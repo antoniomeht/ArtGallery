@@ -14,6 +14,11 @@ import {
 import type { ImageStore, StoredImage } from "../images/imageStore";
 import type { ArtworkRepository } from "./artworkRepository";
 
+/** A complete artwork to restore, with the files of its images in order. */
+export type RestoredArtwork = Omit<Artwork, "images"> & {
+  imagePaths: string[];
+};
+
 export class InventoryService {
   constructor(
     private readonly artworks: ArtworkRepository,
@@ -32,6 +37,35 @@ export class InventoryService {
 
   setStatus(ids: readonly string[], status: ArtworkStatus): void {
     this.artworks.setStatus(ids, status, this.timestamp());
+  }
+
+  /** Every artwork with all its data, including those in the trash. */
+  listAllArtworks(): Artwork[] {
+    return this.artworks.listAllIds().map((id) => this.getArtwork(id));
+  }
+
+  /**
+   * Replaces the whole inventory. New images are copied first and the
+   * database is replaced in one transaction; the old image files are removed
+   * only after that succeeds. On failure the inventory stays as it was.
+   */
+  async replaceInventory(artworks: readonly RestoredArtwork[]): Promise<void> {
+    const previousImages = this.artworks.listAllImages();
+    await this.withImportedImages(
+      artworks.flatMap(({ imagePaths }) => imagePaths),
+      (stored) => {
+        let next = 0;
+        this.artworks.replaceAll(
+          artworks.map(({ imagePaths, ...artwork }) => ({
+            ...artwork,
+            images: imagePaths.map(() => stored[next++]!),
+          })),
+        );
+      },
+    );
+    await Promise.all(
+      previousImages.map((image) => this.images.deleteImage(image)),
+    );
   }
 
   listTrash(): ArtworkSummary[] {
