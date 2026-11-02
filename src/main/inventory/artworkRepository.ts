@@ -57,14 +57,68 @@ export class ArtworkRepository {
           artwork.createdAt,
           artwork.createdAt,
         );
+      this.insertImages(artwork.id, images, 0);
+    });
+  }
 
-      const insertImage = this.db.prepare(
-        `INSERT INTO artwork_images (id, artwork_id, file_name, position)
-         VALUES (?, ?, ?, ?)`,
+  appendImages(
+    artworkId: string,
+    images: readonly StoredImage[],
+    updatedAt: string,
+  ): void {
+    transaction(this.db, () => {
+      const { count } = this.db
+        .prepare(
+          "SELECT COUNT(*) AS count FROM artwork_images WHERE artwork_id = ?",
+        )
+        .get(artworkId) as { count: number };
+      this.insertImages(artworkId, images, count);
+      this.touch(artworkId, updatedAt);
+    });
+  }
+
+  /**
+   * Deletes the image row and closes the gap in the order. Returns the
+   * removed image, or null if it does not belong to the artwork.
+   */
+  removeImage(
+    artworkId: string,
+    imageId: string,
+    updatedAt: string,
+  ): StoredImage | null {
+    return transaction(this.db, () => {
+      const image = this.db
+        .prepare(
+          `SELECT id, file_name AS fileName FROM artwork_images
+           WHERE id = ? AND artwork_id = ?`,
+        )
+        .get(imageId, artworkId) as StoredImage | undefined;
+      if (!image) return null;
+
+      this.db.prepare("DELETE FROM artwork_images WHERE id = ?").run(imageId);
+      const remaining = this.db
+        .prepare(
+          "SELECT id FROM artwork_images WHERE artwork_id = ? ORDER BY position",
+        )
+        .all(artworkId) as { id: string }[];
+      this.writeImageOrder(
+        artworkId,
+        remaining.map(({ id }) => id),
       );
-      images.forEach((image, position) =>
-        insertImage.run(image.id, artwork.id, image.fileName, position),
-      );
+      this.touch(artworkId, updatedAt);
+      return image;
+    });
+  }
+
+  /** `imageIds` must list every image of the artwork in the new order. */
+  reorderImages(
+    artworkId: string,
+    imageIds: readonly string[],
+    updatedAt: string,
+  ): void {
+    transaction(this.db, () => {
+      this.writeImageOrder(artworkId, imageIds);
+      this.touch(artworkId, updatedAt);
     });
   }
 
@@ -166,5 +220,45 @@ export class ArtworkRepository {
          ORDER BY a.created_at DESC`,
       )
       .all() as unknown as ArtworkSummary[];
+  }
+
+  private insertImages(
+    artworkId: string,
+    images: readonly StoredImage[],
+    firstPosition: number,
+  ): void {
+    const insertImage = this.db.prepare(
+      `INSERT INTO artwork_images (id, artwork_id, file_name, position)
+       VALUES (?, ?, ?, ?)`,
+    );
+    images.forEach((image, index) =>
+      insertImage.run(
+        image.id,
+        artworkId,
+        image.fileName,
+        firstPosition + index,
+      ),
+    );
+  }
+
+  private writeImageOrder(artworkId: string, imageIds: readonly string[]) {
+    // Positions are unique per artwork, so move them out of the way first.
+    this.db
+      .prepare(
+        "UPDATE artwork_images SET position = -1 - position WHERE artwork_id = ?",
+      )
+      .run(artworkId);
+    const setPosition = this.db.prepare(
+      "UPDATE artwork_images SET position = ? WHERE id = ? AND artwork_id = ?",
+    );
+    imageIds.forEach((id, position) =>
+      setPosition.run(position, id, artworkId),
+    );
+  }
+
+  private touch(artworkId: string, updatedAt: string): void {
+    this.db
+      .prepare("UPDATE artworks SET updated_at = ? WHERE id = ?")
+      .run(updatedAt, artworkId);
   }
 }
