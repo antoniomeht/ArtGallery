@@ -1,0 +1,16 @@
+name: Propuesta
+description: Una idea para mejorar ArtGallery
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Qué problema resolvería
+      description: Describe la situación en la que la echas en falta.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Propuesta
+      description: Cómo te imaginas que funcionaría.
