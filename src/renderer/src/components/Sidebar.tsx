@@ -1,4 +1,5 @@
 import {
+  ArrowLeftRight,
   HardDriveDownload,
   Images,
   Search,
@@ -7,11 +8,12 @@ import {
 } from "lucide-react";
 import "./Sidebar.css";
 
-export type Section = "gallery" | "search" | "backups" | "trash";
+export type Section = "gallery" | "search" | "transfer" | "backups" | "trash";
 
 const SECTIONS: { id: Section; label: string; icon: LucideIcon }[] = [
   { id: "gallery", label: "Galería", icon: Images },
   { id: "search", label: "Búsqueda y filtros", icon: Search },
+  { id: "transfer", label: "Exportación e importación", icon: ArrowLeftRight },
   { id: "backups", label: "Copias y ajustes", icon: HardDriveDownload },
 ];
 

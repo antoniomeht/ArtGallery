@@ -83,6 +83,16 @@ export function GalleryPage() {
                     );
                     setSelectedIds(null);
                   }}
+                  onExport={async () => {
+                    const result = await window.artGallery.exportPackage([
+                      ...selectedIds,
+                    ]);
+                    if (result) {
+                      setNotice({
+                        message: `${countLabel(result.artworks)} exportadas a ${result.path}`,
+                      });
+                    }
+                  }}
                   onDone={() => setSelectedIds(null)}
                 />
               ) : (

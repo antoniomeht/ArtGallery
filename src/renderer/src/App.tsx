@@ -3,6 +3,7 @@ import { Sidebar, type Section } from "./components/Sidebar";
 import { BackupsPage } from "./features/backups/BackupsPage";
 import { GalleryPage } from "./features/gallery/GalleryPage";
 import { SearchPage } from "./features/search/SearchPage";
+import { TransferPage } from "./features/transfer/TransferPage";
 import { TrashPage } from "./features/trash/TrashPage";
 
 export function App() {
@@ -16,6 +17,7 @@ export function App() {
       <main className="app-main">
         {section === "gallery" && <GalleryPage />}
         {section === "search" && <SearchPage />}
+        {section === "transfer" && <TransferPage />}
         {section === "backups" && <BackupsPage />}
         {section === "trash" && <TrashPage />}
       </main>
