@@ -39,6 +39,25 @@ Dentro hay `artgallery.sqlite` (inventario), `images/originals` (copias exactas 
 
 Cuando una actualización de la aplicación cambia la estructura de la base de datos, antes de migrarla se guarda una copia completa junto a ella (`artgallery.before-update-v<N>.sqlite`).
 
+## Formato portátil `.artgallery`
+
+Las copias de seguridad y las exportaciones usan un mismo formato documentado y versionado: un archivo ZIP con extensión `.artgallery`.
+
+| Entrada             | Contenido                                                                                                                                                                       |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `manifest.json`     | `format: "artgallery"`, `formatVersion` (actualmente `1`), `kind` (`backup` para el inventario completo o `artworks` para una selección), fecha, versión de la app y recuentos. |
+| `data.json`         | Obras con todos sus campos, etiquetas, fechas y la lista ordenada de imágenes (la primera es la principal), cada una con su ruta relativa, tamaño y SHA-256.                    |
+| `images/<id>.<ext>` | Copia exacta de cada imagen original. Las miniaturas no se incluyen: se regeneran al importar.                                                                                  |
+
+Al leer un paquete, ArtGallery:
+
+- rechaza versiones de formato más nuevas que las que entiende;
+- solo acepta esas rutas exactas, así que nunca escribe fuera de su carpeta temporal (sin rutas absolutas ni `..`);
+- comprueba el tamaño y el SHA-256 de cada imagen y que no falte ni sobre ninguna;
+- valida todos los datos antes de aplicar nada.
+
+Si algo falla, descarta el paquete completo y no deja una importación a medias.
+
 ## Desarrollo
 
 Requisitos: Node.js 24 y npm.
