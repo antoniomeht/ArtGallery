@@ -1,16 +1,19 @@
 import type {
   Artwork,
   ArtworkFieldsInput,
+  ArtworkQuery,
+  ArtworkStatus,
   ArtworkSummary,
   NewArtwork,
 } from "./artwork";
 
 /** Contract exposed by the preload script as `window.artGallery`. */
 export interface ArtGalleryApi {
-  listArtworks(): Promise<ArtworkSummary[]>;
+  listArtworks(query?: ArtworkQuery): Promise<ArtworkSummary[]>;
   getArtwork(id: string): Promise<Artwork>;
   createArtwork(input: NewArtwork): Promise<ArtworkSummary>;
   updateArtwork(id: string, fields: ArtworkFieldsInput): Promise<Artwork>;
+  setStatus(artworkIds: string[], status: ArtworkStatus): Promise<void>;
   addImages(artworkId: string, imagePaths: string[]): Promise<Artwork>;
   removeImage(artworkId: string, imageId: string): Promise<Artwork>;
   setPrimaryImage(artworkId: string, imageId: string): Promise<Artwork>;
@@ -29,6 +32,7 @@ export const IpcChannel = {
   getArtwork: "artworks:get",
   createArtwork: "artworks:create",
   updateArtwork: "artworks:update",
+  setStatus: "artworks:set-status",
   addImages: "artworks:add-images",
   removeImage: "artworks:remove-image",
   setPrimaryImage: "artworks:set-primary-image",

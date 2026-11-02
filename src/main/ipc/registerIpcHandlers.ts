@@ -1,14 +1,29 @@
 import { BrowserWindow, dialog, ipcMain } from "electron";
 import { z } from "zod";
 import { IpcChannel } from "../../shared/api";
-import type { ArtworkFieldsInput, NewArtwork } from "../../shared/artwork";
+import {
+  ARTWORK_STATUSES,
+  type ArtworkFieldsInput,
+  type ArtworkQuery,
+  type NewArtwork,
+} from "../../shared/artwork";
 import { SUPPORTED_IMAGE_EXTENSIONS } from "../images/imageStore";
 import type { InventoryService } from "../inventory/inventoryService";
 
 const artworkIdsSchema = z.array(z.string().min(1)).max(10_000);
 
 export function registerIpcHandlers(inventory: InventoryService): void {
-  ipcMain.handle(IpcChannel.listArtworks, () => inventory.listArtworks());
+  ipcMain.handle(IpcChannel.listArtworks, (_event, query?: ArtworkQuery) =>
+    inventory.listArtworks(query),
+  );
+  ipcMain.handle(
+    IpcChannel.setStatus,
+    (_event, ids: unknown, status: unknown) =>
+      inventory.setStatus(
+        artworkIdsSchema.parse(ids),
+        z.enum(ARTWORK_STATUSES).parse(status),
+      ),
+  );
 
   ipcMain.handle(IpcChannel.getArtwork, (_event, id: string) =>
     inventory.getArtwork(id),
