@@ -2,11 +2,13 @@ import { contextBridge, ipcRenderer } from "electron";
 import { IpcChannel, type ArtGalleryApi } from "../shared/api";
 
 const api: ArtGalleryApi = {
-  listArtworks: () => ipcRenderer.invoke(IpcChannel.listArtworks),
+  listArtworks: (query) => ipcRenderer.invoke(IpcChannel.listArtworks, query),
   getArtwork: (id) => ipcRenderer.invoke(IpcChannel.getArtwork, id),
   createArtwork: (input) => ipcRenderer.invoke(IpcChannel.createArtwork, input),
   updateArtwork: (id, fields) =>
     ipcRenderer.invoke(IpcChannel.updateArtwork, id, fields),
+  setStatus: (artworkIds, status) =>
+    ipcRenderer.invoke(IpcChannel.setStatus, artworkIds, status),
   addImages: (artworkId, imagePaths) =>
     ipcRenderer.invoke(IpcChannel.addImages, artworkId, imagePaths),
   removeImage: (artworkId, imageId) =>
