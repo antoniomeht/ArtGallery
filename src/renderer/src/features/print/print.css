@@ -1,0 +1,93 @@
+/* Printed documents: A4 pages, sized in millimetres. */
+@page {
+  size: A4;
+  margin: 18mm 16mm;
+}
+
+.catalog {
+  color: #000000;
+  font-size: 10.5pt;
+  line-height: 1.45;
+}
+
+.catalog p {
+  margin: 0;
+}
+
+.catalog-cover {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 4mm;
+  height: 255mm;
+  break-after: page;
+}
+
+.catalog-cover__image {
+  width: 100%;
+  max-height: 165mm;
+  margin-bottom: auto;
+  object-fit: contain;
+  object-position: left top;
+}
+
+.catalog-cover__title {
+  margin: 0;
+  font-size: 30pt;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.catalog-cover__meta {
+  font-size: 13pt;
+}
+
+.catalog-cover__description {
+  max-width: 120mm;
+  white-space: pre-line;
+}
+
+.catalog-list__title {
+  margin: 0 0 6mm;
+  padding-bottom: 2mm;
+  border-bottom: 0.3mm solid #000000;
+  font-size: 11pt;
+  font-weight: 600;
+}
+
+.catalog-entry {
+  display: grid;
+  grid-template-columns: 8mm 42mm 1fr;
+  gap: 6mm;
+  align-items: start;
+  padding: 4mm 0;
+  border-bottom: 0.2mm solid #cccccc;
+  break-inside: avoid;
+}
+
+.catalog-entry__number {
+  font-variant-numeric: tabular-nums;
+  color: #555555;
+}
+
+.catalog-entry__image img {
+  display: block;
+  max-width: 42mm;
+  max-height: 42mm;
+  object-fit: contain;
+}
+
+.catalog-entry__label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6mm;
+}
+
+.catalog-entry__artist {
+  font-weight: 600;
+}
+
+.catalog-entry__detail {
+  color: #333333;
+}

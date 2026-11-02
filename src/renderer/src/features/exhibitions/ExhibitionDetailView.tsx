@@ -3,6 +3,7 @@ import {
   ArrowLeft,
   ArrowUp,
   FileDown,
+  FileText,
   Pencil,
   Plus,
   Trash2,
@@ -14,6 +15,7 @@ import { formatDateRange } from "../../../../shared/exhibitionFormat";
 import { thumbnailUrl } from "../../../../shared/media";
 import { ActionNotice, type NoticeAction } from "../../components/ActionNotice";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
+import { CatalogDialog } from "./CatalogDialog";
 import { ChooseArtworksDialog } from "./ChooseArtworksDialog";
 import { ExhibitionFormDialog } from "./ExhibitionFormDialog";
 
@@ -22,7 +24,7 @@ interface ExhibitionDetailViewProps {
   onBack: () => void;
 }
 
-type Dialog = "edit" | "add" | "delete" | null;
+type Dialog = "edit" | "add" | "delete" | "catalog" | null;
 
 export function ExhibitionDetailView({
   exhibitionId,
@@ -110,6 +112,15 @@ export function ExhibitionDetailView({
           >
             <FileDown aria-hidden size={16} />
             Exportar…
+          </button>
+          <button
+            type="button"
+            className="button"
+            disabled={exhibition.artworks.length === 0}
+            onClick={() => setDialog("catalog")}
+          >
+            <FileText aria-hidden size={16} />
+            Catálogo PDF…
           </button>
           <button
             type="button"
@@ -223,6 +234,16 @@ export function ExhibitionDetailView({
                 artworkIds,
               ),
             );
+          }}
+        />
+      )}
+      {dialog === "catalog" && (
+        <CatalogDialog
+          exhibitionId={exhibition.id}
+          onClose={() => setDialog(null)}
+          onSaved={(path) => {
+            setDialog(null);
+            setNotice({ message: `Catálogo guardado en ${path}` });
           }}
         />
       )}
