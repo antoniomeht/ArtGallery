@@ -50,22 +50,28 @@ export class InventoryService {
    * only after that succeeds. On failure the inventory stays as it was.
    */
   async replaceInventory(artworks: readonly RestoredArtwork[]): Promise<void> {
-    const previousImages = this.artworks.listAllImages();
-    await this.withImportedImages(
-      artworks.flatMap(({ imagePaths }) => imagePaths),
-      (stored) => {
-        let next = 0;
-        this.artworks.replaceAll(
-          artworks.map(({ imagePaths, ...artwork }) => ({
-            ...artwork,
-            images: imagePaths.map(() => stored[next++]!),
-          })),
-        );
-      },
+    await this.writeRestored(
+      artworks,
+      this.artworks.listAllImages(),
+      (complete) => this.artworks.replaceAll(complete),
     );
-    await Promise.all(
-      previousImages.map((image) => this.images.deleteImage(image)),
+  }
+
+  /**
+   * Adds complete artworks, keeping their ids. An artwork whose id already
+   * exists is replaced, images included. All of it in one transaction.
+   */
+  async importArtworks(artworks: readonly RestoredArtwork[]): Promise<void> {
+    await this.writeRestored(
+      artworks,
+      this.artworks.listImagesOf(artworks.map(({ id }) => id)),
+      (complete) => this.artworks.upsertAll(complete),
     );
+  }
+
+  /** Ids of every artwork, including those in the trash. */
+  artworkIds(): Set<string> {
+    return new Set(this.artworks.listAllIds());
   }
 
   listTrash(): ArtworkSummary[] {
@@ -159,6 +165,33 @@ export class InventoryService {
       this.timestamp(),
     );
     return this.getArtwork(artworkId);
+  }
+
+  /**
+   * Copies the images of `artworks` into the store, writes them with `write`
+   * and only then removes the files of `replacedImages`. On failure the new
+   * copies are removed and nothing changes.
+   */
+  private async writeRestored(
+    artworks: readonly RestoredArtwork[],
+    replacedImages: readonly StoredImage[],
+    write: (artworks: Artwork[]) => void,
+  ): Promise<void> {
+    await this.withImportedImages(
+      artworks.flatMap(({ imagePaths }) => imagePaths),
+      (stored) => {
+        let next = 0;
+        write(
+          artworks.map(({ imagePaths, ...artwork }) => ({
+            ...artwork,
+            images: imagePaths.map(() => stored[next++]!),
+          })),
+        );
+      },
+    );
+    await Promise.all(
+      replacedImages.map((image) => this.images.deleteImage(image)),
+    );
   }
 
   /**

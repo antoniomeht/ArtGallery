@@ -1,4 +1,4 @@
-import { Trash2 } from "lucide-react";
+import { FileDown, Trash2 } from "lucide-react";
 import {
   ARTWORK_STATUSES,
   type ArtworkStatus,
@@ -12,6 +12,7 @@ interface SelectionToolbarProps {
   onClear: () => void;
   onSetStatus: (status: ArtworkStatus) => void;
   onMoveToTrash: () => void;
+  onExport: () => void;
   onDone: () => void;
 }
 
@@ -22,6 +23,7 @@ export function SelectionToolbar({
   onClear,
   onSetStatus,
   onMoveToTrash,
+  onExport,
   onDone,
 }: SelectionToolbarProps) {
   const hasSelection = selectedCount > 0;
@@ -60,6 +62,15 @@ export function SelectionToolbar({
           ))}
         </select>
       </label>
+      <button
+        type="button"
+        className="button"
+        disabled={!hasSelection}
+        onClick={onExport}
+      >
+        <FileDown aria-hidden size={16} />
+        Exportar…
+      </button>
       <button
         type="button"
         className="button"

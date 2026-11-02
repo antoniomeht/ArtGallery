@@ -1,5 +1,6 @@
 import type { BackupOrigin, RestoreFailure } from "../../../../shared/backup";
 import type { AutoBackupFrequency } from "../../../../shared/settings";
+import { IMPORT_FAILURE_MESSAGES } from "../transfer/transferLabels";
 
 export const ORIGIN_LABELS: Record<BackupOrigin, string> = {
   manual: "Manual",
@@ -14,16 +15,9 @@ export const FREQUENCY_LABELS: Record<AutoBackupFrequency, string> = {
 };
 
 export const RESTORE_FAILURE_MESSAGES: Record<RestoreFailure, string> = {
-  "not-a-package": "El archivo no es una copia de ArtGallery o está dañado.",
-  "unsupported-version":
-    "La copia se hizo con una versión más nueva de ArtGallery. Actualiza la aplicación para restaurarla.",
-  "unsafe-entry":
-    "La copia contiene archivos que no corresponden a ArtGallery y no se ha abierto por seguridad.",
-  "invalid-data": "Los datos de la copia están dañados.",
-  "missing-image": "Faltan imágenes dentro de la copia.",
-  "corrupted-image": "Alguna imagen de la copia está dañada.",
+  ...IMPORT_FAILURE_MESSAGES,
   "not-a-backup":
-    "El archivo es una exportación de obras, no una copia completa del inventario.",
+    "El archivo es una exportación de obras, no una copia completa. Para añadir sus obras, usa Exportación e importación.",
 };
 
 const dateTime = new Intl.DateTimeFormat("es-ES", {

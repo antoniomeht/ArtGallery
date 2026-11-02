@@ -211,11 +211,32 @@ export class ArtworkRepository {
     });
   }
 
+  /** Inserts the artworks, replacing any that already exist with the same id. */
+  upsertAll(artworks: readonly Artwork[]): void {
+    transaction(this.db, () => {
+      const remove = this.db.prepare("DELETE FROM artworks WHERE id = ?");
+      for (const artwork of artworks) {
+        remove.run(artwork.id);
+        this.insertComplete(artwork);
+      }
+    });
+  }
+
   /** Every artwork id, including those in the trash. */
   listAllIds(): string[] {
     return (
       this.db.prepare("SELECT id FROM artworks").all() as { id: string }[]
     ).map(({ id }) => id);
+  }
+
+  listImagesOf(artworkIds: readonly string[]): StoredImage[] {
+    if (artworkIds.length === 0) return [];
+    return this.db
+      .prepare(
+        `SELECT id, file_name AS fileName FROM artwork_images
+         WHERE artwork_id IN (${placeholders(artworkIds)})`,
+      )
+      .all(...artworkIds) as unknown as StoredImage[];
   }
 
   listAllImages(): StoredImage[] {

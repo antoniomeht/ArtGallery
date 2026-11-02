@@ -1,3 +1,5 @@
+import type { PackageFailure } from "./transfer";
+
 export type BackupOrigin = "manual" | "automatic" | "before-restore";
 
 export type BackupInfo = {
@@ -12,14 +14,7 @@ export type BackupInfo = {
 );
 
 /** Why a backup could not be restored, so the interface can explain it. */
-export type RestoreFailure =
-  | "not-a-package"
-  | "unsupported-version"
-  | "unsafe-entry"
-  | "invalid-data"
-  | "missing-image"
-  | "corrupted-image"
-  | "not-a-backup";
+export type RestoreFailure = PackageFailure | "not-a-backup";
 
 export type RestoreResult =
   | { ok: true; safetyBackup: string | null }

@@ -7,11 +7,13 @@ import { ArtworkRepository } from "./inventory/artworkRepository";
 import { InventoryService } from "./inventory/inventoryService";
 import { registerBackupHandlers } from "./ipc/registerBackupHandlers";
 import { registerIpcHandlers } from "./ipc/registerIpcHandlers";
+import { registerTransferHandlers } from "./ipc/registerTransferHandlers";
 import {
   handleMediaRequests,
   registerMediaScheme,
 } from "./media/mediaProtocol";
 import { SettingsStore } from "./settings/settingsStore";
+import { TransferService } from "./transfer/transferService";
 
 const HOUR_MS = 60 * 60 * 1000;
 
@@ -75,9 +77,17 @@ void app.whenReady().then(() => {
     appVersion: app.getVersion(),
   });
 
+  const transfer = new TransferService({
+    inventory,
+    images: imageStore,
+    workDir: join(dataDir, "tmp"),
+    appVersion: app.getVersion(),
+  });
+
   handleMediaRequests(imageStore);
   registerIpcHandlers(inventory);
   registerBackupHandlers({ backups, settings, dataFolder: dataDir });
+  registerTransferHandlers(transfer);
   createMainWindow();
 
   const runAutomaticBackup = () =>
