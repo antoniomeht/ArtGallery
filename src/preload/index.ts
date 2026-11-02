@@ -35,6 +35,9 @@ const api: ArtGalleryApi = {
     ipcRenderer.invoke(IpcChannel.setExhibitionArtworks, id, artworkIds),
   addToExhibition: (id, artworkIds) =>
     ipcRenderer.invoke(IpcChannel.addToExhibition, id, artworkIds),
+  exportCatalogPdf: (exhibitionId, options) =>
+    ipcRenderer.invoke(IpcChannel.exportCatalogPdf, exhibitionId, options),
+  printReady: () => ipcRenderer.send(IpcChannel.printReady),
   getBackupOverview: () => ipcRenderer.invoke(IpcChannel.getBackupOverview),
   updateSettings: (changes) =>
     ipcRenderer.invoke(IpcChannel.updateSettings, changes),
