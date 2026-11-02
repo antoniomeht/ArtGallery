@@ -1,4 +1,4 @@
-import { BrowserWindow, dialog, ipcMain } from "electron";
+import { ipcMain } from "electron";
 import { z } from "zod";
 import { IpcChannel } from "../../shared/api";
 import {
@@ -9,6 +9,7 @@ import {
 } from "../../shared/artwork";
 import { SUPPORTED_IMAGE_EXTENSIONS } from "../images/imageStore";
 import type { InventoryService } from "../inventory/inventoryService";
+import { showOpenDialog } from "./showOpenDialog";
 
 const artworkIdsSchema = z.array(z.string().min(1)).max(10_000);
 
@@ -69,9 +70,8 @@ export function registerIpcHandlers(inventory: InventoryService): void {
   );
   ipcMain.handle(IpcChannel.emptyTrash, () => inventory.deleteFromTrash());
 
-  ipcMain.handle(IpcChannel.pickImages, async (event) => {
-    const window = BrowserWindow.fromWebContents(event.sender);
-    const options: Electron.OpenDialogOptions = {
+  ipcMain.handle(IpcChannel.pickImages, (event) =>
+    showOpenDialog(event.sender, {
       title: "Elegir imágenes",
       properties: ["openFile", "multiSelections"],
       filters: [
@@ -80,10 +80,6 @@ export function registerIpcHandlers(inventory: InventoryService): void {
           extensions: SUPPORTED_IMAGE_EXTENSIONS.map((ext) => ext.slice(1)),
         },
       ],
-    };
-    const result = window
-      ? await dialog.showOpenDialog(window, options)
-      : await dialog.showOpenDialog(options);
-    return result.canceled ? [] : result.filePaths;
-  });
+    }),
+  );
 }
