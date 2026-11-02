@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Sidebar, type Section } from "./components/Sidebar";
 import { GalleryPage } from "./features/gallery/GalleryPage";
+import { SearchPage } from "./features/search/SearchPage";
 import { TrashPage } from "./features/trash/TrashPage";
 
 export function App() {
@@ -11,6 +12,7 @@ export function App() {
       <Sidebar current={section} onNavigate={setSection} />
       <main className="app-main">
         {section === "gallery" && <GalleryPage />}
+        {section === "search" && <SearchPage />}
         {section === "trash" && <TrashPage />}
       </main>
     </div>
