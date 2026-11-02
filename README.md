@@ -2,13 +2,14 @@
 
 Inventario personal de cuadros, pinturas y dibujos para Windows y macOS. Funciona sin conexión, sin cuentas y sin servicios externos: los datos y las imágenes se guardan en el propio equipo.
 
-> **Estado:** en desarrollo. Ya se pueden añadir obras, verlas en la galería, consultar y editar su ficha completa, gestionar sus imágenes y recuperar obras desde la papelera, además de buscar y filtrar el inventario. También hace copias de seguridad manuales y automáticas y las restaura. Permite exportar e importar obras entre equipos y exportar los metadatos a CSV. También organiza exposiciones con su selección ordenada de obras y genera su catálogo en PDF; las cartelas llegarán en una próxima entrega.
+> **Estado:** en desarrollo. Ya se pueden añadir obras, verlas en la galería, consultar y editar su ficha completa, gestionar sus imágenes y recuperar obras desde la papelera, además de buscar y filtrar el inventario. También hace copias de seguridad manuales y automáticas y las restaura. Permite exportar e importar obras entre equipos y exportar los metadatos a CSV. También organiza exposiciones con su selección ordenada de obras y genera su catálogo y sus cartelas en PDF.
 
 ## Funciones disponibles
 
 - Galería en cuadrícula con las imágenes como protagonistas, ordenable por fecha de incorporación, título (sin distinguir tildes ni mayúsculas) o año.
 - Exposiciones con nombre, lugar, fechas y descripción, y una selección ordenada de obras. Se pueden añadir obras desde la exposición o desde la selección múltiple de la galería.
 - Catálogo de la exposición en PDF (A4), generado sin conexión: portada con la obra principal, lugar, fechas y descripción, y después cada obra en orden con su miniatura y su cartela (artista, título, año, técnica, dimensiones y, si se elige, precio).
+- Cartelas para colocar junto a las obras, desde una exposición o desde una selección de la galería: datos visibles a elegir (artista, título, año, técnica y soporte, dimensiones, precio), tamaños predefinidos o personalizados, vista previa y reparto automático en hojas A4 con márgenes de 10 mm y líneas de corte.
 - Copias de seguridad manuales y automáticas (diarias o semanales) con retención configurable, verificación completa de cada copia y restauración segura.
 - Exportación de todo el inventario, de una selección o de una exposición (con sus obras y su orden) a un archivo `.artgallery` portátil, e importación con resumen previo y elección de qué hacer con lo que ya existe (mantener, sustituir o duplicar).
 - Exportación de metadatos a CSV (separado por `;`, con BOM UTF-8 para Excel y protegido frente a fórmulas). El CSV no incluye imágenes y no sustituye a una copia de seguridad.
