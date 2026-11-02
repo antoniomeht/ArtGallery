@@ -68,6 +68,28 @@
   color: var(--color-ink-muted);
 }
 
+.viewer__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.viewer__primary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-3);
+  color: var(--color-accent);
+}
+
+.viewer__error {
+  margin: 0;
+  text-align: center;
+  color: var(--color-danger);
+}
+
 .viewer__image {
   flex: 1;
   min-height: 0;
