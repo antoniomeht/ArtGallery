@@ -21,6 +21,8 @@ export interface ImportPreview {
   duplicates: { id: string; title: string }[];
   /** Artworks that were in the trash where the package was made. */
   trashedSkipped: number;
+  newExhibitions: number;
+  duplicateExhibitions: { id: string; name: string }[];
 }
 
 export type ImportPreviewResult =
@@ -30,6 +32,8 @@ export interface ImportResult {
   added: number;
   replaced: number;
   skipped: number;
+  /** Exhibitions added or replaced. */
+  exhibitions: number;
 }
 
 export interface ExportResult {

@@ -11,6 +11,7 @@ function openComputer(root: string, name: string) {
   const inventory = openInventory(dataDir);
   const transfer = new TransferService({
     inventory: inventory.service,
+    exhibitions: inventory.exhibitions,
     images: inventory.images,
     workDir: join(dataDir, "tmp"),
     appVersion: "0.1.0",
@@ -59,6 +60,7 @@ describe("export and import", () => {
       added: 1,
       replaced: 0,
       skipped: 0,
+      exhibitions: 0,
     });
     const imported = home.service.getArtwork(marina.id);
     expect(imported).toMatchObject({ title: "Marina", tags: ["mar"] });
@@ -104,6 +106,65 @@ describe("export and import", () => {
 
     expect(await importWith("copy")).toMatchObject({ added: 1 });
     expect(titles(studio)).toEqual(["Marina", "Marina"]);
+    studio.db.close();
+  });
+
+  it("moves an exhibition with its artworks in order", async () => {
+    const root = await useTempDir();
+    const studio = openComputer(root, "studio");
+    const marina = await addArtwork(studio, "Marina");
+    const retrato = await addArtwork(studio, "Retrato");
+    await addArtwork(studio, "Fuera de la exposición");
+    const show = studio.exhibitions.create({
+      name: "Colección",
+      venue: "Sala Norte",
+    });
+    studio.exhibitions.addArtworks(show.id, [retrato.id, marina.id]);
+    const file = join(root, "coleccion.artgallery");
+
+    expect(await studio.transfer.exportExhibition(file, show.id)).toMatchObject(
+      {
+        artworks: 2,
+      },
+    );
+
+    const home = openComputer(root, "home");
+    const preview = await home.transfer.previewImport(file);
+    if (!preview.ok) throw new Error(preview.reason);
+    expect(preview.preview).toMatchObject({ newCount: 2, newExhibitions: 1 });
+    expect(
+      await home.transfer.applyImport(preview.preview.sessionId, "skip"),
+    ).toMatchObject({ added: 2, exhibitions: 1 });
+
+    expect(titles(home)).toEqual(["Marina", "Retrato"]);
+    expect(home.exhibitions.get(show.id)).toMatchObject({
+      name: "Colección",
+      venue: "Sala Norte",
+      artworkIds: [retrato.id, marina.id],
+    });
+    studio.db.close();
+    home.db.close();
+  });
+
+  it("copies an exhibition together with copies of its artworks", async () => {
+    const root = await useTempDir();
+    const studio = openComputer(root, "studio");
+    const marina = await addArtwork(studio, "Marina");
+    const show = studio.exhibitions.create({ name: "Colección" });
+    studio.exhibitions.addArtworks(show.id, [marina.id]);
+    const file = join(root, "coleccion.artgallery");
+    await studio.transfer.exportExhibition(file, show.id);
+
+    const preview = await studio.transfer.previewImport(file);
+    if (!preview.ok) throw new Error(preview.reason);
+    await studio.transfer.applyImport(preview.preview.sessionId, "copy");
+
+    const shows = studio.exhibitions.list();
+    expect(shows).toHaveLength(2);
+    const copy = shows.find(({ id }) => id !== show.id)!;
+    const [copiedArtworkId] = studio.exhibitions.get(copy.id).artworkIds;
+    expect(copiedArtworkId).not.toBe(marina.id);
+    expect(studio.service.getArtwork(copiedArtworkId!).title).toBe("Marina");
     studio.db.close();
   });
 

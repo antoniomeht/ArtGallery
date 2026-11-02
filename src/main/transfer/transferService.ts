@@ -8,6 +8,7 @@ import type {
   ImportPreviewResult,
   ImportResult,
 } from "../../shared/transfer";
+import type { ExhibitionService } from "../exhibitions/exhibitionService";
 import type { ImageStore } from "../images/imageStore";
 import type { InventoryService } from "../inventory/inventoryService";
 import { toExportArtwork } from "../package/exportArtwork";
@@ -20,6 +21,7 @@ import { planImport, resolveImport, type ImportPlan } from "./importPlan";
 
 export interface TransferServiceOptions {
   inventory: InventoryService;
+  exhibitions: ExhibitionService;
   images: ImageStore;
   /** Scratch space where packages are validated before importing. */
   workDir: string;
@@ -58,6 +60,26 @@ export class TransferService {
     return { path: destination, artworks: artworks.length };
   }
 
+  /** Exports an exhibition with its artworks outside the trash. */
+  async exportExhibition(
+    destination: string,
+    exhibitionId: string,
+  ): Promise<ExportResult> {
+    const exhibition = this.options.exhibitions.get(exhibitionId);
+    const artworkIds = exhibition.artworks.map(({ id }) => id);
+    const { artworks, ...rest } = exhibition;
+    await writePackage(destination, {
+      kind: "artworks",
+      artworks: this.artworksToExport(artworkIds).map((artwork) =>
+        toExportArtwork(artwork, this.options.images),
+      ),
+      exhibitions: [{ ...rest, artworkIds }],
+      appVersion: this.options.appVersion,
+      now: this.now(),
+    });
+    return { path: destination, artworks: artworks.length };
+  }
+
   async exportCsv(
     destination: string,
     ids: readonly string[] | null,
@@ -81,10 +103,11 @@ export class TransferService {
         return { ok: false, reason: error.code };
       throw error;
     }
-    const plan = planImport(
-      pkg.data.artworks,
-      this.options.inventory.artworkIds(),
-    );
+    const { inventory } = this.options;
+    const plan = planImport(pkg.data, {
+      artworkIds: inventory.artworkIds(),
+      exhibitionIds: inventory.exhibitionIds(),
+    });
     this.sessions.set(sessionId, { pkg, plan });
     return {
       ok: true,
@@ -94,6 +117,11 @@ export class TransferService {
         newCount: plan.fresh.length,
         duplicates: plan.duplicates.map(({ id, title }) => ({ id, title })),
         trashedSkipped: plan.trashedSkipped,
+        newExhibitions: plan.freshExhibitions.length,
+        duplicateExhibitions: plan.duplicateExhibitions.map(({ id, name }) => ({
+          id,
+          name,
+        })),
       },
     };
   }
@@ -105,14 +133,16 @@ export class TransferService {
     const session = this.sessions.get(sessionId);
     if (!session) throw new Error(`Unknown import session: ${sessionId}`);
     try {
-      const { artworks, ...counts } = resolveImport(session.plan, policy, {
-        newId: randomUUID,
-        now: this.now(),
-      });
+      const { artworks, exhibitions, ...counts } = resolveImport(
+        session.plan,
+        policy,
+        { newId: randomUUID, now: this.now() },
+      );
       await this.options.inventory.importArtworks(
         restoredArtworks(session.pkg, artworks),
+        exhibitions,
       );
-      return counts;
+      return { ...counts, exhibitions: exhibitions.length };
     } finally {
       await this.cancelImport(sessionId);
     }
