@@ -1,23 +1,72 @@
 import { Plus } from "lucide-react";
-import { useState } from "react";
-import type { ArtworkSummary } from "../../../../shared/artwork";
+import { useCallback, useEffect, useState } from "react";
+import type { ArtworkSort, ArtworkStatus } from "../../../../shared/artwork";
+import { STATUS_LABELS } from "../../../../shared/artworkFormat";
+import { ActionNotice, type NoticeAction } from "../../components/ActionNotice";
 import { useArtworkList } from "../../hooks/useArtworkList";
 import { ArtworkRecordDialog } from "../artwork-record/ArtworkRecordDialog";
 import { NewArtworkDialog } from "../new-artwork/NewArtworkDialog";
 import { GalleryGrid } from "./GalleryGrid";
+import { GalleryToolbar } from "./GalleryToolbar";
+import { SelectionToolbar } from "./SelectionToolbar";
 import "./GalleryPage.css";
 
-const listArtworks = () => window.artGallery.listArtworks();
+const countLabel = (count: number) =>
+  count === 1 ? "1 obra" : `${count} obras`;
 
 export function GalleryPage() {
+  const [sort, setSort] = useState<ArtworkSort>("recent");
+  const listArtworks = useCallback(
+    () => window.artGallery.listArtworks({ sort }),
+    [sort],
+  );
   const { state, reload } = useArtworkList(listArtworks);
-  const [trashed, setTrashed] = useState<Pick<
-    ArtworkSummary,
-    "id" | "title"
-  > | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [openArtworkId, setOpenArtworkId] = useState<string | null>(null);
-  const openNewArtwork = () => setIsAdding(true);
+  /** Null outside selection mode. */
+  const [selectedIds, setSelectedIds] = useState<Set<string> | null>(null);
+  const [notice, setNotice] = useState<NoticeAction | null>(null);
+
+  const artworks = state.status === "ready" ? state.artworks : [];
+  const isSelecting = selectedIds !== null;
+
+  useEffect(() => {
+    if (!isSelecting) return;
+    const exitOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setSelectedIds(null);
+    };
+    window.addEventListener("keydown", exitOnEscape);
+    return () => window.removeEventListener("keydown", exitOnEscape);
+  }, [isSelecting]);
+
+  function toggle(artworkId: string) {
+    setSelectedIds((current) => {
+      const next = new Set(current);
+      if (next.has(artworkId)) next.delete(artworkId);
+      else next.add(artworkId);
+      return next;
+    });
+  }
+
+  async function moveToTrash(ids: string[], message: string) {
+    await window.artGallery.moveToTrash(ids);
+    setNotice({
+      message,
+      undo: async () => {
+        await window.artGallery.restoreFromTrash(ids);
+        reload();
+      },
+    });
+    reload();
+  }
+
+  async function setStatus(ids: string[], status: ArtworkStatus) {
+    await window.artGallery.setStatus(ids, status);
+    setNotice({
+      message: `${countLabel(ids.length)} con estado «${STATUS_LABELS[status]}».`,
+    });
+    reload();
+  }
 
   return (
     <section className="gallery-page" aria-labelledby="gallery-title">
@@ -25,21 +74,37 @@ export function GalleryPage() {
         <h1 id="gallery-title" className="page-header__title">
           Galería
         </h1>
-        {state.status === "ready" && state.artworks.length > 0 && (
+        {artworks.length > 0 && (
           <>
-            <p className="page-header__count">
-              {state.artworks.length === 1
-                ? "1 obra"
-                : `${state.artworks.length} obras`}
-            </p>
-            <button
-              type="button"
-              className="button button--primary page-header__action"
-              onClick={openNewArtwork}
-            >
-              <Plus aria-hidden size={18} />
-              Añadir obra
-            </button>
+            <p className="page-header__count">{countLabel(artworks.length)}</p>
+            <div className="page-header__action">
+              {selectedIds ? (
+                <SelectionToolbar
+                  selectedCount={selectedIds.size}
+                  totalCount={artworks.length}
+                  onSelectAll={() =>
+                    setSelectedIds(new Set(artworks.map(({ id }) => id)))
+                  }
+                  onClear={() => setSelectedIds(new Set())}
+                  onSetStatus={(status) => setStatus([...selectedIds], status)}
+                  onMoveToTrash={() => {
+                    void moveToTrash(
+                      [...selectedIds],
+                      `${countLabel(selectedIds.size)} movidas a la papelera.`,
+                    );
+                    setSelectedIds(null);
+                  }}
+                  onDone={() => setSelectedIds(null)}
+                />
+              ) : (
+                <GalleryToolbar
+                  sort={sort}
+                  onSortChange={setSort}
+                  onSelect={() => setSelectedIds(new Set())}
+                  onAdd={() => setIsAdding(true)}
+                />
+              )}
+            </div>
           </>
         )}
       </header>
@@ -59,7 +124,7 @@ export function GalleryPage() {
         </div>
       )}
 
-      {state.status === "ready" && state.artworks.length === 0 && (
+      {state.status === "ready" && artworks.length === 0 && (
         <div className="gallery-empty">
           <div className="gallery-empty__frame" aria-hidden />
           <p className="gallery-empty__text">
@@ -68,7 +133,7 @@ export function GalleryPage() {
           <button
             type="button"
             className="button button--primary"
-            onClick={openNewArtwork}
+            onClick={() => setIsAdding(true)}
           >
             <Plus aria-hidden size={18} />
             Añadir la primera obra
@@ -76,8 +141,13 @@ export function GalleryPage() {
         </div>
       )}
 
-      {state.status === "ready" && state.artworks.length > 0 && (
-        <GalleryGrid artworks={state.artworks} onOpen={setOpenArtworkId} />
+      {artworks.length > 0 && (
+        <GalleryGrid
+          artworks={artworks}
+          selectedIds={selectedIds}
+          onOpen={setOpenArtworkId}
+          onToggle={toggle}
+        />
       )}
 
       {isAdding && (
@@ -94,40 +164,17 @@ export function GalleryPage() {
           artworkId={openArtworkId}
           onClose={() => setOpenArtworkId(null)}
           onChanged={reload}
-          onMovedToTrash={(artwork) => {
+          onMoveToTrash={(artwork) => {
             setOpenArtworkId(null);
-            setTrashed(artwork);
-            reload();
+            void moveToTrash(
+              [artwork.id],
+              `«${artwork.title}» se ha movido a la papelera.`,
+            );
           }}
         />
       )}
 
-      <div className="notice-region" role="status">
-        {trashed && (
-          <div className="notice">
-            <span>«{trashed.title}» se ha movido a la papelera.</span>
-            <button
-              type="button"
-              className="notice__action"
-              onClick={async () => {
-                await window.artGallery.restoreFromTrash([trashed.id]);
-                setTrashed(null);
-                reload();
-              }}
-            >
-              Deshacer
-            </button>
-            <button
-              type="button"
-              className="icon-button notice__close"
-              aria-label="Cerrar aviso"
-              onClick={() => setTrashed(null)}
-            >
-              ×
-            </button>
-          </div>
-        )}
-      </div>
+      <ActionNotice action={notice} onDismiss={() => setNotice(null)} />
     </section>
   );
 }
