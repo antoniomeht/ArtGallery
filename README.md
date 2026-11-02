@@ -4,6 +4,16 @@ Inventario personal de cuadros, pinturas y dibujos para Windows y macOS. Funcion
 
 > **Estado:** en desarrollo. Ya se pueden añadir obras, verlas en la galería, consultar y editar su ficha completa, gestionar sus imágenes y recuperar obras desde la papelera, además de buscar y filtrar el inventario. También hace copias de seguridad manuales y automáticas y las restaura. Permite exportar e importar obras entre equipos y exportar los metadatos a CSV. También organiza exposiciones con su selección ordenada de obras y genera su catálogo y sus cartelas en PDF.
 
+![Galería con obras de demostración](screenshots/gallery.png)
+
+| Ficha de la obra                             | Búsqueda y filtros                                   |
+| -------------------------------------------- | ---------------------------------------------------- |
+| ![Ficha de una obra](screenshots/record.png) | ![Búsqueda combinada](screenshots/search.png)        |
+| **Exposición**                               | **Cartelas**                                         |
+| ![Exposición](screenshots/exhibition.png)    | ![Cartelas con vista previa](screenshots/labels.png) |
+
+Las capturas se tomaron con los datos de demostración (`npm run demo`).
+
 ## Funciones disponibles
 
 - Galería en cuadrícula con las imágenes como protagonistas, ordenable por fecha de incorporación, título (sin distinguir tildes ni mayúsculas) o año.
@@ -83,6 +93,10 @@ Al leer un paquete, ArtGallery:
 - valida todos los datos antes de aplicar nada.
 
 Si algo falla, descarta el paquete completo y no deja una importación a medias.
+
+## Datos de demostración
+
+`npm run demo` abre la aplicación en modo desarrollo sobre una carpeta propia (`.demo/`, ignorada por Git) con 8 obras y una exposición. Los artistas y los títulos son ficticios y las imágenes son composiciones abstractas generadas por código, así que no hay derechos de terceros. El modo demo no lee ni modifica tus datos ni tus copias, y no existe en la aplicación instalada.
 
 ## Desarrollo
 
