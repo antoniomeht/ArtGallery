@@ -10,6 +10,7 @@ import { InventoryService } from "./inventory/inventoryService";
 import { registerBackupHandlers } from "./ipc/registerBackupHandlers";
 import { registerExhibitionHandlers } from "./ipc/registerExhibitionHandlers";
 import { registerIpcHandlers } from "./ipc/registerIpcHandlers";
+import { registerPrintHandlers } from "./ipc/registerPrintHandlers";
 import { registerTransferHandlers } from "./ipc/registerTransferHandlers";
 import {
   handleMediaRequests,
@@ -17,6 +18,7 @@ import {
 } from "./media/mediaProtocol";
 import { SettingsStore } from "./settings/settingsStore";
 import { TransferService } from "./transfer/transferService";
+import { loadRenderer, PRELOAD_PATH } from "./windows";
 
 const HOUR_MS = 60 * 60 * 1000;
 
@@ -30,7 +32,7 @@ function createMainWindow(): BrowserWindow {
     title: "ArtGallery",
     backgroundColor: "#ffffff",
     webPreferences: {
-      preload: join(__dirname, "../preload/index.js"),
+      preload: PRELOAD_PATH,
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
@@ -45,13 +47,7 @@ function createMainWindow(): BrowserWindow {
     return { action: "deny" };
   });
 
-  const devServerUrl = process.env["ELECTRON_RENDERER_URL"];
-  if (!app.isPackaged && devServerUrl) {
-    void window.loadURL(devServerUrl);
-  } else {
-    void window.loadFile(join(__dirname, "../renderer/index.html"));
-  }
-
+  void loadRenderer(window);
   return window;
 }
 
@@ -97,6 +93,7 @@ void app.whenReady().then(() => {
   handleMediaRequests(imageStore);
   registerIpcHandlers(inventory);
   registerExhibitionHandlers(exhibitions);
+  registerPrintHandlers(exhibitions);
   registerBackupHandlers({ backups, settings, dataFolder: dataDir });
   registerTransferHandlers(transfer);
   createMainWindow();
