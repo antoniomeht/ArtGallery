@@ -55,6 +55,27 @@ const migrations: readonly string[] = [
   ALTER TABLE artworks ADD COLUMN deleted_at TEXT;
   CREATE INDEX artworks_deleted_at ON artworks (deleted_at);
   `,
+  `
+  CREATE TABLE exhibitions (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    venue TEXT,
+    start_date TEXT,
+    end_date TEXT,
+    description TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+
+  CREATE TABLE exhibition_artworks (
+    exhibition_id TEXT NOT NULL REFERENCES exhibitions (id) ON DELETE CASCADE,
+    artwork_id TEXT NOT NULL REFERENCES artworks (id) ON DELETE CASCADE,
+    position INTEGER NOT NULL,
+    PRIMARY KEY (exhibition_id, artwork_id),
+    UNIQUE (exhibition_id, position)
+  );
+  CREATE INDEX exhibition_artworks_artwork ON exhibition_artworks (artwork_id);
+  `,
 ];
 
 export const LATEST_SCHEMA_VERSION = migrations.length;
