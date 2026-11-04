@@ -5,7 +5,6 @@ import { ExhibitionsPage } from "./features/exhibitions/ExhibitionsPage";
 import { GalleryPage } from "./features/gallery/GalleryPage";
 import { NewArtworkLayer } from "./features/new-artwork/NewArtworkLayer";
 import { useNewArtworks } from "./features/new-artwork/useNewArtworks";
-import { SearchPage } from "./features/search/SearchPage";
 import { TransferPage } from "./features/transfer/TransferPage";
 import { TrashPage } from "./features/trash/TrashPage";
 
@@ -25,7 +24,6 @@ export function App() {
             onAdd={() => void newArtworks.pickImages()}
           />
         )}
-        {section === "search" && <SearchPage />}
         {section === "exhibitions" && <ExhibitionsPage />}
         {section === "transfer" && <TransferPage />}
         {section === "backups" && <BackupsPage />}

@@ -80,7 +80,10 @@ export const ARTWORK_SORTS = [
 ] as const;
 export type ArtworkSort = (typeof ARTWORK_SORTS)[number];
 
-const filterValue = z.string().trim().min(1).max(300).optional();
+const filterValues = z
+  .array(z.string().trim().min(1).max(300))
+  .max(500)
+  .optional();
 const filterYear = z.number().int().min(-5000).max(3000).optional();
 
 export const artworkFilterSchema = z.object({
@@ -90,11 +93,12 @@ export const artworkFilterSchema = z.object({
     .array(z.enum(ARTWORK_STATUSES))
     .max(ARTWORK_STATUSES.length)
     .optional(),
-  category: filterValue,
-  artist: filterValue,
-  technique: filterValue,
-  tag: filterValue,
-  location: filterValue,
+  // Within a filter any value may match; across filters all must.
+  categories: filterValues,
+  artists: filterValues,
+  techniques: filterValues,
+  tags: filterValues,
+  locations: filterValues,
   yearFrom: filterYear,
   yearTo: filterYear,
 });

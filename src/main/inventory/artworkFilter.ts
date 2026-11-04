@@ -21,13 +21,17 @@ const TEXT_COLUMNS = [
 
 /** Filters that match one column exactly, ignoring accents and case. */
 const EXACT_FILTERS = {
-  category: "a.category",
-  artist: "a.artist",
-  technique: "a.technique",
-  location: "a.location",
+  categories: "a.category",
+  artists: "a.artist",
+  techniques: "a.technique",
+  locations: "a.location",
 } as const;
 
 const escapeLike = (text: string) => text.replace(/[\\%_]/g, "\\$&");
+
+/** `(sort_key(?), sort_key(?), ...)` with one placeholder per value. */
+const sortKeyList = (values: readonly string[]) =>
+  `(${values.map(() => "sort_key(?)").join(", ")})`;
 
 /**
  * Turns a filter into SQL conditions over `artworks a`, all of which must
@@ -51,20 +55,21 @@ export function buildFilterConditions(filter: ArtworkFilter): SqlCondition[] {
   }
 
   for (const [key, column] of Object.entries(EXACT_FILTERS)) {
-    const value = filter[key as keyof typeof EXACT_FILTERS];
-    if (value) {
+    const values = filter[key as keyof typeof EXACT_FILTERS];
+    if (values?.length) {
       conditions.push({
-        sql: `sort_key(${column}) = sort_key(?)`,
-        params: [value],
+        sql: `sort_key(${column}) IN ${sortKeyList(values)}`,
+        params: [...values],
       });
     }
   }
 
-  if (filter.tag) {
+  if (filter.tags?.length) {
     conditions.push({
       sql: `EXISTS (SELECT 1 FROM artwork_tags t
-             WHERE t.artwork_id = a.id AND sort_key(t.tag) = sort_key(?))`,
-      params: [filter.tag],
+             WHERE t.artwork_id = a.id
+               AND sort_key(t.tag) IN ${sortKeyList(filter.tags)})`,
+      params: [...filter.tags],
     });
   }
 

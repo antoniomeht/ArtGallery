@@ -7,6 +7,7 @@
   --neutral-500: #85857f;
   --neutral-600: #646464;
   --neutral-900: #222222;
+  --blue-100: #e8ecfb;
   --blue-200: #c7d2ff;
   --blue-600: #1f3fbf;
   --blue-700: #1a35a3;
@@ -24,6 +25,7 @@
   --text-secondary: var(--neutral-600);
   --accent: var(--blue-600);
   --accent-hover: var(--blue-700);
+  --accent-subtle: var(--blue-100);
   --accent-on-dark: var(--blue-200);
   --accent-subtle-translucent: rgb(232 236 251 / 0.92);
   --on-accent: var(--neutral-0);

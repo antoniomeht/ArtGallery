@@ -1,13 +1,20 @@
 import { Plus } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
-import type { ArtworkSort, ArtworkStatus } from "../../../../shared/artwork";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import type {
+  ArtworkSort,
+  ArtworkStatus,
+  FilterOptions,
+} from "../../../../shared/artwork";
 import { STATUS_LABELS } from "../../../../shared/artworkFormat";
 import { ActionNotice } from "../../components/ActionNotice";
 import { useActionNotice } from "../../hooks/useActionNotice";
 import { useArtworkList } from "../../hooks/useArtworkList";
+import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 import { ArtworkRecordDialog } from "../artwork-record/ArtworkRecordDialog";
 import { LabelsDialog } from "../labels/LabelsDialog";
 import { AddToExhibitionDialog } from "./AddToExhibitionDialog";
+import { GalleryFilters } from "./GalleryFilters";
+import { EMPTY_FILTERS, hasActiveFilters, toArtworkQuery } from "./filterModel";
 import { GalleryGrid } from "./GalleryGrid";
 import { GalleryToolbar } from "./GalleryToolbar";
 import { SelectionToolbar } from "./SelectionToolbar";
@@ -25,11 +32,35 @@ interface GalleryPageProps {
 
 export function GalleryPage({ inventoryVersion, onAdd }: GalleryPageProps) {
   const [sort, setSort] = useState<ArtworkSort>("recent");
+  const [filters, setFilters] = useState(EMPTY_FILTERS);
+  const [options, setOptions] = useState<FilterOptions | null>(null);
+  // Typing should not query the database on every keystroke.
+  const appliedFilters = useDebouncedValue(filters, 250);
   const listArtworks = useCallback(
-    () => window.artGallery.listArtworks({ sort }),
-    [sort],
+    () =>
+      window.artGallery.listArtworks({
+        ...toArtworkQuery(appliedFilters),
+        sort,
+      }),
+    [appliedFilters, sort],
   );
-  const { state, reload } = useArtworkList(listArtworks, inventoryVersion);
+  const listAllArtworks = useCallback(
+    () => window.artGallery.listArtworks(),
+    [],
+  );
+  const results = useArtworkList(listArtworks, inventoryVersion);
+  const inventory = useArtworkList(listAllArtworks, inventoryVersion);
+  const { state, reload: reloadResults } = results;
+  const { reload: reloadInventory } = inventory;
+  const loadOptions = useCallback(() => {
+    void window.artGallery.listFilterOptions().then(setOptions);
+  }, []);
+  useEffect(loadOptions, [loadOptions, inventoryVersion]);
+  const reload = useCallback(() => {
+    reloadResults();
+    reloadInventory();
+    loadOptions();
+  }, [reloadResults, reloadInventory, loadOptions]);
   const { notice, setNotice, moveToTrash } = useActionNotice(reload);
   const [openArtworkId, setOpenArtworkId] = useState<string | null>(null);
   /** Null outside selection mode. */
@@ -37,8 +68,21 @@ export function GalleryPage({ inventoryVersion, onAdd }: GalleryPageProps) {
   const [isChoosingExhibition, setIsChoosingExhibition] = useState(false);
   const [isPrintingLabels, setIsPrintingLabels] = useState(false);
 
-  const artworks = state.status === "ready" ? state.artworks : [];
+  const artworks = useMemo(
+    () => (state.status === "ready" ? state.artworks : []),
+    [state],
+  );
+  const totalCount =
+    inventory.state.status === "ready" ? inventory.state.artworks.length : 0;
+  const isFiltering = hasActiveFilters(appliedFilters);
   const isSelecting = selectedIds !== null;
+  /** Actions only reach what is on screen, never artworks filtered away. */
+  const visibleSelection = useMemo(
+    () =>
+      selectedIds &&
+      new Set(artworks.map(({ id }) => id).filter((id) => selectedIds.has(id))),
+    [artworks, selectedIds],
+  );
 
   useEffect(() => {
     if (!isSelecting) return;
@@ -72,29 +116,35 @@ export function GalleryPage({ inventoryVersion, onAdd }: GalleryPageProps) {
         <h1 id="gallery-title" className="page-header__title">
           Galería
         </h1>
-        {artworks.length > 0 && (
+        {totalCount > 0 && (
           <>
-            <p className="page-header__count">{countLabel(artworks.length)}</p>
+            <p className="page-header__count" aria-live="polite">
+              {isFiltering
+                ? `${artworks.length} de ${countLabel(totalCount)}`
+                : countLabel(totalCount)}
+            </p>
             <div className="page-header__action">
-              {selectedIds ? (
+              {visibleSelection ? (
                 <SelectionToolbar
-                  selectedCount={selectedIds.size}
+                  selectedCount={visibleSelection.size}
                   totalCount={artworks.length}
                   onSelectAll={() =>
                     setSelectedIds(new Set(artworks.map(({ id }) => id)))
                   }
                   onClear={() => setSelectedIds(new Set())}
-                  onSetStatus={(status) => setStatus([...selectedIds], status)}
+                  onSetStatus={(status) =>
+                    setStatus([...visibleSelection], status)
+                  }
                   onMoveToTrash={() => {
                     void moveToTrash(
-                      [...selectedIds],
-                      `${countLabel(selectedIds.size)} movidas a la papelera.`,
+                      [...visibleSelection],
+                      `${countLabel(visibleSelection.size)} movidas a la papelera.`,
                     );
                     setSelectedIds(null);
                   }}
                   onExport={async () => {
                     const result = await window.artGallery.exportPackage([
-                      ...selectedIds,
+                      ...visibleSelection,
                     ]);
                     if (result) {
                       setNotice({
@@ -119,6 +169,14 @@ export function GalleryPage({ inventoryVersion, onAdd }: GalleryPageProps) {
         )}
       </header>
 
+      {totalCount > 0 && (
+        <GalleryFilters
+          filters={filters}
+          options={options}
+          onChange={setFilters}
+        />
+      )}
+
       {state.status === "loading" && (
         <p className="gallery-status" role="status">
           Cargando obras…
@@ -132,7 +190,19 @@ export function GalleryPage({ inventoryVersion, onAdd }: GalleryPageProps) {
         </div>
       )}
 
-      {state.status === "ready" && artworks.length === 0 && (
+      {state.status === "ready" && artworks.length === 0 && isFiltering && (
+        <div className="gallery-status">
+          <p>
+            Ninguna obra coincide con esta búsqueda. Prueba con menos filtros o
+            con otras palabras.
+          </p>
+          <Button onClick={() => setFilters(EMPTY_FILTERS)}>
+            Limpiar filtros
+          </Button>
+        </div>
+      )}
+
+      {state.status === "ready" && artworks.length === 0 && !isFiltering && (
         <div className="gallery-empty">
           <div className="gallery-empty__frame" aria-hidden />
           <p className="gallery-empty__text">
@@ -148,7 +218,7 @@ export function GalleryPage({ inventoryVersion, onAdd }: GalleryPageProps) {
       {artworks.length > 0 && (
         <GalleryGrid
           artworks={artworks}
-          selectedIds={selectedIds}
+          selectedIds={visibleSelection}
           onOpen={setOpenArtworkId}
           onToggle={toggle}
         />
@@ -169,9 +239,9 @@ export function GalleryPage({ inventoryVersion, onAdd }: GalleryPageProps) {
         />
       )}
 
-      {isPrintingLabels && selectedIds && (
+      {isPrintingLabels && visibleSelection && (
         <LabelsDialog
-          source={{ artworkIds: [...selectedIds] }}
+          source={{ artworkIds: [...visibleSelection] }}
           onClose={() => setIsPrintingLabels(false)}
           onSaved={(path) => {
             setIsPrintingLabels(false);
@@ -179,17 +249,17 @@ export function GalleryPage({ inventoryVersion, onAdd }: GalleryPageProps) {
           }}
         />
       )}
-      {isChoosingExhibition && selectedIds && (
+      {isChoosingExhibition && visibleSelection && (
         <AddToExhibitionDialog
-          artworkCount={selectedIds.size}
+          artworkCount={visibleSelection.size}
           onClose={() => setIsChoosingExhibition(false)}
           onChoose={async (exhibition) => {
             setIsChoosingExhibition(false);
             await window.artGallery.addToExhibition(exhibition.id, [
-              ...selectedIds,
+              ...visibleSelection,
             ]);
             setNotice({
-              message: `${countLabel(selectedIds.size)} añadidas a «${exhibition.name}».`,
+              message: `${countLabel(visibleSelection.size)} añadidas a «${exhibition.name}».`,
             });
             setSelectedIds(null);
           }}

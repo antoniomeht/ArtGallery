@@ -1,7 +1,7 @@
 import type { ButtonHTMLAttributes } from "react";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "default" | "primary" | "danger";
+  variant?: "default" | "primary" | "subtle" | "danger";
 }
 
 /** Text button of the design system. Does not submit forms unless asked to. */
