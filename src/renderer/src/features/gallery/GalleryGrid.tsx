@@ -1,6 +1,7 @@
 import { Check } from "lucide-react";
 import type { ArtworkSummary } from "../../../../shared/artwork";
 import { thumbnailUrl } from "../../../../shared/media";
+import { useLongPress } from "../../hooks/useLongPress";
 import "./GalleryGrid.css";
 
 interface GalleryGridProps {
@@ -8,7 +9,9 @@ interface GalleryGridProps {
   /** When set, the grid is in selection mode and tiles toggle selection. */
   selectedIds: ReadonlySet<string> | null;
   onOpen: (artworkId: string) => void;
-  onToggle?: (artworkId: string) => void;
+  onToggle: (artworkId: string) => void;
+  /** Holding a tile, or Shift+Enter on it, starts selecting from that artwork. */
+  onStartSelection?: (artworkId: string) => void;
 }
 
 export function GalleryGrid({
@@ -16,7 +19,13 @@ export function GalleryGrid({
   selectedIds,
   onOpen,
   onToggle,
+  onStartSelection,
 }: GalleryGridProps) {
+  // Holding a tile while selecting simply toggles it, like a click.
+  const { pressHandlers, consumeClick } = useLongPress((artworkId: string) =>
+    selectedIds ? onToggle(artworkId) : onStartSelection?.(artworkId),
+  );
+
   return (
     <ul className="gallery-grid" aria-label="Obras">
       {artworks.map((artwork) => {
@@ -27,15 +36,26 @@ export function GalleryGrid({
               type="button"
               className="gallery-tile"
               aria-pressed={selectedIds ? isSelected : undefined}
-              onClick={() =>
-                selectedIds ? onToggle?.(artwork.id) : onOpen(artwork.id)
-              }
+              aria-keyshortcuts={selectedIds ? undefined : "Shift+Enter"}
+              {...pressHandlers(artwork.id)}
+              onKeyDown={(event) => {
+                if (!selectedIds && event.shiftKey && event.key === "Enter") {
+                  event.preventDefault();
+                  onStartSelection?.(artwork.id);
+                }
+              }}
+              onClick={() => {
+                if (consumeClick()) return;
+                if (selectedIds) onToggle(artwork.id);
+                else onOpen(artwork.id);
+              }}
             >
               {artwork.primaryImageId ? (
                 <img
                   className="gallery-tile__image"
                   src={thumbnailUrl(artwork.primaryImageId)}
                   alt=""
+                  draggable={false}
                   loading="lazy"
                   decoding="async"
                 />
