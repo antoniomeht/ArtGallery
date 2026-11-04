@@ -1,6 +1,6 @@
 .transfer-page__error {
   margin: 0;
-  color: var(--color-danger);
+  color: var(--danger);
 }
 
 .import-preview {
@@ -9,14 +9,15 @@
   gap: var(--space-4);
   width: 100%;
   padding: var(--space-4) var(--space-6);
-  border: 1px solid var(--color-line-strong);
-  border-left: 3px solid var(--color-accent);
-  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-control);
 }
 
 .import-preview__title {
   margin: 0;
-  font-size: var(--text-base);
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-body);
   font-weight: 600;
   overflow-wrap: anywhere;
 }
@@ -36,6 +37,6 @@
 }
 
 .import-preview__duplicates summary {
-  color: var(--color-accent);
+  color: var(--accent);
   cursor: pointer;
 }

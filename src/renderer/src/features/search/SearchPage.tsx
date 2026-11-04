@@ -19,6 +19,7 @@ import {
   toArtworkQuery,
   type SearchFilters,
 } from "./searchFilters";
+import { Button } from "../../components/Button";
 import "./SearchPage.css";
 
 /** Filters chosen from the values that exist in the inventory. */
@@ -152,14 +153,10 @@ export function SearchPage() {
               : `${results.length} obras encontradas`)}
         </p>
         {hasActiveFilters(filters) && (
-          <button
-            type="button"
-            className="button"
-            onClick={() => setFilters(EMPTY_FILTERS)}
-          >
+          <Button onClick={() => setFilters(EMPTY_FILTERS)}>
             <X aria-hidden size={16} />
             Limpiar filtros
-          </button>
+          </Button>
         )}
         <SortSelect value={sort} onChange={setSort} />
       </div>

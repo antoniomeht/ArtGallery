@@ -12,6 +12,7 @@ import {
 import type { PrintSource } from "../../../../shared/print";
 import { LabelCard } from "../print/LabelCard";
 import { loadSourceArtworks } from "../print/printData";
+import { Button } from "../../components/Button";
 import "../print/print.css";
 import "./LabelsDialog.css";
 
@@ -182,21 +183,14 @@ export function LabelsDialog({ source, onClose, onSaved }: LabelsDialogProps) {
           </p>
         )}
         <div className="dialog__actions">
-          <button
-            type="button"
-            className="button"
-            onClick={() => dialogRef.current?.close()}
-          >
-            Cancelar
-          </button>
-          <button
-            type="button"
-            className="button button--primary"
+          <Button onClick={() => dialogRef.current?.close()}>Cancelar</Button>
+          <Button
+            variant="primary"
             disabled={!valid || count === 0 || isSaving}
             onClick={save}
           >
             {isSaving ? "Generando PDF…" : "Guardar PDF…"}
-          </button>
+          </Button>
         </div>
       </div>
     </dialog>

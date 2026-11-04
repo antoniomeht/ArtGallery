@@ -5,6 +5,7 @@ import {
   type ExhibitionFieldsInput,
 } from "../../../../shared/exhibition";
 import { Field } from "../../components/Field";
+import { Button } from "../../components/Button";
 
 interface ExhibitionFormDialogProps {
   /** Edits this exhibition; without it the dialog creates a new one. */
@@ -97,16 +98,10 @@ export function ExhibitionFormDialog({
           </p>
         )}
         <div className="dialog__actions">
-          <button
-            type="button"
-            className="button"
-            onClick={() => dialogRef.current?.close()}
-          >
-            Cancelar
-          </button>
-          <button type="submit" className="button button--primary">
+          <Button onClick={() => dialogRef.current?.close()}>Cancelar</Button>
+          <Button type="submit" variant="primary">
             {exhibition ? "Guardar cambios" : "Crear exposición"}
-          </button>
+          </Button>
         </div>
       </form>
     </dialog>

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Button } from "../../components/Button";
 
 interface CatalogDialogProps {
   exhibitionId: string;
@@ -65,21 +66,10 @@ export function CatalogDialog({
           </p>
         )}
         <div className="dialog__actions">
-          <button
-            type="button"
-            className="button"
-            onClick={() => dialogRef.current?.close()}
-          >
-            Cancelar
-          </button>
-          <button
-            type="button"
-            className="button button--primary"
-            disabled={isSaving}
-            onClick={save}
-          >
+          <Button onClick={() => dialogRef.current?.close()}>Cancelar</Button>
+          <Button variant="primary" disabled={isSaving} onClick={save}>
             {isSaving ? "Generando PDF…" : "Guardar PDF…"}
-          </button>
+          </Button>
         </div>
       </div>
     </dialog>

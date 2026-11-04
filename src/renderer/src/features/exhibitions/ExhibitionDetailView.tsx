@@ -20,6 +20,8 @@ import { LabelsDialog } from "../labels/LabelsDialog";
 import { CatalogDialog } from "./CatalogDialog";
 import { ChooseArtworksDialog } from "./ChooseArtworksDialog";
 import { ExhibitionFormDialog } from "./ExhibitionFormDialog";
+import { Button } from "../../components/Button";
+import { IconButton } from "../../components/IconButton";
 
 interface ExhibitionDetailViewProps {
   exhibitionId: string;
@@ -77,10 +79,10 @@ export function ExhibitionDetailView({
   return (
     <section className="exhibition" aria-labelledby="exhibition-title">
       <header className="page-header exhibition__header">
-        <button type="button" className="button" onClick={onBack}>
-          <ArrowLeft aria-hidden size={18} />
+        <Button onClick={onBack}>
+          <ArrowLeft aria-hidden size={16} />
           Exposiciones
-        </button>
+        </Button>
         <div className="exhibition__heading">
           <h1 id="exhibition-title" className="page-header__title">
             {exhibition.name}
@@ -92,17 +94,11 @@ export function ExhibitionDetailView({
           )}
         </div>
         <div className="toolbar page-header__action">
-          <button
-            type="button"
-            className="button"
-            onClick={() => setDialog("edit")}
-          >
+          <Button onClick={() => setDialog("edit")}>
             <Pencil aria-hidden size={16} />
             Editar
-          </button>
-          <button
-            type="button"
-            className="button"
+          </Button>
+          <Button
             onClick={async () => {
               const result = await window.artGallery.exportExhibition(
                 exhibition.id,
@@ -114,41 +110,29 @@ export function ExhibitionDetailView({
           >
             <FileDown aria-hidden size={16} />
             Exportar…
-          </button>
-          <button
-            type="button"
-            className="button"
+          </Button>
+          <Button
             disabled={exhibition.artworks.length === 0}
             onClick={() => setDialog("catalog")}
           >
             <FileText aria-hidden size={16} />
             Catálogo PDF…
-          </button>
-          <button
-            type="button"
-            className="button"
+          </Button>
+          <Button
             disabled={exhibition.artworks.length === 0}
             onClick={() => setDialog("labels")}
           >
             <Tags aria-hidden size={16} />
             Cartelas…
-          </button>
-          <button
-            type="button"
-            className="button"
-            onClick={() => setDialog("delete")}
-          >
+          </Button>
+          <Button onClick={() => setDialog("delete")}>
             <Trash2 aria-hidden size={16} />
             Eliminar
-          </button>
-          <button
-            type="button"
-            className="button button--primary"
-            onClick={() => setDialog("add")}
-          >
-            <Plus aria-hidden size={18} />
+          </Button>
+          <Button variant="primary" onClick={() => setDialog("add")}>
+            <Plus aria-hidden size={16} />
             Añadir obras
-          </button>
+          </Button>
         </div>
       </header>
 
@@ -189,34 +173,28 @@ export function ExhibitionDetailView({
                 )}
               </div>
               <div className="exhibition-artwork__actions">
-                <button
-                  type="button"
-                  className="icon-button"
+                <IconButton
                   aria-label={`Subir «${artwork.title}»`}
                   disabled={index === 0}
                   onClick={() => move(index, -1)}
                 >
                   <ArrowUp aria-hidden size={16} />
-                </button>
-                <button
-                  type="button"
-                  className="icon-button"
+                </IconButton>
+                <IconButton
                   aria-label={`Bajar «${artwork.title}»`}
                   disabled={index === ids.length - 1}
                   onClick={() => move(index, 1)}
                 >
                   <ArrowDown aria-hidden size={16} />
-                </button>
-                <button
-                  type="button"
-                  className="icon-button"
+                </IconButton>
+                <IconButton
                   aria-label={`Quitar «${artwork.title}» de la exposición`}
                   onClick={() =>
                     saveOrder(ids.filter((id) => id !== artwork.id))
                   }
                 >
                   <X aria-hidden size={16} />
-                </button>
+                </IconButton>
               </div>
             </li>
           ))}

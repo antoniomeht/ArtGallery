@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { ArtworkSummary } from "../../../../shared/artwork";
 import { GalleryGrid } from "../gallery/GalleryGrid";
+import { Button } from "../../components/Button";
 
 interface ChooseArtworksDialogProps {
   /** Artworks already in the exhibition, which are not offered again. */
@@ -62,23 +63,16 @@ export function ChooseArtworksDialog({
           </div>
         )}
         <div className="dialog__actions">
-          <button
-            type="button"
-            className="button"
-            onClick={() => dialogRef.current?.close()}
-          >
-            Cancelar
-          </button>
-          <button
-            type="button"
-            className="button button--primary"
+          <Button onClick={() => dialogRef.current?.close()}>Cancelar</Button>
+          <Button
+            variant="primary"
             disabled={selected.size === 0}
             onClick={() => onChoose([...selected])}
           >
             {selected.size === 1
               ? "Añadir 1 obra"
               : `Añadir ${selected.size} obras`}
-          </button>
+          </Button>
         </div>
       </div>
     </dialog>

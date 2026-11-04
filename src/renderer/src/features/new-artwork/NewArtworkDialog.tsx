@@ -1,6 +1,8 @@
 import { ImagePlus, X } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Field } from "../../components/Field";
+import { Button } from "../../components/Button";
+import { IconButton } from "../../components/IconButton";
 import "./NewArtworkDialog.css";
 
 interface NewArtworkDialogProps {
@@ -85,9 +87,7 @@ export function NewArtworkDialog({
                   {index === 0 && (
                     <span className="image-list__badge">Principal</span>
                   )}
-                  <button
-                    type="button"
-                    className="icon-button"
+                  <IconButton
                     aria-label={`Quitar ${fileNameOf(path)}`}
                     onClick={() =>
                       setImagePaths((current) =>
@@ -96,15 +96,15 @@ export function NewArtworkDialog({
                     }
                   >
                     <X aria-hidden size={16} />
-                  </button>
+                  </IconButton>
                 </li>
               ))}
             </ul>
           )}
-          <button type="button" className="button" onClick={chooseImages}>
-            <ImagePlus aria-hidden size={18} />
+          <Button onClick={chooseImages}>
+            <ImagePlus aria-hidden size={16} />
             Elegir imágenes…
-          </button>
+          </Button>
         </div>
 
         {error && (
@@ -114,20 +114,10 @@ export function NewArtworkDialog({
         )}
 
         <div className="dialog__actions">
-          <button
-            type="button"
-            className="button"
-            onClick={() => dialogRef.current?.close()}
-          >
-            Cancelar
-          </button>
-          <button
-            type="submit"
-            className="button button--primary"
-            disabled={isSaving}
-          >
+          <Button onClick={() => dialogRef.current?.close()}>Cancelar</Button>
+          <Button type="submit" variant="primary" disabled={isSaving}>
             {isSaving ? "Guardando…" : "Añadir obra"}
-          </button>
+          </Button>
         </div>
       </form>
     </dialog>

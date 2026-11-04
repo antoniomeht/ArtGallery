@@ -7,6 +7,7 @@ import {
 } from "../../../../shared/transfer";
 import { ActionNotice, type NoticeAction } from "../../components/ActionNotice";
 import { IMPORT_FAILURE_MESSAGES } from "./transferLabels";
+import { Button } from "../../components/Button";
 import "./TransferPage.css";
 
 const POLICY_LABELS: Record<DuplicatePolicy, string> = {
@@ -154,24 +155,14 @@ export function TransferPage() {
             la Galería y pulsa «Exportar…».
           </p>
           <div className="page-section__actions">
-            <button
-              type="button"
-              className="button"
-              disabled={busy}
-              onClick={exportPackage}
-            >
-              <FileDown aria-hidden size={18} />
+            <Button disabled={busy} onClick={exportPackage}>
+              <FileDown aria-hidden size={16} />
               Exportar todo el inventario…
-            </button>
-            <button
-              type="button"
-              className="button"
-              disabled={busy}
-              onClick={exportCsv}
-            >
-              <FileSpreadsheet aria-hidden size={18} />
+            </Button>
+            <Button disabled={busy} onClick={exportCsv}>
+              <FileSpreadsheet aria-hidden size={16} />
               Exportar metadatos a CSV…
-            </button>
+            </Button>
           </div>
           <p className="page-section__hint">
             El CSV solo contiene datos, sin imágenes, para usarlo en una hoja de
@@ -188,15 +179,10 @@ export function TransferPage() {
             borrar nada. Verás un resumen antes de aplicar ningún cambio. Para
             sustituir todo el inventario por una copia, usa Copias y ajustes.
           </p>
-          <button
-            type="button"
-            className="button button--primary"
-            disabled={busy}
-            onClick={chooseImport}
-          >
-            <FileUp aria-hidden size={18} />
+          <Button variant="primary" disabled={busy} onClick={chooseImport}>
+            <FileUp aria-hidden size={16} />
             Elegir archivo para importar…
-          </button>
+          </Button>
 
           {preview && (
             <div className="import-preview" aria-labelledby="preview-title">
@@ -244,21 +230,14 @@ export function TransferPage() {
               )}
 
               <div className="page-section__actions">
-                <button
-                  type="button"
-                  className="button button--primary"
+                <Button
+                  variant="primary"
                   disabled={busy}
                   onClick={() => applyImport(preview)}
                 >
                   Importar
-                </button>
-                <button
-                  type="button"
-                  className="button"
-                  onClick={() => cancelImport(preview)}
-                >
-                  Cancelar
-                </button>
+                </Button>
+                <Button onClick={() => cancelImport(preview)}>Cancelar</Button>
               </div>
             </div>
           )}

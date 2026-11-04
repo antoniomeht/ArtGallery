@@ -4,6 +4,7 @@ import type { ArtworkSummary } from "../../../../shared/artwork";
 import { thumbnailUrl } from "../../../../shared/media";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { useArtworkList } from "../../hooks/useArtworkList";
+import { Button } from "../../components/Button";
 import "./TrashPage.css";
 
 const listTrash = () => window.artGallery.listTrash();
@@ -38,14 +39,13 @@ export function TrashPage() {
           Papelera
         </h1>
         {artworks.length > 0 && (
-          <button
-            type="button"
-            className="button page-header__action"
+          <Button
+            className="page-header__action"
             onClick={() => setPending({ kind: "all" })}
           >
             <Trash2 aria-hidden size={16} />
             Vaciar papelera
-          </button>
+          </Button>
         )}
       </header>
 
@@ -100,9 +100,7 @@ export function TrashPage() {
                 </span>
               </div>
               <div className="trash-item__actions">
-                <button
-                  type="button"
-                  className="button"
+                <Button
                   onClick={() =>
                     run(
                       () => window.artGallery.restoreFromTrash([artwork.id]),
@@ -112,14 +110,10 @@ export function TrashPage() {
                 >
                   <RotateCcw aria-hidden size={16} />
                   Restaurar
-                </button>
-                <button
-                  type="button"
-                  className="button"
-                  onClick={() => setPending({ kind: "one", artwork })}
-                >
+                </Button>
+                <Button onClick={() => setPending({ kind: "one", artwork })}>
                   Eliminar definitivamente
-                </button>
+                </Button>
               </div>
             </li>
           ))}

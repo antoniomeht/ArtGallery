@@ -13,15 +13,15 @@ body,
 body {
   margin: 0;
   font-family: var(--font-sans);
-  font-size: var(--text-base);
-  line-height: 1.5;
-  color: var(--color-ink);
-  background: var(--color-wall);
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-body);
+  color: var(--text-primary);
+  background: var(--surface-page);
   -webkit-font-smoothing: antialiased;
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
@@ -54,7 +54,7 @@ body {
 
 .page-header__count {
   margin: 0;
-  color: var(--color-ink-muted);
+  color: var(--text-secondary);
 }
 
 .page-header__action {
@@ -80,7 +80,8 @@ body {
 
 .page-header__title {
   margin: 0;
-  font-size: var(--text-xl);
+  font-size: var(--font-size-title);
+  line-height: var(--line-height-title);
   font-weight: 600;
   letter-spacing: -0.015em;
 }

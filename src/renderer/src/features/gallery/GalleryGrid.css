@@ -18,7 +18,7 @@
   overflow: hidden;
   font: inherit;
   text-align: left;
-  background: var(--color-plinth);
+  background: var(--surface-sunken);
   cursor: pointer;
 }
 
@@ -35,7 +35,7 @@
 }
 
 .gallery-tile__placeholder {
-  border: 1px solid var(--color-line);
+  border: 1px solid var(--border-subtle);
 }
 
 .gallery-tile__caption {
@@ -44,10 +44,10 @@
   display: flex;
   flex-direction: column;
   padding: var(--space-6) var(--space-3) var(--space-2);
-  color: #ffffff;
+  color: var(--on-image);
   background: linear-gradient(transparent, rgb(0 0 0 / 0.6));
   opacity: 0;
-  transition: opacity 120ms ease-out;
+  transition: opacity var(--motion-fast) ease-out;
 }
 
 .gallery-tile:hover .gallery-tile__caption,
@@ -57,7 +57,7 @@
 
 /* Without an image the caption is the only content, so keep it visible. */
 .gallery-tile__placeholder + .gallery-tile__caption {
-  color: var(--color-ink);
+  color: var(--text-primary);
   background: none;
   opacity: 1;
 }
@@ -71,16 +71,16 @@
   place-items: center;
   width: 24px;
   height: 24px;
-  border: 2px solid #ffffff;
+  border: 2px solid var(--on-image);
   border-radius: 50%;
-  color: #ffffff;
+  color: var(--on-image);
   background: rgb(0 0 0 / 0.25);
-  box-shadow: 0 1px 3px rgb(0 0 0 / 0.3);
+  box-shadow: var(--shadow-raised);
 }
 
 .gallery-tile[aria-pressed="true"] .gallery-tile__check {
-  border-color: var(--color-accent);
-  background: var(--color-accent);
+  border-color: var(--accent);
+  background: var(--accent);
 }
 
 .gallery-tile[aria-pressed="true"] .gallery-tile__image,
@@ -90,9 +90,10 @@
 
 .gallery-tile__image,
 .gallery-tile__placeholder {
-  transition: transform 120ms ease-out;
+  transition: transform var(--motion-fast) ease-out;
 }
 
 .gallery-tile__artist {
-  font-size: var(--text-sm);
+  font-size: var(--font-size-caption);
+  line-height: var(--line-height-caption);
 }
