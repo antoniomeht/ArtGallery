@@ -160,7 +160,6 @@ export function GalleryPage({ inventoryVersion, onAdd }: GalleryPageProps) {
                 <GalleryToolbar
                   sort={sort}
                   onSortChange={setSort}
-                  onSelect={() => setSelectedIds(new Set())}
                   onAdd={onAdd}
                 />
               )}
@@ -221,6 +220,7 @@ export function GalleryPage({ inventoryVersion, onAdd }: GalleryPageProps) {
           selectedIds={visibleSelection}
           onOpen={setOpenArtworkId}
           onToggle={toggle}
+          onStartSelection={(id) => setSelectedIds(new Set([id]))}
         />
       )}
 
