@@ -1,4 +1,4 @@
-import { useId, type InputHTMLAttributes } from "react";
+import { useId, type AriaAttributes, type InputHTMLAttributes } from "react";
 
 type InputProps = Pick<
   InputHTMLAttributes<HTMLInputElement>,
@@ -10,7 +10,11 @@ type InputProps = Pick<
   | "type"
   | "onBlur"
   | "onFocus"
->;
+  | "onKeyDown"
+  | "role"
+  | "autoComplete"
+> &
+  AriaAttributes;
 
 interface FieldProps extends InputProps {
   label: string;

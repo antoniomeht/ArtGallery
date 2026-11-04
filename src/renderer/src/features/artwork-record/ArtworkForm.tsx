@@ -1,8 +1,9 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import {
   ARTWORK_STATUSES,
   DIMENSION_UNITS,
   type Artwork,
+  type FilterOptions,
 } from "../../../../shared/artwork";
 import { STATUS_LABELS } from "../../../../shared/artworkFormat";
 import { Field } from "../../components/Field";
@@ -12,9 +13,12 @@ import {
   type ArtworkFormErrors,
   type ArtworkFormValues,
 } from "./artworkFormValues";
+import { SuggestField } from "./SuggestField";
+import { withDefaults } from "./suggestions";
 import { Button } from "../../components/Button";
 
-const CATEGORY_SUGGESTIONS = [
+/** Offered from the first artwork, when the inventory has no values yet. */
+const COMMON_CATEGORIES = [
   "Pintura",
   "Dibujo",
   "Grabado",
@@ -40,6 +44,12 @@ export function ArtworkForm({
   const [errors, setErrors] = useState<ArtworkFormErrors>({});
   const [saveError, setSaveError] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [options, setOptions] = useState<FilterOptions | null>(null);
+
+  useEffect(() => {
+    // Without suggestions the fields still work, so a failure is not shown.
+    window.artGallery.listFilterOptions().then(setOptions, () => {});
+  }, []);
 
   /** Props for a text input bound to `name`. */
   const bind = (name: keyof ArtworkFormValues) => ({
@@ -78,19 +88,21 @@ export function ArtworkForm({
         onFocus={isUnsaved ? (event) => event.target.select() : undefined}
         {...bind("title")}
       />
-      <Field label="Artista" {...bind("artist")} />
+      <SuggestField
+        label="Artista"
+        suggestions={options?.artists ?? []}
+        {...bind("artist")}
+      />
 
       <div className="artwork-form__row">
-        <Field
+        <SuggestField
           label="Categoría"
-          list="category-suggestions"
+          suggestions={withDefaults(
+            options?.categories ?? [],
+            COMMON_CATEGORIES,
+          )}
           {...bind("category")}
         />
-        <datalist id="category-suggestions">
-          {CATEGORY_SUGGESTIONS.map((category) => (
-            <option key={category} value={category} />
-          ))}
-        </datalist>
         <label className="field">
           <span className="field__label">Estado</span>
           <select
@@ -113,8 +125,16 @@ export function ArtworkForm({
       </div>
 
       <div className="artwork-form__row">
-        <Field label="Técnica" {...bind("technique")} />
-        <Field label="Soporte" {...bind("support")} />
+        <SuggestField
+          label="Técnica"
+          suggestions={options?.techniques ?? []}
+          {...bind("technique")}
+        />
+        <SuggestField
+          label="Soporte"
+          suggestions={options?.supports ?? []}
+          {...bind("support")}
+        />
       </div>
 
       <fieldset className="artwork-form__group">
@@ -165,8 +185,18 @@ export function ArtworkForm({
         </div>
       </fieldset>
 
-      <Field label="Ubicación" {...bind("location")} />
-      <Field label="Etiquetas" hint="separadas por comas" {...bind("tags")} />
+      <SuggestField
+        label="Ubicación"
+        suggestions={options?.locations ?? []}
+        {...bind("location")}
+      />
+      <SuggestField
+        label="Etiquetas"
+        hint="separadas por comas"
+        isList
+        suggestions={options?.tags ?? []}
+        {...bind("tags")}
+      />
 
       <div className="artwork-form__row">
         <Field label="Precio" inputMode="decimal" {...bind("price")} />
