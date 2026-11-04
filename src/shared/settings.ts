@@ -9,6 +9,8 @@ export const settingsSchema = z.object({
   autoBackup: z.enum(AUTO_BACKUP_FREQUENCIES).default("daily"),
   /** How many automatic backups to keep. Manual ones are never pruned. */
   keepAutomaticBackups: z.number().int().min(1).max(100).default(10),
+  /** Filled in on every new artwork; empty leaves the artist blank. */
+  defaultArtist: z.string().trim().max(300).default(""),
 });
 
 export type Settings = z.output<typeof settingsSchema>;

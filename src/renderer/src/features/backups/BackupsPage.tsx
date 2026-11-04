@@ -16,6 +16,7 @@ import {
   RESTORE_FAILURE_MESSAGES,
 } from "./backupLabels";
 import { Button } from "../../components/Button";
+import { DefaultArtistSection } from "./DefaultArtistSection";
 import "./BackupsPage.css";
 
 const KEEP_OPTIONS = [5, 10, 20, 30];
@@ -108,6 +109,11 @@ export function BackupsPage() {
 
       {overview && (
         <div className="page-sections">
+          <DefaultArtistSection
+            value={overview.settings.defaultArtist}
+            onSave={(defaultArtist) => void updateSettings({ defaultArtist })}
+          />
+
           <section className="page-section" aria-labelledby="backup-now">
             <h2 id="backup-now" className="page-section__title">
               Copias de seguridad
