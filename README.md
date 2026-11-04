@@ -10,9 +10,9 @@ Inventario personal de cuadros, pinturas y dibujos para Windows y macOS. Funcion
 
 Quien pinta o colecciona suele llevar sus obras repartidas entre carpetas de fotos, hojas de cálculo y notas. ArtGallery reúne en un solo lugar la ficha de cada obra con sus imágenes, dónde está y en qué estado se encuentra (disponible, expuesta, prestada, vendida). También prepara lo que hace falta para una exposición: la selección ordenada de obras, el catálogo en PDF y las cartelas para imprimir. Incluye copias de seguridad que se pueden recuperar tras reinstalar o cambiar de equipo.
 
-| Ficha de la obra                             | Búsqueda y filtros                                   |
+| Ficha de la obra                             | Búsqueda y filtros en la Galería                     |
 | -------------------------------------------- | ---------------------------------------------------- |
-| ![Ficha de una obra](screenshots/record.png) | ![Búsqueda combinada](screenshots/search.png)        |
+| ![Ficha de una obra](screenshots/record.png) | ![Búsqueda con filtros](screenshots/search.png)      |
 | **Exposición**                               | **Cartelas**                                         |
 | ![Exposición](screenshots/exhibition.png)    | ![Cartelas con vista previa](screenshots/labels.png) |
 
@@ -22,7 +22,9 @@ Las capturas son de la aplicación real con los [datos de demostración](#datos-
 
 **Inventario**
 
-- Alta rápida que solo pide el título; artista e imágenes son opcionales. Las fotografías se copian al almacenamiento de ArtGallery, así que la obra sigue funcionando aunque se mueva o borre el archivo original.
+- Alta directa: arrastra una imagen a la ventana o pulsa «Añadir obra». La ficha se abre en edición con la foto como principal, el nombre del archivo como título y el artista predeterminado de los ajustes. Si añades varias imágenes a la vez, se crea una obra por imagen.
+- Las fotografías se copian al almacenamiento de ArtGallery, así que la obra sigue funcionando aunque se mueva o borre el archivo original.
+- Los campos de texto sugieren los valores ya usados en el inventario, e Intro toma el que más se parece a lo escrito.
 - Ficha con estilo de cartela de museo y edición de todos los campos:
   - artista, categoría, técnica y soporte;
   - año (exacto o aproximado);
@@ -30,19 +32,19 @@ Las capturas son de la aplicación real con los [datos de demostración](#datos-
   - descripción, notas y etiquetas;
   - ubicación y estado;
   - precio con moneda.
-- Varias imágenes por obra: se pueden añadir más, elegir la principal y quitar imágenes.
+- Varias imágenes por obra: se pueden añadir más, también arrastrándolas a la ficha abierta, elegir la principal y quitar imágenes.
 - Papelera recuperable, con «Deshacer» al momento y borrado definitivo con confirmación.
 
 **Galería y búsqueda**
 
 - Cuadrícula de miniaturas al estilo de la galería de un móvil, ordenable por fecha de incorporación, título o año. El orden por título no distingue tildes ni mayúsculas.
-- Selección múltiple con acciones en bloque:
+- Selección múltiple: mantén pulsada una obra (o Mayús+Intro) y marca las demás con un clic. Acciones en bloque:
   - cambiar el estado;
   - añadir a una exposición;
   - exportar;
   - imprimir cartelas;
   - mover a la papelera.
-- Búsqueda de texto en todos los campos, combinable con filtros de estado, categoría, artista, técnica, etiqueta, ubicación y rango de años.
+- Búsqueda en la propia Galería, mientras escribes y en todos los campos, combinable con desplegables de estado, categoría, artista, técnica, etiqueta, ubicación y rango de años. Cada valor elegido aparece como una burbuja que se quita con su x.
 
 **Exposiciones**
 
@@ -100,7 +102,7 @@ Versión `0.1.0`, en desarrollo y todavía sin publicar como release.
 
 Se descartó **Tauri**: genera binarios más pequeños, pero exige mantener una segunda base de código en Rust y su generación de PDF depende del WebView de cada sistema.
 
-**Identidad visual: «cubo blanco».**
+**Identidad visual: «cubo blanco».** Los valores están en `src/renderer/src/styles/tokens.css`, con primitivos y tokens semánticos; la escala de texto y el espaciado siguen Fluent 2.
 
 - La interfaz es neutra para que el color lo pongan las obras, con un único acento azul Klein (`#1F3FBF`).
 - Usa Instrument Sans para la interfaz y los títulos de obra en Instrument Serif cursiva, como en las cartelas de museo.
