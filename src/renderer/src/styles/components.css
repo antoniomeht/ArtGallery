@@ -5,19 +5,19 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  min-height: 36px;
+  min-height: var(--control-md);
   padding: 0 var(--space-4);
-  border: 1px solid var(--color-line-strong);
-  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius-control);
   font: inherit;
   font-weight: 500;
-  color: var(--color-ink);
-  background: var(--color-wall);
+  color: var(--text-primary);
+  background: var(--surface-page);
   cursor: pointer;
 }
 
 .button:hover {
-  background: var(--color-plinth);
+  background: var(--surface-sunken);
 }
 
 .button:disabled {
@@ -26,41 +26,41 @@
 }
 
 .button--primary {
-  border-color: var(--color-accent);
-  color: var(--color-accent-ink);
-  background: var(--color-accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+  background: var(--accent);
 }
 
 .button--primary:hover {
-  background: var(--color-accent-hover);
+  background: var(--accent-hover);
 }
 
 .button--danger {
-  border-color: var(--color-danger);
-  color: #ffffff;
-  background: var(--color-danger);
+  border-color: var(--danger);
+  color: var(--on-accent);
+  background: var(--danger);
 }
 
 .button--danger:hover {
-  background: var(--color-danger-hover);
+  background: var(--danger-hover);
 }
 
 .icon-button {
   display: inline-grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
+  width: var(--control-sm);
+  height: var(--control-sm);
   padding: 0;
   border: none;
-  border-radius: var(--radius-sm);
-  color: var(--color-ink-muted);
+  border-radius: var(--radius-control);
+  color: var(--text-secondary);
   background: none;
   cursor: pointer;
 }
 
 .icon-button:hover {
-  color: var(--color-ink);
-  background: var(--color-plinth);
+  color: var(--text-primary);
+  background: var(--surface-sunken);
 }
 
 /* Artwork titles follow the museum wall-label convention: italic serif. */
@@ -83,17 +83,18 @@
 
 .field__hint {
   font-weight: 400;
-  color: var(--color-ink-muted);
+  color: var(--text-secondary);
 }
 
 .field__error {
   margin: 0;
-  font-size: var(--text-sm);
-  color: var(--color-danger);
+  font-size: var(--font-size-caption);
+  line-height: var(--line-height-caption);
+  color: var(--danger);
 }
 
 .field__input[aria-invalid="true"] {
-  border-color: var(--color-danger);
+  border-color: var(--danger);
 }
 
 textarea.field__input {
@@ -105,20 +106,21 @@ textarea.field__input {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  min-height: 36px;
+  min-height: var(--control-md);
 }
 
 .checkbox input {
   width: 16px;
   height: 16px;
-  accent-color: var(--color-accent);
+  accent-color: var(--accent);
 }
 
 .tag {
   padding: 2px var(--space-2);
-  border: 1px solid var(--color-line-strong);
-  border-radius: 999px;
-  font-size: var(--text-sm);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-caption);
+  line-height: var(--line-height-caption);
 }
 
 .visually-hidden {
@@ -131,22 +133,22 @@ textarea.field__input {
 }
 
 .field__input {
-  min-height: 36px;
+  min-height: var(--control-md);
   padding: 0 var(--space-3);
-  border: 1px solid var(--color-line-strong);
-  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius-control);
   font: inherit;
-  color: var(--color-ink);
-  background: var(--color-wall);
+  color: var(--text-primary);
+  background: var(--surface-page);
 }
 
 .dialog {
   width: min(480px, calc(100vw - 2 * var(--space-4)));
   padding: 0;
   border: none;
-  border-radius: var(--radius-md);
-  color: var(--color-ink);
-  box-shadow: 0 24px 64px rgb(0 0 0 / 0.24);
+  border-radius: var(--radius-overlay);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-dialog);
 }
 
 .dialog--wide {
@@ -169,7 +171,7 @@ textarea.field__input {
 }
 
 .dialog::backdrop {
-  background: rgb(34 34 34 / 0.4);
+  background: var(--scrim);
 }
 
 .dialog__body {
@@ -181,7 +183,8 @@ textarea.field__input {
 
 .dialog__title {
   margin: 0;
-  font-size: var(--text-lg);
+  font-size: var(--font-size-subtitle);
+  line-height: var(--line-height-subtitle);
   font-weight: 600;
 }
 
@@ -198,25 +201,25 @@ textarea.field__input {
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
-  border-radius: var(--radius-md);
-  color: #ffffff;
-  background: var(--color-ink);
-  box-shadow: 0 8px 24px rgb(0 0 0 / 0.2);
+  border-radius: var(--radius-overlay);
+  color: var(--surface-page);
+  background: var(--text-primary);
+  box-shadow: var(--shadow-popover);
 }
 
 .notice__action {
   padding: var(--space-1) var(--space-2);
   border: none;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-control);
   font: inherit;
   font-weight: 600;
-  color: #c7d2ff;
+  color: var(--accent-on-dark);
   background: none;
   cursor: pointer;
 }
 
 .notice__close {
-  color: #ffffff;
+  color: var(--surface-page);
 }
 
 .dialog__message {
@@ -226,7 +229,7 @@ textarea.field__input {
 
 .dialog__error {
   margin: 0;
-  color: var(--color-danger);
+  color: var(--danger);
 }
 
 .dialog__actions {
@@ -250,7 +253,7 @@ textarea.field__input {
   align-items: flex-start;
   gap: var(--space-4);
   padding-top: var(--space-6);
-  border-top: 1px solid var(--color-line);
+  border-top: 1px solid var(--border-subtle);
 }
 
 .page-section__heading {
@@ -264,7 +267,8 @@ textarea.field__input {
 
 .page-section__title {
   margin: 0;
-  font-size: var(--text-lg);
+  font-size: var(--font-size-subtitle);
+  line-height: var(--line-height-subtitle);
   font-weight: 600;
 }
 
@@ -275,8 +279,9 @@ textarea.field__input {
 }
 
 .page-section__hint {
-  font-size: var(--text-sm);
-  color: var(--color-ink-muted);
+  font-size: var(--font-size-caption);
+  line-height: var(--line-height-caption);
+  color: var(--text-secondary);
 }
 
 .page-section__list {

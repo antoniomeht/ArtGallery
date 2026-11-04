@@ -1,25 +1,50 @@
 :root {
-  /* "White cube": a neutral interface so the artworks provide the colour. */
-  --color-wall: #ffffff;
-  --color-plinth: #f0f0ee;
-  --color-plinth-hover: #e7e7e4;
-  --color-line: #e2e2de;
-  --color-line-strong: #c9c9c4;
-  --color-ink: #222222;
-  --color-ink-muted: #646464;
-  --color-accent: #1f3fbf;
-  --color-accent-hover: #1a35a3;
-  --color-accent-ink: #ffffff;
-  --color-danger: #b3261e;
-  --color-danger-hover: #8f1e18;
+  /* Primitives: raw values. Only the semantic tokens below may use them. */
+  --neutral-0: #ffffff;
+  --neutral-100: #f0f0ee;
+  --neutral-200: #e7e7e4;
+  --neutral-300: #e2e2de;
+  --neutral-500: #85857f;
+  --neutral-600: #646464;
+  --neutral-900: #222222;
+  --blue-200: #c7d2ff;
+  --blue-600: #1f3fbf;
+  --blue-700: #1a35a3;
+  --red-700: #b3261e;
+  --red-800: #8f1e18;
+
+  /* Semantic: "white cube", a neutral interface so the artworks provide the colour. */
+  --surface-page: var(--neutral-0);
+  --surface-sunken: var(--neutral-100);
+  --surface-hover: var(--neutral-200);
+  --border-subtle: var(--neutral-300);
+  /* At least 3:1 on the page, as WCAG 1.4.11 asks of control boundaries. */
+  --border-control: var(--neutral-500);
+  --text-primary: var(--neutral-900);
+  --text-secondary: var(--neutral-600);
+  --accent: var(--blue-600);
+  --accent-hover: var(--blue-700);
+  --accent-on-dark: var(--blue-200);
+  --on-accent: var(--neutral-0);
+  --on-image: var(--neutral-0);
+  --danger: var(--red-700);
+  --danger-hover: var(--red-800);
+  --scrim: rgb(34 34 34 / 0.4);
 
   --font-sans: "Instrument Sans Variable", system-ui, sans-serif;
   --font-title: "Instrument Serif", Georgia, serif;
 
-  --text-sm: 0.8125rem;
-  --text-base: 0.9375rem;
-  --text-lg: 1.125rem;
-  --text-xl: 1.75rem;
+  /* Windows type ramp of Fluent 2. */
+  --font-size-caption: 0.75rem;
+  --line-height-caption: 1rem;
+  --font-size-body: 0.875rem;
+  --line-height-body: 1.25rem;
+  --font-size-body-lg: 1.125rem;
+  --line-height-body-lg: 1.5rem;
+  --font-size-subtitle: 1.25rem;
+  --line-height-subtitle: 1.75rem;
+  --font-size-title: 1.75rem;
+  --line-height-title: 2.25rem;
 
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -28,7 +53,19 @@
   --space-6: 1.5rem;
   --space-8: 2rem;
 
-  --radius-sm: 4px;
-  --radius-md: 8px;
+  /* 24px is the smallest target WCAG 2.5.8 allows. */
+  --control-sm: 24px;
+  --control-md: 32px;
+
+  --radius-control: 4px;
+  --radius-overlay: 8px;
+  --radius-pill: 999px;
+
+  --shadow-raised: 0 1px 3px rgb(0 0 0 / 0.3);
+  --shadow-popover: 0 8px 24px rgb(0 0 0 / 0.2);
+  --shadow-dialog: 0 24px 64px rgb(0 0 0 / 0.24);
+
+  --motion-fast: 120ms;
+
   --sidebar-width: 220px;
 }

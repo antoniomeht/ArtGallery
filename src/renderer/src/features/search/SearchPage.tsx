@@ -20,6 +20,7 @@ import {
   type SearchFilters,
 } from "./searchFilters";
 import "./SearchPage.css";
+import { Button } from "../../components/Button";
 
 /** Filters chosen from the values that exist in the inventory. */
 const SELECT_FILTERS: {
@@ -152,14 +153,10 @@ export function SearchPage() {
               : `${results.length} obras encontradas`)}
         </p>
         {hasActiveFilters(filters) && (
-          <button
-            type="button"
-            className="button"
-            onClick={() => setFilters(EMPTY_FILTERS)}
-          >
+          <Button onClick={() => setFilters(EMPTY_FILTERS)}>
             <X aria-hidden size={16} />
             Limpiar filtros
-          </button>
+          </Button>
         )}
         <SortSelect value={sort} onChange={setSort} />
       </div>

@@ -4,6 +4,7 @@ import {
   type ArtworkStatus,
 } from "../../../../shared/artwork";
 import { STATUS_LABELS } from "../../../../shared/artworkFormat";
+import { Button } from "../../components/Button";
 
 interface SelectionToolbarProps {
   selectedCount: number;
@@ -40,13 +41,9 @@ export function SelectionToolbar({
           : `${selectedCount} seleccionadas`}
       </p>
       {selectedCount < totalCount ? (
-        <button type="button" className="button" onClick={onSelectAll}>
-          Seleccionar todo
-        </button>
+        <Button onClick={onSelectAll}>Seleccionar todo</Button>
       ) : (
-        <button type="button" className="button" onClick={onClear}>
-          Quitar selección
-        </button>
+        <Button onClick={onClear}>Quitar selección</Button>
       )}
       <label>
         <span className="visually-hidden">Cambiar estado</span>
@@ -66,45 +63,25 @@ export function SelectionToolbar({
           ))}
         </select>
       </label>
-      <button
-        type="button"
-        className="button"
-        disabled={!hasSelection}
-        onClick={onAddToExhibition}
-      >
+      <Button disabled={!hasSelection} onClick={onAddToExhibition}>
         <Landmark aria-hidden size={16} />
         Añadir a exposición…
-      </button>
-      <button
-        type="button"
-        className="button"
-        disabled={!hasSelection}
-        onClick={onExport}
-      >
+      </Button>
+      <Button disabled={!hasSelection} onClick={onExport}>
         <FileDown aria-hidden size={16} />
         Exportar…
-      </button>
-      <button
-        type="button"
-        className="button"
-        disabled={!hasSelection}
-        onClick={onPrintLabels}
-      >
+      </Button>
+      <Button disabled={!hasSelection} onClick={onPrintLabels}>
         <Tags aria-hidden size={16} />
         Cartelas…
-      </button>
-      <button
-        type="button"
-        className="button"
-        disabled={!hasSelection}
-        onClick={onMoveToTrash}
-      >
+      </Button>
+      <Button disabled={!hasSelection} onClick={onMoveToTrash}>
         <Trash2 aria-hidden size={16} />
         Mover a la papelera
-      </button>
-      <button type="button" className="button button--primary" onClick={onDone}>
+      </Button>
+      <Button variant="primary" onClick={onDone}>
         Hecho
-      </button>
+      </Button>
     </div>
   );
 }

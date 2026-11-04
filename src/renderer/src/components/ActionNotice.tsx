@@ -1,4 +1,5 @@
 import { X } from "lucide-react";
+import { IconButton } from "./IconButton";
 
 export interface NoticeAction {
   message: string;
@@ -35,14 +36,13 @@ export function ActionNotice({ action, onDismiss }: ActionNoticeProps) {
               Deshacer
             </button>
           )}
-          <button
-            type="button"
-            className="icon-button notice__close"
+          <IconButton
+            className="notice__close"
             aria-label="Cerrar aviso"
             onClick={onDismiss}
           >
             <X aria-hidden size={16} />
-          </button>
+          </IconButton>
         </div>
       )}
     </div>

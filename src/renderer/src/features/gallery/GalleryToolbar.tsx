@@ -1,6 +1,7 @@
 import { CheckSquare, Plus } from "lucide-react";
 import type { ArtworkSort } from "../../../../shared/artwork";
 import { SortSelect } from "./SortSelect";
+import { Button } from "../../components/Button";
 
 interface GalleryToolbarProps {
   sort: ArtworkSort;
@@ -18,14 +19,14 @@ export function GalleryToolbar({
   return (
     <div className="toolbar">
       <SortSelect value={sort} onChange={onSortChange} />
-      <button type="button" className="button" onClick={onSelect}>
+      <Button onClick={onSelect}>
         <CheckSquare aria-hidden size={16} />
         Seleccionar
-      </button>
-      <button type="button" className="button button--primary" onClick={onAdd}>
-        <Plus aria-hidden size={18} />
+      </Button>
+      <Button variant="primary" onClick={onAdd}>
+        <Plus aria-hidden size={16} />
         Añadir obra
-      </button>
+      </Button>
     </div>
   );
 }

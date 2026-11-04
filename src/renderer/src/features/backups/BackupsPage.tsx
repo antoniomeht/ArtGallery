@@ -16,6 +16,7 @@ import {
   RESTORE_FAILURE_MESSAGES,
 } from "./backupLabels";
 import "./BackupsPage.css";
+import { Button } from "../../components/Button";
 
 const KEEP_OPTIONS = [5, 10, 20, 30];
 
@@ -121,23 +122,17 @@ export function BackupsPage() {
               <span className="field__label">Carpeta de copias</span>
               <p className="folder-row__path">{overview.folder}</p>
               <div className="folder-row__actions">
-                <button
-                  type="button"
-                  className="button"
+                <Button
                   onClick={async () => {
                     if (await window.artGallery.chooseBackupFolder()) load();
                   }}
                 >
                   Cambiar carpeta…
-                </button>
-                <button
-                  type="button"
-                  className="button"
-                  onClick={() => window.artGallery.openFolder("backups")}
-                >
+                </Button>
+                <Button onClick={() => window.artGallery.openFolder("backups")}>
                   <FolderOpen aria-hidden size={16} />
                   Abrir carpeta
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -186,15 +181,14 @@ export function BackupsPage() {
             </p>
 
             <div className="page-section__actions">
-              <button
-                type="button"
-                className="button button--primary"
+              <Button
+                variant="primary"
                 disabled={busy !== null}
                 onClick={createBackup}
               >
-                <HardDriveDownload aria-hidden size={18} />
+                <HardDriveDownload aria-hidden size={16} />
                 {busy === "backup" ? "Creando copia…" : "Crear copia ahora"}
-              </button>
+              </Button>
             </div>
             {error && (
               <p className="backups-page__error" role="alert">
@@ -208,14 +202,9 @@ export function BackupsPage() {
               <h2 id="backup-list" className="page-section__title">
                 Copias disponibles
               </h2>
-              <button
-                type="button"
-                className="button"
-                disabled={busy !== null}
-                onClick={chooseFileToRestore}
-              >
+              <Button disabled={busy !== null} onClick={chooseFileToRestore}>
                 Restaurar desde otro archivo…
-              </button>
+              </Button>
             </div>
             {busy === "restore" && (
               <p className="page-section__text" role="status">
@@ -243,9 +232,7 @@ export function BackupsPage() {
                       </span>
                     </div>
                     {backup.readable && (
-                      <button
-                        type="button"
-                        className="button"
+                      <Button
                         disabled={busy !== null}
                         onClick={() =>
                           setPending({
@@ -256,7 +243,7 @@ export function BackupsPage() {
                       >
                         <RotateCcw aria-hidden size={16} />
                         Restaurar…
-                      </button>
+                      </Button>
                     )}
                   </li>
                 ))}
@@ -287,14 +274,10 @@ export function BackupsPage() {
                 en una carpeta sincronizada.
               </li>
             </ul>
-            <button
-              type="button"
-              className="button"
-              onClick={() => window.artGallery.openFolder("data")}
-            >
+            <Button onClick={() => window.artGallery.openFolder("data")}>
               <FolderOpen aria-hidden size={16} />
               Abrir carpeta de datos
-            </button>
+            </Button>
           </section>
         </div>
       )}

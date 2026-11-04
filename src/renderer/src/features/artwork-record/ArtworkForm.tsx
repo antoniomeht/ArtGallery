@@ -12,6 +12,7 @@ import {
   type ArtworkFormErrors,
   type ArtworkFormValues,
 } from "./artworkFormValues";
+import { Button } from "../../components/Button";
 
 const CATEGORY_SUGGESTIONS = [
   "Pintura",
@@ -174,16 +175,10 @@ export function ArtworkForm({ artwork, onCancel, onSaved }: ArtworkFormProps) {
       )}
 
       <div className="artwork-form__actions">
-        <button type="button" className="button" onClick={onCancel}>
-          Cancelar
-        </button>
-        <button
-          type="submit"
-          className="button button--primary"
-          disabled={isSaving}
-        >
+        <Button onClick={onCancel}>Cancelar</Button>
+        <Button type="submit" variant="primary" disabled={isSaving}>
           {isSaving ? "Guardando…" : "Guardar cambios"}
-        </button>
+        </Button>
       </div>
     </form>
   );

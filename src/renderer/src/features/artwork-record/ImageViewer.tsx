@@ -3,6 +3,7 @@ import { useState } from "react";
 import type { Artwork } from "../../../../shared/artwork";
 import { originalUrl, thumbnailUrl } from "../../../../shared/media";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
+import { Button } from "../../components/Button";
 
 interface ImageViewerProps {
   artwork: Artwork;
@@ -48,15 +49,10 @@ export function ImageViewer({ artwork, onArtworkChange }: ImageViewerProps) {
   }
 
   const addButton = (
-    <button
-      type="button"
-      className="button"
-      disabled={isBusy}
-      onClick={addImages}
-    >
-      <ImagePlus aria-hidden size={18} />
+    <Button disabled={isBusy} onClick={addImages}>
+      <ImagePlus aria-hidden size={16} />
       Añadir imágenes
-    </button>
+    </Button>
   );
 
   if (!selected) {
@@ -103,9 +99,7 @@ export function ImageViewer({ artwork, onArtworkChange }: ImageViewerProps) {
             Imagen principal
           </span>
         ) : (
-          <button
-            type="button"
-            className="button"
+          <Button
             disabled={isBusy}
             onClick={() =>
               apply(
@@ -118,17 +112,12 @@ export function ImageViewer({ artwork, onArtworkChange }: ImageViewerProps) {
           >
             <Star aria-hidden size={16} />
             Usar como principal
-          </button>
+          </Button>
         )}
-        <button
-          type="button"
-          className="button"
-          disabled={isBusy}
-          onClick={() => setIsConfirmingRemoval(true)}
-        >
+        <Button disabled={isBusy} onClick={() => setIsConfirmingRemoval(true)}>
           <Trash2 aria-hidden size={16} />
           Quitar imagen
-        </button>
+        </Button>
       </div>
       {error && (
         <p className="viewer__error" role="alert">

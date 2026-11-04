@@ -14,6 +14,7 @@ import { LabelCard } from "../print/LabelCard";
 import { loadSourceArtworks } from "../print/printData";
 import "../print/print.css";
 import "./LabelsDialog.css";
+import { Button } from "../../components/Button";
 
 const FIELD_LABELS: Record<LabelField, string> = {
   artist: "Artista",
@@ -182,21 +183,14 @@ export function LabelsDialog({ source, onClose, onSaved }: LabelsDialogProps) {
           </p>
         )}
         <div className="dialog__actions">
-          <button
-            type="button"
-            className="button"
-            onClick={() => dialogRef.current?.close()}
-          >
-            Cancelar
-          </button>
-          <button
-            type="button"
-            className="button button--primary"
+          <Button onClick={() => dialogRef.current?.close()}>Cancelar</Button>
+          <Button
+            variant="primary"
             disabled={!valid || count === 0 || isSaving}
             onClick={save}
           >
             {isSaving ? "Generando PDF…" : "Guardar PDF…"}
-          </button>
+          </Button>
         </div>
       </div>
     </dialog>

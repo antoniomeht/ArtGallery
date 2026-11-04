@@ -18,8 +18,9 @@
 
 .labels-dialog__summary {
   margin: 0;
-  font-size: var(--text-sm);
-  color: var(--color-ink-muted);
+  font-size: var(--font-size-caption);
+  line-height: var(--line-height-caption);
+  color: var(--text-secondary);
 }
 
 /* The label is drawn at real size on a grey table, scrolling if large. */
@@ -30,5 +31,5 @@
   max-height: 60vh;
   padding: var(--space-6);
   overflow: auto;
-  background: var(--color-plinth);
+  background: var(--surface-sunken);
 }

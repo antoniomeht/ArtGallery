@@ -13,6 +13,7 @@ import { GalleryGrid } from "./GalleryGrid";
 import { GalleryToolbar } from "./GalleryToolbar";
 import { SelectionToolbar } from "./SelectionToolbar";
 import "./GalleryPage.css";
+import { Button } from "../../components/Button";
 
 const countLabel = (count: number) =>
   count === 1 ? "1 obra" : `${count} obras`;
@@ -123,9 +124,7 @@ export function GalleryPage() {
       {state.status === "error" && (
         <div className="gallery-status" role="alert">
           <p>No se pudo leer el inventario.</p>
-          <button type="button" className="button" onClick={reload}>
-            Reintentar
-          </button>
+          <Button onClick={reload}>Reintentar</Button>
         </div>
       )}
 
@@ -135,14 +134,10 @@ export function GalleryPage() {
           <p className="gallery-empty__text">
             Aún no hay obras en el inventario.
           </p>
-          <button
-            type="button"
-            className="button button--primary"
-            onClick={() => setIsAdding(true)}
-          >
-            <Plus aria-hidden size={18} />
+          <Button variant="primary" onClick={() => setIsAdding(true)}>
+            <Plus aria-hidden size={16} />
             Añadir la primera obra
-          </button>
+          </Button>
         </div>
       )}
 

@@ -6,6 +6,7 @@ import { thumbnailUrl } from "../../../../shared/media";
 import { ExhibitionDetailView } from "./ExhibitionDetailView";
 import { ExhibitionFormDialog } from "./ExhibitionFormDialog";
 import "./ExhibitionsPage.css";
+import { Button } from "../../components/Button";
 
 export function ExhibitionsPage() {
   const [exhibitions, setExhibitions] = useState<ExhibitionSummary[] | null>(
@@ -35,14 +36,10 @@ export function ExhibitionsPage() {
   }
 
   const createButton = (
-    <button
-      type="button"
-      className="button button--primary"
-      onClick={() => setIsCreating(true)}
-    >
-      <Plus aria-hidden size={18} />
+    <Button variant="primary" onClick={() => setIsCreating(true)}>
+      <Plus aria-hidden size={16} />
       Nueva exposición
-    </button>
+    </Button>
   );
 
   return (

@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { Button } from "./Button";
 
 interface ConfirmDialogProps {
   title: string;
@@ -40,21 +41,12 @@ export function ConfirmDialog({
           {message}
         </p>
         <div className="dialog__actions">
-          <button
-            type="button"
-            className="button"
-            autoFocus
-            onClick={() => dialogRef.current?.close()}
-          >
+          <Button autoFocus onClick={() => dialogRef.current?.close()}>
             Cancelar
-          </button>
-          <button
-            type="button"
-            className="button button--danger"
-            onClick={onConfirm}
-          >
+          </Button>
+          <Button variant="danger" onClick={onConfirm}>
             {confirmLabel}
-          </button>
+          </Button>
         </div>
       </div>
     </dialog>

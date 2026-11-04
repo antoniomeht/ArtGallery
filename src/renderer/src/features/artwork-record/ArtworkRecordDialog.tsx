@@ -5,6 +5,7 @@ import { ArtworkForm } from "./ArtworkForm";
 import { ArtworkLabel } from "./ArtworkLabel";
 import { ImageViewer } from "./ImageViewer";
 import "./ArtworkRecordDialog.css";
+import { Button } from "../../components/Button";
 
 interface ArtworkRecordDialogProps {
   artworkId: string;
@@ -59,32 +60,20 @@ export function ArtworkRecordDialog({
       }}
     >
       <header className="record__toolbar">
-        <button
-          type="button"
-          className="button"
-          onClick={() => dialogRef.current?.close()}
-        >
-          <ArrowLeft aria-hidden size={18} />
+        <Button onClick={() => dialogRef.current?.close()}>
+          <ArrowLeft aria-hidden size={16} />
           Galería
-        </button>
+        </Button>
         {state.status === "ready" && !isEditing && (
           <div className="record__actions">
-            <button
-              type="button"
-              className="button"
-              onClick={() => onMoveToTrash(state.artwork)}
-            >
+            <Button onClick={() => onMoveToTrash(state.artwork)}>
               <Trash2 aria-hidden size={16} />
               Mover a la papelera
-            </button>
-            <button
-              type="button"
-              className="button"
-              onClick={() => setIsEditing(true)}
-            >
+            </Button>
+            <Button onClick={() => setIsEditing(true)}>
               <Pencil aria-hidden size={16} />
               Editar
-            </button>
+            </Button>
           </div>
         )}
       </header>

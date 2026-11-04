@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { ExhibitionSummary } from "../../../../shared/exhibition";
+import { Button } from "../../components/Button";
 
 interface AddToExhibitionDialogProps {
   artworkCount: number;
@@ -59,21 +60,14 @@ export function AddToExhibitionDialog({
           </fieldset>
         )}
         <div className="dialog__actions">
-          <button
-            type="button"
-            className="button"
-            onClick={() => dialogRef.current?.close()}
-          >
-            Cancelar
-          </button>
-          <button
-            type="button"
-            className="button button--primary"
+          <Button onClick={() => dialogRef.current?.close()}>Cancelar</Button>
+          <Button
+            variant="primary"
             disabled={!chosen}
             onClick={() => chosen && onChoose(chosen)}
           >
             Añadir
-          </button>
+          </Button>
         </div>
       </div>
     </dialog>

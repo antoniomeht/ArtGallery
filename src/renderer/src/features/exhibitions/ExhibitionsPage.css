@@ -2,7 +2,7 @@
   margin: 0;
   padding: 0 var(--space-8) var(--space-4);
   max-width: 72ch;
-  color: var(--color-ink-muted);
+  color: var(--text-secondary);
 }
 
 .exhibition-list {
@@ -23,7 +23,7 @@
   border: none;
   font: inherit;
   text-align: left;
-  color: var(--color-ink);
+  color: var(--text-primary);
   background: none;
   cursor: pointer;
 }
@@ -34,17 +34,19 @@
   aspect-ratio: 4 / 3;
   margin-bottom: var(--space-2);
   object-fit: cover;
-  background: var(--color-plinth);
+  background: var(--surface-sunken);
 }
 
 .exhibition-card__name {
-  font-size: var(--text-lg);
+  font-size: var(--font-size-body-lg);
+  line-height: var(--line-height-body-lg);
   font-weight: 600;
 }
 
 .exhibition-card__meta {
-  font-size: var(--text-sm);
-  color: var(--color-ink-muted);
+  font-size: var(--font-size-caption);
+  line-height: var(--line-height-caption);
+  color: var(--text-secondary);
 }
 
 .exhibition__header {
@@ -59,7 +61,7 @@
 
 .exhibition__meta {
   margin: 0;
-  color: var(--color-ink-muted);
+  color: var(--text-secondary);
 }
 
 .exhibition__description {
@@ -80,13 +82,13 @@
   align-items: center;
   gap: var(--space-4);
   padding: var(--space-2) 0;
-  border-bottom: 1px solid var(--color-line);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .exhibition-artwork__number {
   width: 2ch;
   text-align: right;
-  color: var(--color-ink-muted);
+  color: var(--text-secondary);
   font-variant-numeric: tabular-nums;
 }
 
@@ -95,7 +97,7 @@
   width: 56px;
   height: 56px;
   object-fit: cover;
-  background: var(--color-plinth);
+  background: var(--surface-sunken);
 }
 
 .exhibition-artwork__text {
@@ -106,8 +108,9 @@
 }
 
 .exhibition-artwork__artist {
-  font-size: var(--text-sm);
-  color: var(--color-ink-muted);
+  font-size: var(--font-size-caption);
+  line-height: var(--line-height-caption);
+  color: var(--text-secondary);
 }
 
 .exhibition-artwork__actions {
