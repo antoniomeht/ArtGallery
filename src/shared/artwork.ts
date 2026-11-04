@@ -111,11 +111,12 @@ export const artworkQuerySchema = artworkFilterSchema.extend({
 
 export type ArtworkQuery = z.input<typeof artworkQuerySchema>;
 
-/** Distinct values in the inventory, offered as filter choices. */
+/** Distinct values in the inventory, offered as choices and suggestions. */
 export interface FilterOptions {
   categories: string[];
   artists: string[];
   techniques: string[];
+  supports: string[];
   tags: string[];
   locations: string[];
 }

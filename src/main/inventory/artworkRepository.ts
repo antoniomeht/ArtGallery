@@ -340,6 +340,7 @@ export class ArtworkRepository {
       categories: distinct("a.category"),
       artists: distinct("a.artist"),
       techniques: distinct("a.technique"),
+      supports: distinct("a.support"),
       locations: distinct("a.location"),
       tags: distinct(
         "t.tag",

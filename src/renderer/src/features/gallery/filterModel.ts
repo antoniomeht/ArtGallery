@@ -5,8 +5,10 @@ import type {
 } from "../../../../shared/artwork";
 import { STATUS_LABELS } from "../../../../shared/artworkFormat";
 
+type ValueFilterKey = Exclude<keyof FilterOptions, "supports">;
+
 /** Filter values as the page holds them: empty means "any". */
-export interface GalleryFilters extends Record<keyof FilterOptions, string[]> {
+export interface GalleryFilters extends Record<ValueFilterKey, string[]> {
   text: string;
   statuses: ArtworkStatus[];
   yearFrom: string;
@@ -14,7 +16,7 @@ export interface GalleryFilters extends Record<keyof FilterOptions, string[]> {
 }
 
 /** Filters chosen from the values that exist in the inventory. */
-export const VALUE_FILTERS: { key: keyof FilterOptions; label: string }[] = [
+export const VALUE_FILTERS: { key: ValueFilterKey; label: string }[] = [
   { key: "categories", label: "Categoría" },
   { key: "artists", label: "Artista" },
   { key: "techniques", label: "Técnica" },
