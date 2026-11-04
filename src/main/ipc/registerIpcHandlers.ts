@@ -5,15 +5,18 @@ import {
   ARTWORK_STATUSES,
   type ArtworkFieldsInput,
   type ArtworkQuery,
-  type NewArtwork,
 } from "../../shared/artwork";
-import { SUPPORTED_IMAGE_EXTENSIONS } from "../images/imageStore";
+import { SUPPORTED_IMAGE_EXTENSIONS } from "../../shared/media";
 import type { InventoryService } from "../inventory/inventoryService";
+import type { SettingsStore } from "../settings/settingsStore";
 import { showOpenDialog } from "./dialogs";
 
 const artworkIdsSchema = z.array(z.string().min(1)).max(10_000);
 
-export function registerIpcHandlers(inventory: InventoryService): void {
+export function registerIpcHandlers(
+  inventory: InventoryService,
+  settings: SettingsStore,
+): void {
   ipcMain.handle(IpcChannel.listArtworks, (_event, query?: ArtworkQuery) =>
     inventory.listArtworks(query),
   );
@@ -34,8 +37,12 @@ export function registerIpcHandlers(inventory: InventoryService): void {
   );
 
   // Payloads are validated by the service before anything is written.
-  ipcMain.handle(IpcChannel.createArtwork, (_event, input: NewArtwork) =>
-    inventory.createArtwork(input),
+  ipcMain.handle(
+    IpcChannel.createArtworksFromImages,
+    async (_event, imagePaths: string[]) => {
+      const { defaultArtist } = await settings.read();
+      return inventory.createArtworksFromImages(imagePaths, defaultArtist);
+    },
   );
   ipcMain.handle(
     IpcChannel.updateArtwork,

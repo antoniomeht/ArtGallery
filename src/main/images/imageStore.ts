@@ -2,15 +2,7 @@ import { randomUUID } from "node:crypto";
 import { copyFile, mkdir, rename, rm } from "node:fs/promises";
 import { extname, join } from "node:path";
 import sharp from "sharp";
-
-export const SUPPORTED_IMAGE_EXTENSIONS = [
-  ".jpg",
-  ".jpeg",
-  ".png",
-  ".webp",
-  ".tif",
-  ".tiff",
-];
+import { SUPPORTED_IMAGE_EXTENSIONS } from "../../shared/media";
 
 const THUMBNAIL_MAX_SIZE = 640;
 const STORED_FILE_NAME = /^[0-9a-f-]{36}\.[a-z]{3,4}$/;

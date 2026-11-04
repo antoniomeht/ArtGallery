@@ -8,7 +8,6 @@ import { useArtworkList } from "../../hooks/useArtworkList";
 import { ArtworkRecordDialog } from "../artwork-record/ArtworkRecordDialog";
 import { LabelsDialog } from "../labels/LabelsDialog";
 import { AddToExhibitionDialog } from "./AddToExhibitionDialog";
-import { NewArtworkDialog } from "../new-artwork/NewArtworkDialog";
 import { GalleryGrid } from "./GalleryGrid";
 import { GalleryToolbar } from "./GalleryToolbar";
 import { SelectionToolbar } from "./SelectionToolbar";
@@ -18,15 +17,20 @@ import "./GalleryPage.css";
 const countLabel = (count: number) =>
   count === 1 ? "1 obra" : `${count} obras`;
 
-export function GalleryPage() {
+interface GalleryPageProps {
+  /** Changes when artworks were added from outside this page. */
+  inventoryVersion: number;
+  onAdd: () => void;
+}
+
+export function GalleryPage({ inventoryVersion, onAdd }: GalleryPageProps) {
   const [sort, setSort] = useState<ArtworkSort>("recent");
   const listArtworks = useCallback(
     () => window.artGallery.listArtworks({ sort }),
     [sort],
   );
-  const { state, reload } = useArtworkList(listArtworks);
+  const { state, reload } = useArtworkList(listArtworks, inventoryVersion);
   const { notice, setNotice, moveToTrash } = useActionNotice(reload);
-  const [isAdding, setIsAdding] = useState(false);
   const [openArtworkId, setOpenArtworkId] = useState<string | null>(null);
   /** Null outside selection mode. */
   const [selectedIds, setSelectedIds] = useState<Set<string> | null>(null);
@@ -107,7 +111,7 @@ export function GalleryPage() {
                   sort={sort}
                   onSortChange={setSort}
                   onSelect={() => setSelectedIds(new Set())}
-                  onAdd={() => setIsAdding(true)}
+                  onAdd={onAdd}
                 />
               )}
             </div>
@@ -134,7 +138,7 @@ export function GalleryPage() {
           <p className="gallery-empty__text">
             Aún no hay obras en el inventario.
           </p>
-          <Button variant="primary" onClick={() => setIsAdding(true)}>
+          <Button variant="primary" onClick={onAdd}>
             <Plus aria-hidden size={16} />
             Añadir la primera obra
           </Button>
@@ -150,15 +154,6 @@ export function GalleryPage() {
         />
       )}
 
-      {isAdding && (
-        <NewArtworkDialog
-          onClose={() => setIsAdding(false)}
-          onCreated={() => {
-            setIsAdding(false);
-            reload();
-          }}
-        />
-      )}
       {openArtworkId && (
         <ArtworkRecordDialog
           artworkId={openArtworkId}

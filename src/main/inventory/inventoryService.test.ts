@@ -1,6 +1,7 @@
 import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import type { ArtworkSummary } from "../../shared/artwork";
 import { createTestImage, listFiles, useTempDir } from "../testing/fixtures";
 import { openInventory } from "../testing/inventory";
 
@@ -21,6 +22,56 @@ describe("InventoryService", () => {
     expect(reopened.service.listArtworks()).toEqual([created]);
     expect(created.primaryImageId).not.toBeNull();
     reopened.db.close();
+  });
+
+  it("creates one artwork per image, named after the file", async () => {
+    const dataDir = await useTempDir();
+    const { db, service } = openInventory(dataDir);
+    const first = await createTestImage(join(dataDir, "IMG_2034.jpg"));
+    const second = await createTestImage(join(dataDir, "Bodegón final.png"));
+
+    const created = await service.createArtworksFromImages(
+      [first, second],
+      "Ana Ruiz",
+    );
+
+    expect(created.map(({ title }) => title)).toEqual([
+      "IMG_2034",
+      "Bodegón final",
+    ]);
+    const [{ id, primaryImageId }] = created as [ArtworkSummary];
+    const stored = service.getArtwork(id);
+    expect(stored).toMatchObject({ artist: "Ana Ruiz" });
+    expect(stored.images.map((image) => image.id)).toEqual([primaryImageId]);
+    db.close();
+  });
+
+  it("leaves the artist empty without a default", async () => {
+    const dataDir = await useTempDir();
+    const { db, service } = openInventory(dataDir);
+    const photo = await createTestImage(join(dataDir, "photo.jpg"));
+
+    const created = await service.createArtworksFromImages([photo], "");
+    const [{ id }] = created as [ArtworkSummary];
+
+    expect(service.getArtwork(id).artist).toBeNull();
+    db.close();
+  });
+
+  it("creates nothing when one of the images cannot be imported", async () => {
+    const dataDir = await useTempDir();
+    const { db, service } = openInventory(dataDir);
+    const valid = await createTestImage(join(dataDir, "valid.jpg"));
+    const broken = join(dataDir, "broken.jpg");
+    await writeFile(broken, "not an image");
+
+    await expect(
+      service.createArtworksFromImages([valid, broken], "Ana Ruiz"),
+    ).rejects.toThrow();
+
+    expect(service.listArtworks()).toEqual([]);
+    expect(await listFiles(join(dataDir, "images"))).toEqual([]);
+    db.close();
   });
 
   it("uses the first image as the primary one", async () => {

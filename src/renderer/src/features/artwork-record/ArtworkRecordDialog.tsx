@@ -9,6 +9,8 @@ import "./ArtworkRecordDialog.css";
 
 interface ArtworkRecordDialogProps {
   artworkId: string;
+  /** Just created: opens for editing and can be discarded while unsaved. */
+  isNew?: boolean;
   onClose: () => void;
   /** Called after the artwork is saved, so the gallery can refresh. */
   onChanged: () => void;
@@ -22,13 +24,15 @@ type RecordState =
 
 export function ArtworkRecordDialog({
   artworkId,
+  isNew = false,
   onClose,
   onChanged,
   onMoveToTrash,
 }: ArtworkRecordDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [state, setState] = useState<RecordState>({ status: "loading" });
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(isNew);
+  const [isUnsaved, setIsUnsaved] = useState(isNew);
 
   useEffect(() => {
     dialogRef.current?.showModal();
@@ -103,10 +107,14 @@ export function ArtworkRecordDialog({
             {isEditing ? (
               <ArtworkForm
                 artwork={state.artwork}
-                onCancel={() => setIsEditing(false)}
+                isUnsaved={isUnsaved}
+                onCancel={() =>
+                  isUnsaved ? onMoveToTrash(state.artwork) : setIsEditing(false)
+                }
                 onSaved={(artwork) => {
                   setState({ status: "ready", artwork });
                   setIsEditing(false);
+                  setIsUnsaved(false);
                   onChanged();
                 }}
               />

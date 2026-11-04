@@ -67,6 +67,11 @@
   background: var(--surface-sunken);
 }
 
+.viewer--dragging {
+  outline: 2px dashed var(--accent);
+  outline-offset: calc(-1 * var(--space-2));
+}
+
 .viewer--empty {
   align-items: center;
   justify-content: center;

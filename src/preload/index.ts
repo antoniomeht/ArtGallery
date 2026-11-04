@@ -1,11 +1,12 @@
-import { contextBridge, ipcRenderer } from "electron";
+import { contextBridge, ipcRenderer, webUtils } from "electron";
 import { IpcChannel, type ArtGalleryApi } from "../shared/api";
 
 const api: ArtGalleryApi = {
   listArtworks: (query) => ipcRenderer.invoke(IpcChannel.listArtworks, query),
   listFilterOptions: () => ipcRenderer.invoke(IpcChannel.listFilterOptions),
   getArtwork: (id) => ipcRenderer.invoke(IpcChannel.getArtwork, id),
-  createArtwork: (input) => ipcRenderer.invoke(IpcChannel.createArtwork, input),
+  createArtworksFromImages: (imagePaths) =>
+    ipcRenderer.invoke(IpcChannel.createArtworksFromImages, imagePaths),
   updateArtwork: (id, fields) =>
     ipcRenderer.invoke(IpcChannel.updateArtwork, id, fields),
   setStatus: (artworkIds, status) =>
@@ -60,6 +61,7 @@ const api: ArtGalleryApi = {
   cancelImport: (sessionId) =>
     ipcRenderer.invoke(IpcChannel.cancelImport, sessionId),
   pickImages: () => ipcRenderer.invoke(IpcChannel.pickImages),
+  pathForFile: (file) => webUtils.getPathForFile(file),
 };
 
 contextBridge.exposeInMainWorld("artGallery", api);

@@ -5,7 +5,6 @@ import type {
   ArtworkStatus,
   ArtworkSummary,
   FilterOptions,
-  NewArtwork,
 } from "./artwork";
 import type { BackupInfo, RestoreResult } from "./backup";
 import type {
@@ -38,7 +37,8 @@ export interface ArtGalleryApi {
   listArtworks(query?: ArtworkQuery): Promise<ArtworkSummary[]>;
   listFilterOptions(): Promise<FilterOptions>;
   getArtwork(id: string): Promise<Artwork>;
-  createArtwork(input: NewArtwork): Promise<ArtworkSummary>;
+  /** Creates one artwork per image; all of them or, on failure, none. */
+  createArtworksFromImages(imagePaths: string[]): Promise<ArtworkSummary[]>;
   updateArtwork(id: string, fields: ArtworkFieldsInput): Promise<Artwork>;
   setStatus(artworkIds: string[], status: ArtworkStatus): Promise<void>;
   addImages(artworkId: string, imagePaths: string[]): Promise<Artwork>;
@@ -99,13 +99,15 @@ export interface ArtGalleryApi {
   cancelImport(sessionId: string): Promise<void>;
   /** Opens the system file picker and returns the chosen image paths. */
   pickImages(): Promise<string[]>;
+  /** The path on disk of a file dropped on the window; empty if it has none. */
+  pathForFile(file: File): string;
 }
 
 export const IpcChannel = {
   listArtworks: "artworks:list",
   listFilterOptions: "artworks:filter-options",
   getArtwork: "artworks:get",
-  createArtwork: "artworks:create",
+  createArtworksFromImages: "artworks:create-from-images",
   updateArtwork: "artworks:update",
   setStatus: "artworks:set-status",
   addImages: "artworks:add-images",
@@ -140,4 +142,7 @@ export const IpcChannel = {
   applyImport: "transfer:apply-import",
   cancelImport: "transfer:cancel-import",
   pickImages: "dialog:pick-images",
-} as const satisfies Record<keyof ArtGalleryApi, string>;
+} as const satisfies Record<
+  Exclude<keyof ArtGalleryApi, "pathForFile">,
+  string
+>;
