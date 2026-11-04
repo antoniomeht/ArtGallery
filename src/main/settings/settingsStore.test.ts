@@ -12,6 +12,17 @@ describe("SettingsStore", () => {
       backupFolder: null,
       autoBackup: "daily",
       keepAutomaticBackups: 10,
+      defaultArtist: "",
+    });
+  });
+
+  it("reads settings saved before a field existed", async () => {
+    const file = join(await useTempDir(), "settings.json");
+    await writeFile(file, JSON.stringify({ autoBackup: "weekly" }));
+
+    expect(await new SettingsStore(file).read()).toMatchObject({
+      autoBackup: "weekly",
+      defaultArtist: "",
     });
   });
 
