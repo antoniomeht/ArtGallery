@@ -35,6 +35,11 @@
   background: var(--accent-hover);
 }
 
+.button--subtle {
+  border-color: transparent;
+  background: none;
+}
+
 .button--danger {
   border-color: var(--danger);
   color: var(--on-accent);

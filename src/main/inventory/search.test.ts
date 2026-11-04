@@ -87,23 +87,24 @@ describe("search and filters", () => {
   });
 
   it("combines filters with each other and with the text", () => {
-    expect(titles({ category: "Pintura" })).toEqual([
+    expect(titles({ techniques: ["Óleo", "Carboncillo"] })).toHaveLength(3);
+    expect(titles({ categories: ["Pintura"] })).toEqual([
       "Marina al atardecer",
       "Puerto de noche",
     ]);
-    expect(titles({ category: "pintura", statuses: ["sold"] })).toEqual([
+    expect(titles({ categories: ["pintura"], statuses: ["sold"] })).toEqual([
       "Puerto de noche",
     ]);
-    expect(titles({ tag: "puerto", yearTo: 2000 })).toEqual([
+    expect(titles({ tags: ["puerto"], yearTo: 2000 })).toEqual([
       "Marina al atardecer",
     ]);
     expect(
-      titles({ artist: "Lucía Ferrer", statuses: ["available", "loaned"] }),
+      titles({ artists: ["Lucía Ferrer"], statuses: ["available", "loaned"] }),
     ).toEqual(["Marina al atardecer", "Retrato de Ana"]);
     expect(titles({ yearFrom: 2000, yearTo: 2010 })).toEqual([
       "Retrato de Ana",
     ]);
-    expect(titles({ text: "puerto", location: "Almacén" })).toEqual([
+    expect(titles({ text: "puerto", locations: ["Almacén"] })).toEqual([
       "Puerto de noche",
     ]);
   });
