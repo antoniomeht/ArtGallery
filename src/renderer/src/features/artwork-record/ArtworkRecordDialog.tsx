@@ -4,8 +4,8 @@ import type { Artwork } from "../../../../shared/artwork";
 import { ArtworkForm } from "./ArtworkForm";
 import { ArtworkLabel } from "./ArtworkLabel";
 import { ImageViewer } from "./ImageViewer";
-import "./ArtworkRecordDialog.css";
 import { Button } from "../../components/Button";
+import "./ArtworkRecordDialog.css";
 
 interface ArtworkRecordDialogProps {
   artworkId: string;

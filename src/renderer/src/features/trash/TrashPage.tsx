@@ -4,8 +4,8 @@ import type { ArtworkSummary } from "../../../../shared/artwork";
 import { thumbnailUrl } from "../../../../shared/media";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { useArtworkList } from "../../hooks/useArtworkList";
-import "./TrashPage.css";
 import { Button } from "../../components/Button";
+import "./TrashPage.css";
 
 const listTrash = () => window.artGallery.listTrash();
 

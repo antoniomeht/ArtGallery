@@ -1,9 +1,9 @@
 import { ImagePlus, X } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Field } from "../../components/Field";
-import "./NewArtworkDialog.css";
 import { Button } from "../../components/Button";
 import { IconButton } from "../../components/IconButton";
+import "./NewArtworkDialog.css";
 
 interface NewArtworkDialogProps {
   onClose: () => void;

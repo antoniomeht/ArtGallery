@@ -12,9 +12,9 @@ import {
 import type { PrintSource } from "../../../../shared/print";
 import { LabelCard } from "../print/LabelCard";
 import { loadSourceArtworks } from "../print/printData";
+import { Button } from "../../components/Button";
 import "../print/print.css";
 import "./LabelsDialog.css";
-import { Button } from "../../components/Button";
 
 const FIELD_LABELS: Record<LabelField, string> = {
   artist: "Artista",

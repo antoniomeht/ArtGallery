@@ -19,8 +19,8 @@ import {
   toArtworkQuery,
   type SearchFilters,
 } from "./searchFilters";
-import "./SearchPage.css";
 import { Button } from "../../components/Button";
+import "./SearchPage.css";
 
 /** Filters chosen from the values that exist in the inventory. */
 const SELECT_FILTERS: {

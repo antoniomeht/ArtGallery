@@ -15,8 +15,8 @@ import {
   ORIGIN_LABELS,
   RESTORE_FAILURE_MESSAGES,
 } from "./backupLabels";
-import "./BackupsPage.css";
 import { Button } from "../../components/Button";
+import "./BackupsPage.css";
 
 const KEEP_OPTIONS = [5, 10, 20, 30];
 

@@ -12,8 +12,8 @@ import { NewArtworkDialog } from "../new-artwork/NewArtworkDialog";
 import { GalleryGrid } from "./GalleryGrid";
 import { GalleryToolbar } from "./GalleryToolbar";
 import { SelectionToolbar } from "./SelectionToolbar";
-import "./GalleryPage.css";
 import { Button } from "../../components/Button";
+import "./GalleryPage.css";
 
 const countLabel = (count: number) =>
   count === 1 ? "1 obra" : `${count} obras`;

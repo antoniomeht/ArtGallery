@@ -5,8 +5,8 @@ import { formatDateRange } from "../../../../shared/exhibitionFormat";
 import { thumbnailUrl } from "../../../../shared/media";
 import { ExhibitionDetailView } from "./ExhibitionDetailView";
 import { ExhibitionFormDialog } from "./ExhibitionFormDialog";
-import "./ExhibitionsPage.css";
 import { Button } from "../../components/Button";
+import "./ExhibitionsPage.css";
 
 export function ExhibitionsPage() {
   const [exhibitions, setExhibitions] = useState<ExhibitionSummary[] | null>(

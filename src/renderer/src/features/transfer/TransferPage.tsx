@@ -7,8 +7,8 @@ import {
 } from "../../../../shared/transfer";
 import { ActionNotice, type NoticeAction } from "../../components/ActionNotice";
 import { IMPORT_FAILURE_MESSAGES } from "./transferLabels";
-import "./TransferPage.css";
 import { Button } from "../../components/Button";
+import "./TransferPage.css";
 
 const POLICY_LABELS: Record<DuplicatePolicy, string> = {
   skip: "Mantener lo que ya tengo y no importarlo",
