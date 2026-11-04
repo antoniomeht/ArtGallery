@@ -24,11 +24,18 @@ const CATEGORY_SUGGESTIONS = [
 
 interface ArtworkFormProps {
   artwork: Artwork;
+  /** A new artwork: its title is ready to be typed over, and it can be discarded. */
+  isUnsaved: boolean;
   onCancel: () => void;
   onSaved: (artwork: Artwork) => void;
 }
 
-export function ArtworkForm({ artwork, onCancel, onSaved }: ArtworkFormProps) {
+export function ArtworkForm({
+  artwork,
+  isUnsaved,
+  onCancel,
+  onSaved,
+}: ArtworkFormProps) {
   const [values, setValues] = useState(() => toFormValues(artwork));
   const [errors, setErrors] = useState<ArtworkFormErrors>({});
   const [saveError, setSaveError] = useState(false);
@@ -64,7 +71,13 @@ export function ArtworkForm({ artwork, onCancel, onSaved }: ArtworkFormProps) {
     <form className="artwork-form" onSubmit={handleSubmit} noValidate>
       <h2 className="artwork-form__title">Editar ficha</h2>
 
-      <Field label="Título" required autoFocus {...bind("title")} />
+      <Field
+        label="Título"
+        required
+        autoFocus
+        onFocus={isUnsaved ? (event) => event.target.select() : undefined}
+        {...bind("title")}
+      />
       <Field label="Artista" {...bind("artist")} />
 
       <div className="artwork-form__row">
@@ -175,7 +188,9 @@ export function ArtworkForm({ artwork, onCancel, onSaved }: ArtworkFormProps) {
       )}
 
       <div className="artwork-form__actions">
-        <Button onClick={onCancel}>Cancelar</Button>
+        <Button onClick={onCancel}>
+          {isUnsaved ? "Descartar" : "Cancelar"}
+        </Button>
         <Button type="submit" variant="primary" disabled={isSaving}>
           {isSaving ? "Guardando…" : "Guardar cambios"}
         </Button>

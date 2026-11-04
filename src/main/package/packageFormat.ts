@@ -2,7 +2,7 @@ import { z } from "zod";
 import { artworkFieldsSchema } from "../../shared/artwork";
 import { exhibitionBaseSchema } from "../../shared/exhibition";
 import type { PackageFailure } from "../../shared/transfer";
-import { SUPPORTED_IMAGE_EXTENSIONS } from "../images/imageStore";
+import { SUPPORTED_IMAGE_EXTENSIONS } from "../../shared/media";
 
 /**
  * Portable `.artgallery` package (a ZIP file):

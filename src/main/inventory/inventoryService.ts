@@ -1,4 +1,6 @@
 import { randomUUID } from "node:crypto";
+import { parse } from "node:path";
+import { z } from "zod";
 import {
   artworkFieldsSchema,
   artworkQuerySchema,
@@ -15,6 +17,13 @@ import type { Exhibition } from "../../shared/exhibition";
 import type { ExhibitionRepository } from "../exhibitions/exhibitionRepository";
 import type { ImageStore, StoredImage } from "../images/imageStore";
 import type { ArtworkRepository } from "./artworkRepository";
+
+const MAX_IMAGES_AT_ONCE = 500;
+
+/** The file name without extension, which is how a photo is usually known. */
+function titleFromPath(path: string): string {
+  return parse(path).name.trim().slice(0, 300) || "Sin título";
+}
 
 /** A complete artwork to restore, with the files of its images in order. */
 export type RestoredArtwork = Omit<Artwork, "images"> & {
@@ -178,6 +187,35 @@ export class InventoryService {
         deletedAt: null,
       };
     });
+  }
+
+  /**
+   * Creates one artwork per image, named after its file. Either every artwork
+   * is created or, if any image cannot be imported, none is.
+   */
+  async createArtworksFromImages(
+    imagePaths: readonly string[],
+    artist: string,
+  ): Promise<ArtworkSummary[]> {
+    const paths = z
+      .array(z.string().min(1))
+      .min(1)
+      .max(MAX_IMAGES_AT_ONCE)
+      .parse(imagePaths);
+    return this.withImportedImages(paths, (stored) =>
+      this.artworks.inTransaction(() =>
+        stored.map((image, index) => {
+          const record = {
+            id: randomUUID(),
+            title: titleFromPath(paths[index] ?? ""),
+            artist: artist || null,
+            createdAt: this.timestamp(),
+          };
+          this.artworks.insert(record, [image]);
+          return { ...record, primaryImageId: image.id, deletedAt: null };
+        }),
+      ),
+    );
   }
 
   /** Adds images after the existing ones, keeping the primary image. */

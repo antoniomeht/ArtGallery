@@ -42,6 +42,9 @@ function createMainWindow(): BrowserWindow {
 
   window.once("ready-to-show", () => window.show());
 
+  // A file dropped outside a handled area must never replace the app.
+  window.webContents.on("will-navigate", (event) => event.preventDefault());
+
   // External links open in the system browser, never inside the app.
   window.webContents.setWindowOpenHandler(({ url }) => {
     void shell.openExternal(url);
@@ -109,7 +112,7 @@ void app.whenReady().then(async () => {
   }
 
   handleMediaRequests(imageStore);
-  registerIpcHandlers(inventory);
+  registerIpcHandlers(inventory, settings);
   registerExhibitionHandlers(exhibitions);
   registerPrintHandlers(exhibitions);
   registerBackupHandlers({ backups, settings, dataFolder: dataDir });

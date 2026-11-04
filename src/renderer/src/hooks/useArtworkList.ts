@@ -6,8 +6,14 @@ export type ArtworkListState =
   | { status: "error" }
   | { status: "ready"; artworks: ArtworkSummary[] };
 
-/** Loads a list of artworks with `load` and reloads it on demand. */
-export function useArtworkList(load: () => Promise<ArtworkSummary[]>) {
+/**
+ * Loads a list of artworks with `load`. It reloads on demand, or whenever
+ * `externalVersion` changes because the inventory changed from outside.
+ */
+export function useArtworkList(
+  load: () => Promise<ArtworkSummary[]>,
+  externalVersion = 0,
+) {
   const [state, setState] = useState<ArtworkListState>({ status: "loading" });
   const [version, setVersion] = useState(0);
 
@@ -20,7 +26,7 @@ export function useArtworkList(load: () => Promise<ArtworkSummary[]>) {
     return () => {
       isCurrent = false;
     };
-  }, [load, version]);
+  }, [load, version, externalVersion]);
 
   const reload = useCallback(() => setVersion((current) => current + 1), []);
 

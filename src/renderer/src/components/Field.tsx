@@ -9,6 +9,7 @@ type InputProps = Pick<
   | "required"
   | "type"
   | "onBlur"
+  | "onFocus"
 >;
 
 interface FieldProps extends InputProps {

@@ -4,6 +4,7 @@ import type { Artwork } from "../../../../shared/artwork";
 import { originalUrl, thumbnailUrl } from "../../../../shared/media";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { Button } from "../../components/Button";
+import { useFileDrop } from "../../hooks/useFileDrop";
 
 interface ImageViewerProps {
   artwork: Artwork;
@@ -38,9 +39,7 @@ export function ImageViewer({ artwork, onArtworkChange }: ImageViewerProps) {
     }
   }
 
-  async function addImages() {
-    const paths = await window.artGallery.pickImages();
-    if (paths.length === 0) return;
+  async function addImages(paths: string[]) {
     await apply(
       () => window.artGallery.addImages(artwork.id, paths),
       () => images.length,
@@ -48,8 +47,20 @@ export function ImageViewer({ artwork, onArtworkChange }: ImageViewerProps) {
     );
   }
 
+  async function pickAndAddImages() {
+    const paths = await window.artGallery.pickImages();
+    if (paths.length > 0) await addImages(paths);
+  }
+
+  const isDragging = useFileDrop({
+    // Only this record's dialog open: a confirmation on top takes priority.
+    isActive: () => document.querySelectorAll("dialog[open]").length === 1,
+    onDrop: (paths) => void addImages(paths),
+  });
+  const dragClass = isDragging ? " viewer--dragging" : "";
+
   const addButton = (
-    <Button disabled={isBusy} onClick={addImages}>
+    <Button disabled={isBusy} onClick={pickAndAddImages}>
       <ImagePlus aria-hidden size={16} />
       Añadir imágenes
     </Button>
@@ -57,7 +68,7 @@ export function ImageViewer({ artwork, onArtworkChange }: ImageViewerProps) {
 
   if (!selected) {
     return (
-      <div className="viewer viewer--empty">
+      <div className={`viewer viewer--empty${dragClass}`}>
         <p>Esta obra todavía no tiene imágenes.</p>
         {addButton}
         {error && <p role="alert">{error}</p>}
@@ -66,7 +77,7 @@ export function ImageViewer({ artwork, onArtworkChange }: ImageViewerProps) {
   }
 
   return (
-    <div className="viewer">
+    <div className={`viewer${dragClass}`}>
       <img
         className="viewer__image"
         src={originalUrl(selected.fileName)}
