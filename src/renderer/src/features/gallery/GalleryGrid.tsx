@@ -1,4 +1,4 @@
-import { Check } from "lucide-react";
+import { Check, Pencil } from "lucide-react";
 import type { ArtworkSummary } from "../../../../shared/artwork";
 import { thumbnailUrl } from "../../../../shared/media";
 import { useLongPress } from "../../hooks/useLongPress";
@@ -68,10 +68,17 @@ export function GalleryGrid({
                   <span className="gallery-tile__artist">{artwork.artist}</span>
                 )}
               </span>
-              {selectedIds && (
+              {selectedIds ? (
                 <span className="gallery-tile__check" aria-hidden>
                   {isSelected && <Check size={16} strokeWidth={3} />}
                 </span>
+              ) : (
+                artwork.needsReview && (
+                  <span className="gallery-tile__pending" title="Faltan datos">
+                    <Pencil aria-hidden size={14} strokeWidth={2.25} />
+                    <span className="visually-hidden">, faltan datos</span>
+                  </span>
+                )
               )}
             </button>
           </li>

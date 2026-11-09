@@ -66,6 +66,8 @@ export interface Artwork extends ArtworkFields {
   id: string;
   /** Ordered images; the first one is the primary image. */
   images: ArtworkImage[];
+  /** Created from an image and not saved from its record since. */
+  needsReview: boolean;
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
@@ -127,6 +129,7 @@ export interface ArtworkSummary {
   artist: string | null;
   /** First image of the artwork, used as its cover. */
   primaryImageId: string | null;
+  needsReview: boolean;
   createdAt: string;
   /** When the artwork was moved to the trash, or null if it is not there. */
   deletedAt: string | null;

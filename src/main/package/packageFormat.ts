@@ -61,6 +61,8 @@ export const packageArtworkSchema = artworkFieldsSchema.extend({
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
   deletedAt: z.iso.datetime().nullable(),
+  /** Missing in packages written before it existed. */
+  needsReview: z.boolean().default(false),
   /** Ordered; the first image is the primary one. */
   images: z.array(packageImageSchema),
 });

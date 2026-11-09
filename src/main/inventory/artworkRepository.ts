@@ -18,7 +18,22 @@ export interface NewArtworkRecord {
   id: string;
   title: string;
   artist: string | null;
+  needsReview: boolean;
   createdAt: string;
+}
+
+/** Columns of an `ArtworkSummary`, from `artworks a` and its cover `i`. */
+export const SUMMARY_COLUMNS = `a.id, a.title, a.artist, a.created_at AS createdAt,
+  a.deleted_at AS deletedAt, a.needs_review AS needsReview,
+  i.id AS primaryImageId`;
+
+/** Rows selected with `SUMMARY_COLUMNS`, with SQLite's 0/1 as booleans. */
+export function toSummaries(rows: unknown[]): ArtworkSummary[] {
+  type Row = Omit<ArtworkSummary, "needsReview"> & { needsReview: number };
+  return (rows as Row[]).map((row) => ({
+    ...row,
+    needsReview: row.needsReview === 1,
+  }));
 }
 
 interface ArtworkRow {
@@ -43,6 +58,7 @@ interface ArtworkRow {
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
+  needs_review: number;
 }
 
 const ORDER_BY: Record<ArtworkSort, string> = {
@@ -113,13 +129,15 @@ export class ArtworkRepository {
     transaction(this.db, () => {
       this.db
         .prepare(
-          `INSERT INTO artworks (id, title, artist, created_at, updated_at)
-           VALUES (?, ?, ?, ?, ?)`,
+          `INSERT INTO artworks
+             (id, title, artist, needs_review, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?)`,
         )
         .run(
           artwork.id,
           artwork.title,
           artwork.artist,
+          artwork.needsReview ? 1 : 0,
           artwork.createdAt,
           artwork.createdAt,
         );
@@ -188,13 +206,17 @@ export class ArtworkRepository {
     });
   }
 
-  /** Returns false when no artwork has the given id. */
+  /**
+   * Saves the record, which also clears `needsReview`. Returns false when no
+   * artwork has the given id.
+   */
   update(id: string, fields: ArtworkFields, updatedAt: string): boolean {
     return transaction(this.db, () => {
       const assignments = FIELD_COLUMNS.map((column) => `${column} = ?`);
       const { changes } = this.db
         .prepare(
-          `UPDATE artworks SET ${assignments.join(", ")}, updated_at = ?
+          `UPDATE artworks
+           SET ${assignments.join(", ")}, needs_review = 0, updated_at = ?
            WHERE id = ?`,
         )
         .run(...fieldValues(fields), updatedAt, id);
@@ -289,6 +311,7 @@ export class ArtworkRepository {
       price: row.price_cents == null ? null : row.price_cents / 100,
       currency: row.currency,
       images,
+      needsReview: row.needs_review === 1,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
       deletedAt: row.deleted_at,
@@ -309,18 +332,17 @@ export class ArtworkRepository {
       `a.deleted_at IS ${inTrash ? "NOT NULL" : "NULL"}`,
       ...conditions.map(({ sql }) => sql),
     ].join(" AND ");
-    return this.db
-      .prepare(
-        `SELECT a.id, a.title, a.artist, a.created_at AS createdAt,
-                a.deleted_at AS deletedAt, i.id AS primaryImageId
-         FROM artworks a
-         LEFT JOIN artwork_images i ON i.artwork_id = a.id AND i.position = 0
-         WHERE ${where}
-         ORDER BY ${inTrash ? "a.deleted_at DESC" : ORDER_BY[sort]}`,
-      )
-      .all(
-        ...conditions.flatMap(({ params }) => params),
-      ) as unknown as ArtworkSummary[];
+    return toSummaries(
+      this.db
+        .prepare(
+          `SELECT ${SUMMARY_COLUMNS}
+           FROM artworks a
+           LEFT JOIN artwork_images i ON i.artwork_id = a.id AND i.position = 0
+           WHERE ${where}
+           ORDER BY ${inTrash ? "a.deleted_at DESC" : ORDER_BY[sort]}`,
+        )
+        .all(...conditions.flatMap(({ params }) => params)),
+    );
   }
 
   /** Distinct values outside the trash, one spelling per accent/case variant. */
@@ -401,12 +423,14 @@ export class ArtworkRepository {
     this.db
       .prepare(
         `INSERT INTO artworks
-           (id, ${FIELD_COLUMNS.join(", ")}, created_at, updated_at, deleted_at)
-         VALUES (?, ${placeholders(FIELD_COLUMNS)}, ?, ?, ?)`,
+           (id, ${FIELD_COLUMNS.join(", ")}, needs_review,
+            created_at, updated_at, deleted_at)
+         VALUES (?, ${placeholders(FIELD_COLUMNS)}, ?, ?, ?, ?)`,
       )
       .run(
         artwork.id,
         ...fieldValues(artwork),
+        artwork.needsReview ? 1 : 0,
         artwork.createdAt,
         artwork.updatedAt,
         artwork.deletedAt,
