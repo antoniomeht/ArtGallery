@@ -60,6 +60,45 @@ describe("database migrations", () => {
     backup.close();
   });
 
+  it("keeps measures in both units, converting from each artwork's unit", async () => {
+    const file = join(await useTempDir(), "artgallery.sqlite");
+    const before = new DatabaseSync(file);
+    migrate(before, { targetVersion: LATEST_SCHEMA_VERSION - 1 });
+    before.exec(`
+      INSERT INTO artworks (id, title, height, width, dimension_unit, created_at, updated_at)
+      VALUES ('cm', 'Marina', 46, 55, 'cm', 'now', 'now'),
+             ('in', 'Boceto', 10, NULL, 'in', 'now', 'now')
+    `);
+    before.close();
+
+    const upgraded = openDatabase(file);
+
+    expect(
+      upgraded
+        .prepare(
+          `SELECT id, height_cm, width_cm, height_in, width_in FROM artworks
+           ORDER BY id`,
+        )
+        .all(),
+    ).toEqual([
+      {
+        id: "cm",
+        height_cm: 46,
+        width_cm: 55,
+        height_in: 46 / 2.54,
+        width_in: 55 / 2.54,
+      },
+      {
+        id: "in",
+        height_cm: 25.4,
+        width_cm: null,
+        height_in: 10,
+        width_in: null,
+      },
+    ]);
+    upgraded.close();
+  });
+
   it("does not create a backup for a brand-new database", async () => {
     const dir = await useTempDir();
     openDatabase(join(dir, "artgallery.sqlite")).close();

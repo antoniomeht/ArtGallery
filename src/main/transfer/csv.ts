@@ -1,5 +1,11 @@
 import type { Artwork } from "../../shared/artwork";
 import { STATUS_LABELS } from "../../shared/artworkFormat";
+import {
+  AXIS_LABELS,
+  DIMENSION_UNITS,
+  MEASURE_AXES,
+  roundMeasure,
+} from "../../shared/dimensions";
 
 /** Lets Excel detect the encoding. */
 const UTF8_BOM = String.fromCharCode(0xfeff);
@@ -13,10 +19,15 @@ const COLUMNS: [header: string, value: (artwork: Artwork) => unknown][] = [
   ["Soporte", (a) => a.support],
   ["Año", (a) => a.year],
   ["Año aproximado", (a) => (a.yearApproximate ? "Sí" : "No")],
-  ["Alto", (a) => a.height],
-  ["Ancho", (a) => a.width],
-  ["Profundidad", (a) => a.depth],
-  ["Unidad", (a) => a.dimensionUnit],
+  ...DIMENSION_UNITS.flatMap((unit) =>
+    MEASURE_AXES.map((axis): [string, (artwork: Artwork) => unknown] => [
+      `${AXIS_LABELS[axis]} (${unit})`,
+      (a) => {
+        const value = a.dimensions[unit][axis];
+        return value == null ? null : roundMeasure(value);
+      },
+    ]),
+  ),
   ["Estado", (a) => STATUS_LABELS[a.status]],
   ["Precio", (a) => a.price],
   ["Moneda", (a) => a.currency],

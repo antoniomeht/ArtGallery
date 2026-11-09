@@ -1,6 +1,9 @@
 import type { Artwork } from "../../../../shared/artwork";
 import {
   formatDimensions,
+  type DimensionUnit,
+} from "../../../../shared/dimensions";
+import {
   formatMedium,
   formatPrice,
   formatYear,
@@ -13,6 +16,7 @@ interface CatalogDocumentProps {
   exhibition: ExhibitionDetail;
   artworks: Artwork[];
   includePrices: boolean;
+  unit: DimensionUnit;
 }
 
 /** Exhibition catalogue: a cover page, then every artwork in order. */
@@ -20,6 +24,7 @@ export function CatalogDocument({
   exhibition,
   artworks,
   includePrices,
+  unit,
 }: CatalogDocumentProps) {
   const cover = artworks.find((artwork) => artwork.images.length > 0);
   const dates = formatDateRange(exhibition);
@@ -55,6 +60,7 @@ export function CatalogDocument({
             number={index + 1}
             artwork={artwork}
             includePrice={includePrices}
+            unit={unit}
           />
         ))}
       </section>
@@ -66,16 +72,18 @@ function CatalogEntry({
   number,
   artwork,
   includePrice,
+  unit,
 }: {
   number: number;
   artwork: Artwork;
   includePrice: boolean;
+  unit: DimensionUnit;
 }) {
   const image = artwork.images[0];
   const year = formatYear(artwork);
   const lines = [
     formatMedium(artwork),
-    formatDimensions(artwork),
+    formatDimensions(artwork.dimensions, unit),
     includePrice ? formatPrice(artwork) : null,
   ].filter(Boolean);
 

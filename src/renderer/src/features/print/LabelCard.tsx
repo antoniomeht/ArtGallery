@@ -2,6 +2,9 @@ import type { CSSProperties } from "react";
 import type { Artwork } from "../../../../shared/artwork";
 import {
   formatDimensions,
+  type DimensionUnit,
+} from "../../../../shared/dimensions";
+import {
   formatMedium,
   formatPrice,
   formatYear,
@@ -11,6 +14,7 @@ import type { LabelOptions } from "../../../../shared/labels";
 interface LabelCardProps {
   artwork: Artwork;
   options: LabelOptions;
+  unit: DimensionUnit;
 }
 
 /** Height of the small preset; text grows in proportion to the label. */
@@ -20,12 +24,12 @@ const REFERENCE_HEIGHT_MM = 50;
  * Wall label beside an artwork. Sized in millimetres so the preview and the
  * printed sheet are the same drawing.
  */
-export function LabelCard({ artwork, options }: LabelCardProps) {
+export function LabelCard({ artwork, options, unit }: LabelCardProps) {
   const show = new Set(options.fields);
   const year = show.has("year") ? formatYear(artwork) : null;
   const details = [
     show.has("medium") && formatMedium(artwork),
-    show.has("dimensions") && formatDimensions(artwork),
+    show.has("dimensions") && formatDimensions(artwork.dimensions, unit),
     show.has("price") && formatPrice(artwork),
   ].filter((line): line is string => Boolean(line));
   const style = {

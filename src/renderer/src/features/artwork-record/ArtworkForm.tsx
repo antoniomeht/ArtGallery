@@ -1,13 +1,20 @@
 import { useEffect, useState, type FormEvent } from "react";
 import {
   ARTWORK_STATUSES,
-  DIMENSION_UNITS,
   type Artwork,
   type FilterOptions,
 } from "../../../../shared/artwork";
+import {
+  AXIS_LABELS,
+  formatDimensions,
+  MEASURE_AXES,
+  withEnteredMeasures,
+  type DimensionUnit,
+} from "../../../../shared/dimensions";
 import { STATUS_LABELS } from "../../../../shared/artworkFormat";
 import { Field } from "../../components/Field";
 import {
+  enteredMeasures,
   parseFormValues,
   toFormValues,
   type ArtworkFormErrors,
@@ -29,6 +36,8 @@ const COMMON_CATEGORIES = [
 
 interface ArtworkFormProps {
   artwork: Artwork;
+  /** The unit measures are shown and typed in. */
+  unit: DimensionUnit;
   /** A new artwork: its title is ready to be typed over, and it can be discarded. */
   isUnsaved: boolean;
   onCancel: () => void;
@@ -37,11 +46,12 @@ interface ArtworkFormProps {
 
 export function ArtworkForm({
   artwork,
+  unit,
   isUnsaved,
   onCancel,
   onSaved,
 }: ArtworkFormProps) {
-  const [values, setValues] = useState(() => toFormValues(artwork));
+  const [values, setValues] = useState(() => toFormValues(artwork, unit));
   const [errors, setErrors] = useState<ArtworkFormErrors>({});
   const [saveError, setSaveError] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -61,9 +71,15 @@ export function ArtworkForm({
       setValues((current) => ({ ...current, [name]: value })),
   });
 
+  const otherUnit = unit === "cm" ? "in" : "cm";
+  const equivalent = formatDimensions(
+    withEnteredMeasures(artwork.dimensions, unit, enteredMeasures(values)),
+    otherUnit,
+  );
+
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    const parsed = parseFormValues(values);
+    const parsed = parseFormValues(values, unit, artwork.dimensions);
     if (!parsed.ok) {
       setErrors(parsed.errors);
       return;
@@ -178,31 +194,21 @@ export function ArtworkForm({
       </fieldset>
 
       <fieldset className="artwork-form__group">
-        <legend className="field__label">Dimensiones</legend>
+        <legend className="field__label">Dimensiones ({unit})</legend>
         <div className="artwork-form__row artwork-form__row--dimensions">
-          <Field label="Alto" inputMode="decimal" {...bind("height")} />
-          <Field label="Ancho" inputMode="decimal" {...bind("width")} />
-          <Field label="Profundidad" inputMode="decimal" {...bind("depth")} />
-          <label className="field">
-            <span className="field__label">Unidad</span>
-            <select
-              className="field__input"
-              value={values.dimensionUnit}
-              onChange={(event) =>
-                setValues((current) => ({
-                  ...current,
-                  dimensionUnit: event.target.value as Artwork["dimensionUnit"],
-                }))
-              }
-            >
-              {DIMENSION_UNITS.map((unit) => (
-                <option key={unit} value={unit}>
-                  {unit}
-                </option>
-              ))}
-            </select>
-          </label>
+          {MEASURE_AXES.map((axis) => (
+            <Field
+              key={axis}
+              label={AXIS_LABELS[axis]}
+              inputMode="decimal"
+              {...bind(axis)}
+            />
+          ))}
         </div>
+        <p className="artwork-form__hint">
+          {equivalent && `Equivale a ${equivalent}. `}La unidad se cambia en
+          Ajustes.
+        </p>
       </fieldset>
 
       <SuggestField

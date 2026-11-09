@@ -11,14 +11,23 @@ interface PrintDocumentProps {
 
 /** Loads what the job needs and returns the document to print. */
 async function renderJob(job: PrintJob): Promise<ReactNode> {
+  const { dimensionUnit: unit } = await window.artGallery.getSettings();
   switch (job.kind) {
     case "catalog": {
       const data = await loadExhibitionArtworks(job.exhibitionId);
-      return <CatalogDocument {...data} includePrices={job.includePrices} />;
+      return (
+        <CatalogDocument
+          {...data}
+          includePrices={job.includePrices}
+          unit={unit}
+        />
+      );
     }
     case "labels": {
       const artworks = await loadSourceArtworks(job.source);
-      return <LabelSheets artworks={artworks} options={job.options} />;
+      return (
+        <LabelSheets artworks={artworks} options={job.options} unit={unit} />
+      );
     }
   }
 }

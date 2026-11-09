@@ -80,6 +80,26 @@ const migrations: readonly string[] = [
   -- Created from images without filling in their record yet.
   ALTER TABLE artworks ADD COLUMN needs_review INTEGER NOT NULL DEFAULT 0;
   `,
+  `
+  -- Measures in both units: the typed one as is, the other converted.
+  ALTER TABLE artworks ADD COLUMN height_cm REAL;
+  ALTER TABLE artworks ADD COLUMN width_cm REAL;
+  ALTER TABLE artworks ADD COLUMN depth_cm REAL;
+  ALTER TABLE artworks ADD COLUMN height_in REAL;
+  ALTER TABLE artworks ADD COLUMN width_in REAL;
+  ALTER TABLE artworks ADD COLUMN depth_in REAL;
+  UPDATE artworks SET
+    height_cm = CASE dimension_unit WHEN 'cm' THEN height ELSE height * 2.54 END,
+    width_cm = CASE dimension_unit WHEN 'cm' THEN width ELSE width * 2.54 END,
+    depth_cm = CASE dimension_unit WHEN 'cm' THEN depth ELSE depth * 2.54 END,
+    height_in = CASE dimension_unit WHEN 'in' THEN height ELSE height / 2.54 END,
+    width_in = CASE dimension_unit WHEN 'in' THEN width ELSE width / 2.54 END,
+    depth_in = CASE dimension_unit WHEN 'in' THEN depth ELSE depth / 2.54 END;
+  ALTER TABLE artworks DROP COLUMN height;
+  ALTER TABLE artworks DROP COLUMN width;
+  ALTER TABLE artworks DROP COLUMN depth;
+  ALTER TABLE artworks DROP COLUMN dimension_unit;
+  `,
 ];
 
 export const LATEST_SCHEMA_VERSION = migrations.length;

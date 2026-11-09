@@ -7,7 +7,6 @@ import type {
   ArtworkSort,
   ArtworkStatus,
   ArtworkSummary,
-  DimensionUnit,
   FilterOptions,
 } from "../../shared/artwork";
 import { transaction } from "../database/transaction";
@@ -45,10 +44,12 @@ interface ArtworkRow {
   support: string | null;
   year: number | null;
   year_approximate: number;
-  height: number | null;
-  width: number | null;
-  depth: number | null;
-  dimension_unit: DimensionUnit;
+  height_cm: number | null;
+  width_cm: number | null;
+  depth_cm: number | null;
+  height_in: number | null;
+  width_in: number | null;
+  depth_in: number | null;
   description: string | null;
   notes: string | null;
   location: string | null;
@@ -78,10 +79,12 @@ const FIELD_COLUMNS = [
   "support",
   "year",
   "year_approximate",
-  "height",
-  "width",
-  "depth",
-  "dimension_unit",
+  "height_cm",
+  "width_cm",
+  "depth_cm",
+  "height_in",
+  "width_in",
+  "depth_in",
   "description",
   "notes",
   "location",
@@ -99,10 +102,12 @@ function fieldValues(fields: ArtworkFields): SQLInputValue[] {
     fields.support,
     fields.year,
     fields.yearApproximate ? 1 : 0,
-    fields.height,
-    fields.width,
-    fields.depth,
-    fields.dimensionUnit,
+    fields.dimensions.cm.height,
+    fields.dimensions.cm.width,
+    fields.dimensions.cm.depth,
+    fields.dimensions.in.height,
+    fields.dimensions.in.width,
+    fields.dimensions.in.depth,
     fields.description,
     fields.notes,
     fields.location,
@@ -299,10 +304,10 @@ export class ArtworkRepository {
       support: row.support,
       year: row.year,
       yearApproximate: row.year_approximate === 1,
-      height: row.height,
-      width: row.width,
-      depth: row.depth,
-      dimensionUnit: row.dimension_unit,
+      dimensions: {
+        cm: { height: row.height_cm, width: row.width_cm, depth: row.depth_cm },
+        in: { height: row.height_in, width: row.width_in, depth: row.depth_in },
+      },
       description: row.description,
       notes: row.notes,
       tags: tags.map(({ tag }) => tag),
