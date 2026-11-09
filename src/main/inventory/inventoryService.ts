@@ -179,6 +179,7 @@ export class InventoryService {
         id: randomUUID(),
         title,
         artist,
+        needsReview: false,
         createdAt: this.timestamp(),
       };
       this.artworks.insert(record, stored);
@@ -219,6 +220,7 @@ export class InventoryService {
               id: randomUUID(),
               title: titleFromPath(paths[index] ?? ""),
               artist: artist || null,
+              needsReview: true,
               createdAt: this.timestamp(),
             };
             this.artworks.insert(record, [image]);

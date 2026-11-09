@@ -64,6 +64,26 @@ describe("InventoryService", () => {
     db.close();
   });
 
+  it("marks artworks created from images as pending until saved", async () => {
+    const dataDir = await useTempDir();
+    const { db, service } = openInventory(dataDir);
+    const photo = await createTestImage(join(dataDir, "photo.jpg"));
+
+    const [created] = (await service.createArtworksFromImages([photo], "")) as [
+      ArtworkSummary,
+    ];
+
+    expect(created.needsReview).toBe(true);
+    expect(service.listArtworks()[0]?.needsReview).toBe(true);
+    expect(service.getArtwork(created.id).needsReview).toBe(true);
+
+    service.updateArtwork(created.id, { title: "Marina" });
+
+    expect(service.listArtworks()[0]?.needsReview).toBe(false);
+    expect(service.getArtwork(created.id).needsReview).toBe(false);
+    db.close();
+  });
+
   it("leaves the artist empty without a default", async () => {
     const dataDir = await useTempDir();
     const { db, service } = openInventory(dataDir);

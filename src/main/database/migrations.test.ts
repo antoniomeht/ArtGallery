@@ -44,8 +44,10 @@ describe("database migrations", () => {
 
     expect(getSchemaVersion(upgraded)).toBe(LATEST_SCHEMA_VERSION);
     expect(
-      upgraded.prepare("SELECT title, status FROM artworks").all(),
-    ).toEqual([{ title: "Marina", status: "available" }]);
+      upgraded
+        .prepare("SELECT title, status, needs_review FROM artworks")
+        .all(),
+    ).toEqual([{ title: "Marina", status: "available", needs_review: 0 }]);
     upgraded.close();
 
     const backup = new DatabaseSync(

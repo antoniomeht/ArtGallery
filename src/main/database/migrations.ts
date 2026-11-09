@@ -76,6 +76,10 @@ const migrations: readonly string[] = [
   );
   CREATE INDEX exhibition_artworks_artwork ON exhibition_artworks (artwork_id);
   `,
+  `
+  -- Created from images without filling in their record yet.
+  ALTER TABLE artworks ADD COLUMN needs_review INTEGER NOT NULL DEFAULT 0;
+  `,
 ];
 
 export const LATEST_SCHEMA_VERSION = migrations.length;

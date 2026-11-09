@@ -6,6 +6,7 @@ import type {
   ExhibitionSummary,
 } from "../../shared/exhibition";
 import { transaction } from "../database/transaction";
+import { SUMMARY_COLUMNS, toSummaries } from "../inventory/artworkRepository";
 
 interface ExhibitionRow {
   id: string;
@@ -69,17 +70,18 @@ export class ExhibitionRepository {
 
   /** Artworks outside the trash, in exhibition order. */
   listArtworks(id: string): ArtworkSummary[] {
-    return this.db
-      .prepare(
-        `SELECT a.id, a.title, a.artist, a.created_at AS createdAt,
-                a.deleted_at AS deletedAt, i.id AS primaryImageId
-         FROM exhibition_artworks ea
-         JOIN artworks a ON a.id = ea.artwork_id
-         LEFT JOIN artwork_images i ON i.artwork_id = a.id AND i.position = 0
-         WHERE ea.exhibition_id = ? AND a.deleted_at IS NULL
-         ORDER BY ea.position`,
-      )
-      .all(id) as unknown as ArtworkSummary[];
+    return toSummaries(
+      this.db
+        .prepare(
+          `SELECT ${SUMMARY_COLUMNS}
+           FROM exhibition_artworks ea
+           JOIN artworks a ON a.id = ea.artwork_id
+           LEFT JOIN artwork_images i ON i.artwork_id = a.id AND i.position = 0
+           WHERE ea.exhibition_id = ? AND a.deleted_at IS NULL
+           ORDER BY ea.position`,
+        )
+        .all(id),
+    );
   }
 
   insert(exhibition: Exhibition): void {

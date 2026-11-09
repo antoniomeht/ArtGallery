@@ -62,6 +62,21 @@
   opacity: 1;
 }
 
+/* Created from an image and not saved since; selection takes the corner. */
+.gallery-tile__pending {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  color: var(--accent);
+  background: var(--surface-page);
+  box-shadow: var(--shadow-raised);
+}
+
 /* Selection mode: a round check in the corner, filled when selected. */
 .gallery-tile__check {
   position: absolute;
