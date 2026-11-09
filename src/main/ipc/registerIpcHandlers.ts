@@ -39,9 +39,14 @@ export function registerIpcHandlers(
   // Payloads are validated by the service before anything is written.
   ipcMain.handle(
     IpcChannel.createArtworksFromImages,
-    async (_event, imagePaths: string[]) => {
+    async (event, imagePaths: string[]) => {
       const { defaultArtist } = await settings.read();
-      return inventory.createArtworksFromImages(imagePaths, defaultArtist);
+      return inventory.createArtworksFromImages(
+        imagePaths,
+        defaultArtist,
+        (progress) =>
+          event.sender.send(IpcChannel.onCreationProgress, progress),
+      );
     },
   );
   ipcMain.handle(

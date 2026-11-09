@@ -1,5 +1,11 @@
-import { contextBridge, ipcRenderer, webUtils } from "electron";
+import {
+  contextBridge,
+  ipcRenderer,
+  webUtils,
+  type IpcRendererEvent,
+} from "electron";
 import { IpcChannel, type ArtGalleryApi } from "../shared/api";
+import type { CreationProgress } from "../shared/artwork";
 
 const api: ArtGalleryApi = {
   listArtworks: (query) => ipcRenderer.invoke(IpcChannel.listArtworks, query),
@@ -7,6 +13,12 @@ const api: ArtGalleryApi = {
   getArtwork: (id) => ipcRenderer.invoke(IpcChannel.getArtwork, id),
   createArtworksFromImages: (imagePaths) =>
     ipcRenderer.invoke(IpcChannel.createArtworksFromImages, imagePaths),
+  onCreationProgress: (listener) => {
+    const handle = (_event: IpcRendererEvent, progress: CreationProgress) =>
+      listener(progress);
+    ipcRenderer.on(IpcChannel.onCreationProgress, handle);
+    return () => ipcRenderer.off(IpcChannel.onCreationProgress, handle);
+  },
   updateArtwork: (id, fields) =>
     ipcRenderer.invoke(IpcChannel.updateArtwork, id, fields),
   setStatus: (artworkIds, status) =>

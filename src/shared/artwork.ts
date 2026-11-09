@@ -131,3 +131,11 @@ export interface ArtworkSummary {
   /** When the artwork was moved to the trash, or null if it is not there. */
   deletedAt: string | null;
 }
+
+/** Sent while artworks are created from images, before each one is imported. */
+export interface CreationProgress {
+  done: number;
+  total: number;
+  /** The image being imported now. */
+  fileName: string;
+}

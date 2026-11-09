@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { parse } from "node:path";
+import { basename, parse } from "node:path";
 import { z } from "zod";
 import {
   artworkFieldsSchema,
@@ -10,6 +10,7 @@ import {
   type ArtworkQuery,
   type ArtworkStatus,
   type ArtworkSummary,
+  type CreationProgress,
   type FilterOptions,
   type NewArtwork,
 } from "../../shared/artwork";
@@ -196,25 +197,35 @@ export class InventoryService {
   async createArtworksFromImages(
     imagePaths: readonly string[],
     artist: string,
+    onProgress?: (progress: CreationProgress) => void,
   ): Promise<ArtworkSummary[]> {
     const paths = z
       .array(z.string().min(1))
       .min(1)
       .max(MAX_IMAGES_AT_ONCE)
       .parse(imagePaths);
-    return this.withImportedImages(paths, (stored) =>
-      this.artworks.inTransaction(() =>
-        stored.map((image, index) => {
-          const record = {
-            id: randomUUID(),
-            title: titleFromPath(paths[index] ?? ""),
-            artist: artist || null,
-            createdAt: this.timestamp(),
-          };
-          this.artworks.insert(record, [image]);
-          return { ...record, primaryImageId: image.id, deletedAt: null };
-        }),
-      ),
+    const reportImport = (index: number) =>
+      onProgress?.({
+        done: index,
+        total: paths.length,
+        fileName: basename(paths[index] ?? ""),
+      });
+    return this.withImportedImages(
+      paths,
+      (stored) =>
+        this.artworks.inTransaction(() =>
+          stored.map((image, index) => {
+            const record = {
+              id: randomUUID(),
+              title: titleFromPath(paths[index] ?? ""),
+              artist: artist || null,
+              createdAt: this.timestamp(),
+            };
+            this.artworks.insert(record, [image]);
+            return { ...record, primaryImageId: image.id, deletedAt: null };
+          }),
+        ),
+      reportImport,
     );
   }
 
@@ -290,10 +301,12 @@ export class InventoryService {
   private async withImportedImages<T>(
     paths: readonly string[],
     save: (stored: StoredImage[]) => T,
+    beforeImport?: (index: number) => void,
   ): Promise<T> {
     const stored: StoredImage[] = [];
     try {
-      for (const path of paths) {
+      for (const [index, path] of paths.entries()) {
+        beforeImport?.(index);
         stored.push(await this.images.importImage(path));
       }
       return save(stored);
