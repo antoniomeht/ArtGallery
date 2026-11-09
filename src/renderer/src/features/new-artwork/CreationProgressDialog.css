@@ -1,0 +1,41 @@
+/* Nothing in it can be used, so focus on the dialog itself shows no ring. */
+.creation-dialog:focus-visible {
+  outline: none;
+}
+
+.creation-progress {
+  gap: var(--space-3);
+}
+
+.creation-progress__bar {
+  width: 100%;
+  height: var(--space-2);
+  appearance: none;
+  border: none;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  background: var(--surface-hover);
+}
+
+.creation-progress__bar::-webkit-progress-bar {
+  background: var(--surface-hover);
+}
+
+.creation-progress__bar::-webkit-progress-value {
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  transition: width var(--motion-fast);
+}
+
+.creation-progress__status {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.creation-progress__file {
+  overflow: hidden;
+  color: var(--text-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

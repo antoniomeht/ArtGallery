@@ -1,4 +1,5 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
+import type { CreationProgress } from "../../../../shared/artwork";
 import { isSupportedImage } from "../../../../shared/media";
 import { useActionNotice } from "../../hooks/useActionNotice";
 import { useFileDrop } from "../../hooks/useFileDrop";
@@ -14,8 +15,12 @@ export function useNewArtworks(onAdded: () => void) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const refresh = useCallback(() => setInventoryVersion((v) => v + 1), []);
   const { notice, setNotice, moveToTrash } = useActionNotice(refresh);
+  const [progress, setProgress] = useState<CreationProgress | null>(null);
+  const isCreating = useRef(false);
 
   async function addFromPaths(paths: string[]) {
+    // One addition at a time; its progress dialog blocks the rest of the app.
+    if (isCreating.current) return;
     const images = paths.filter(isSupportedImage);
     const ignored = paths.length - images.length;
     if (images.length === 0) {
@@ -25,6 +30,9 @@ export function useNewArtworks(onAdded: () => void) {
       return;
     }
 
+    isCreating.current = true;
+    setProgress({ done: 0, total: images.length, fileName: "" });
+    const stopListening = window.artGallery.onCreationProgress(setProgress);
     try {
       const created = await window.artGallery.createArtworksFromImages(images);
       onAdded();
@@ -50,6 +58,10 @@ export function useNewArtworks(onAdded: () => void) {
         message:
           "No se pudo añadir ninguna obra. Comprueba que las imágenes no están dañadas.",
       });
+    } finally {
+      stopListening();
+      setProgress(null);
+      isCreating.current = false;
     }
   }
 
@@ -61,6 +73,7 @@ export function useNewArtworks(onAdded: () => void) {
 
   return {
     isDragging,
+    progress,
     inventoryVersion,
     editingId,
     notice,

@@ -1,6 +1,7 @@
 import { ImagePlus } from "lucide-react";
 import { ActionNotice } from "../../components/ActionNotice";
 import { ArtworkRecordDialog } from "../artwork-record/ArtworkRecordDialog";
+import { CreationProgressDialog } from "./CreationProgressDialog";
 import type { useNewArtworks } from "./useNewArtworks";
 import "./NewArtworkLayer.css";
 
@@ -23,6 +24,9 @@ export function NewArtworkLayer({ newArtworks }: NewArtworkLayerProps) {
           </strong>
           <span>JPG, PNG, WebP o TIFF</span>
         </div>
+      )}
+      {newArtworks.progress && (
+        <CreationProgressDialog progress={newArtworks.progress} />
       )}
       {editingId && (
         <ArtworkRecordDialog

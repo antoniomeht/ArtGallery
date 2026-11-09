@@ -1,7 +1,7 @@
 import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import type { ArtworkSummary } from "../../shared/artwork";
+import type { ArtworkSummary, CreationProgress } from "../../shared/artwork";
 import { createTestImage, listFiles, useTempDir } from "../testing/fixtures";
 import { openInventory } from "../testing/inventory";
 
@@ -43,6 +43,24 @@ describe("InventoryService", () => {
     const stored = service.getArtwork(id);
     expect(stored).toMatchObject({ artist: "Ana Ruiz" });
     expect(stored.images.map((image) => image.id)).toEqual([primaryImageId]);
+    db.close();
+  });
+
+  it("reports progress before importing each image", async () => {
+    const dataDir = await useTempDir();
+    const { db, service } = openInventory(dataDir);
+    const first = await createTestImage(join(dataDir, "first.jpg"));
+    const second = await createTestImage(join(dataDir, "second.png"));
+    const progress: CreationProgress[] = [];
+
+    await service.createArtworksFromImages([first, second], "", (step) =>
+      progress.push(step),
+    );
+
+    expect(progress).toEqual([
+      { done: 0, total: 2, fileName: "first.jpg" },
+      { done: 1, total: 2, fileName: "second.png" },
+    ]);
     db.close();
   });
 

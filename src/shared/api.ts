@@ -4,6 +4,7 @@ import type {
   ArtworkQuery,
   ArtworkStatus,
   ArtworkSummary,
+  CreationProgress,
   FilterOptions,
 } from "./artwork";
 import type { BackupInfo, RestoreResult } from "./backup";
@@ -39,6 +40,10 @@ export interface ArtGalleryApi {
   getArtwork(id: string): Promise<Artwork>;
   /** Creates one artwork per image; all of them or, on failure, none. */
   createArtworksFromImages(imagePaths: string[]): Promise<ArtworkSummary[]>;
+  /** Listens to the progress of `createArtworksFromImages`; returns how to stop. */
+  onCreationProgress(
+    listener: (progress: CreationProgress) => void,
+  ): () => void;
   updateArtwork(id: string, fields: ArtworkFieldsInput): Promise<Artwork>;
   setStatus(artworkIds: string[], status: ArtworkStatus): Promise<void>;
   addImages(artworkId: string, imagePaths: string[]): Promise<Artwork>;
@@ -108,6 +113,7 @@ export const IpcChannel = {
   listFilterOptions: "artworks:filter-options",
   getArtwork: "artworks:get",
   createArtworksFromImages: "artworks:create-from-images",
+  onCreationProgress: "artworks:creation-progress",
   updateArtwork: "artworks:update",
   setStatus: "artworks:set-status",
   addImages: "artworks:add-images",
