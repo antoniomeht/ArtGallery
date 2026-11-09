@@ -26,6 +26,7 @@ export function registerBackupHandlers({
     backups: await backups.listBackups(),
   }));
 
+  ipcMain.handle(IpcChannel.getSettings, () => settings.read());
   ipcMain.handle(IpcChannel.updateSettings, (_event, changes: unknown) =>
     settings.update(settingsSchema.partial().parse(changes)),
   );

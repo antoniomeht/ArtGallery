@@ -83,6 +83,7 @@ export interface ArtGalleryApi {
   /** Called by the print window once its document is fully drawn. */
   printReady(): void;
   getBackupOverview(): Promise<BackupOverview>;
+  getSettings(): Promise<Settings>;
   updateSettings(changes: Partial<Settings>): Promise<Settings>;
   createBackup(): Promise<BackupInfo>;
   /** Validates the backup and replaces the inventory with its contents. */
@@ -135,6 +136,7 @@ export const IpcChannel = {
   exportLabelsPdf: "print:labels",
   printReady: "print:ready",
   getBackupOverview: "backups:overview",
+  getSettings: "settings:get",
   updateSettings: "settings:update",
   createBackup: "backups:create",
   restoreBackup: "backups:restore",

@@ -14,6 +14,7 @@ import {
   type ArtworkFormValues,
 } from "./artworkFormValues";
 import { SuggestField } from "./SuggestField";
+import { useDefaultArtistOffer } from "./useDefaultArtistOffer";
 import { withDefaults } from "./suggestions";
 import { Button } from "../../components/Button";
 
@@ -45,6 +46,7 @@ export function ArtworkForm({
   const [saveError, setSaveError] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [options, setOptions] = useState<FilterOptions | null>(null);
+  const defaultArtist = useDefaultArtistOffer(values.artist);
 
   useEffect(() => {
     // Without suggestions the fields still work, so a failure is not shown.
@@ -70,7 +72,13 @@ export function ArtworkForm({
     setSaveError(false);
     setIsSaving(true);
     try {
-      onSaved(await window.artGallery.updateArtwork(artwork.id, parsed.fields));
+      const saved = await window.artGallery.updateArtwork(
+        artwork.id,
+        parsed.fields,
+      );
+      // The artwork is already saved; a missing default is only an extra.
+      await defaultArtist.apply(saved.artist).catch(() => {});
+      onSaved(saved);
     } catch {
       setSaveError(true);
       setIsSaving(false);
@@ -93,6 +101,18 @@ export function ArtworkForm({
         suggestions={options?.artists ?? []}
         {...bind("artist")}
       />
+      {defaultArtist.isOffered && (
+        <label className="checkbox">
+          <input
+            type="checkbox"
+            checked={defaultArtist.isChosen}
+            onChange={(event) =>
+              defaultArtist.setIsChosen(event.target.checked)
+            }
+          />
+          Usar como artista predeterminado
+        </label>
+      )}
 
       <div className="artwork-form__row">
         <SuggestField
