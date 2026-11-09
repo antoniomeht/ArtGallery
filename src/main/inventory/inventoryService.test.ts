@@ -2,6 +2,7 @@ import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import type { ArtworkSummary, CreationProgress } from "../../shared/artwork";
+import { fromSingleUnit } from "../../shared/dimensions";
 import { createTestImage, listFiles, useTempDir } from "../testing/fixtures";
 import { openInventory } from "../testing/inventory";
 
@@ -162,10 +163,7 @@ describe("InventoryService", () => {
       support: "Lienzo",
       year: 1998,
       yearApproximate: true,
-      height: 65,
-      width: 81,
-      depth: 3.5,
-      dimensionUnit: "cm",
+      dimensions: fromSingleUnit({ height: 65, width: 81, depth: 3.5 }, "cm"),
       description: "Vista del puerto.",
       notes: "Marco original.",
       tags: ["mar", "puerto", "mar"],
@@ -182,7 +180,7 @@ describe("InventoryService", () => {
       artist: "Ana Ruiz",
       year: 1998,
       yearApproximate: true,
-      depth: 3.5,
+      dimensions: { cm: { height: 65, width: 81, depth: 3.5 } },
       tags: ["mar", "puerto"],
       status: "loaned",
       price: 1250.5,
@@ -217,12 +215,15 @@ describe("InventoryService", () => {
     });
 
     expect(() =>
-      service.updateArtwork(id, { title: "Boceto", height: -10 }),
+      service.updateArtwork(id, {
+        title: "Boceto",
+        dimensions: { cm: { height: -10 } },
+      }),
     ).toThrow();
     expect(() =>
       service.updateArtwork(id, { title: "Boceto", currency: "euros" }),
     ).toThrow();
-    expect(service.getArtwork(id).height).toBeNull();
+    expect(service.getArtwork(id).dimensions.cm.height).toBeNull();
     db.close();
   });
 

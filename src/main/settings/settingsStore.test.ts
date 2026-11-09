@@ -13,6 +13,7 @@ describe("SettingsStore", () => {
       autoBackup: "daily",
       keepAutomaticBackups: 10,
       defaultArtist: "",
+      dimensionUnit: "cm",
     });
   });
 

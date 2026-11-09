@@ -17,6 +17,7 @@ import {
 } from "./backupLabels";
 import { Button } from "../../components/Button";
 import { DefaultArtistSection } from "./DefaultArtistSection";
+import { DimensionUnitSection } from "./DimensionUnitSection";
 import "./BackupsPage.css";
 
 const KEEP_OPTIONS = [5, 10, 20, 30];
@@ -112,6 +113,11 @@ export function BackupsPage() {
           <DefaultArtistSection
             value={overview.settings.defaultArtist}
             onSave={(defaultArtist) => void updateSettings({ defaultArtist })}
+          />
+
+          <DimensionUnitSection
+            value={overview.settings.dimensionUnit}
+            onChange={(dimensionUnit) => void updateSettings({ dimensionUnit })}
           />
 
           <section className="page-section" aria-labelledby="backup-now">

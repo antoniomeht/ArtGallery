@@ -3,10 +3,19 @@ import {
   type Artwork,
   type ArtworkFields,
   type ArtworkStatus,
-  type DimensionUnit,
 } from "../../../../shared/artwork";
+import {
+  roundMeasure,
+  withEnteredMeasures,
+  type Dimensions,
+  type DimensionUnit,
+  type Measures,
+} from "../../../../shared/dimensions";
 
-/** Editable values as the form holds them: text inputs keep strings. */
+/**
+ * Editable values as the form holds them: text inputs keep strings, and
+ * measures are in the unit chosen in the settings.
+ */
 export interface ArtworkFormValues {
   title: string;
   artist: string;
@@ -18,7 +27,6 @@ export interface ArtworkFormValues {
   height: string;
   width: string;
   depth: string;
-  dimensionUnit: DimensionUnit;
   description: string;
   notes: string;
   tags: string;
@@ -47,7 +55,14 @@ const DEFAULT_ERROR = "Revisa este valor.";
 const textOf = (value: string | number | null) =>
   value == null ? "" : String(value).replace(".", ",");
 
-export function toFormValues(artwork: Artwork): ArtworkFormValues {
+const measureText = (value: number | null) =>
+  textOf(value == null ? null : roundMeasure(value));
+
+export function toFormValues(
+  artwork: Artwork,
+  unit: DimensionUnit,
+): ArtworkFormValues {
+  const measures = artwork.dimensions[unit];
   return {
     title: artwork.title,
     artist: artwork.artist ?? "",
@@ -56,10 +71,9 @@ export function toFormValues(artwork: Artwork): ArtworkFormValues {
     support: artwork.support ?? "",
     year: textOf(artwork.year),
     yearApproximate: artwork.yearApproximate,
-    height: textOf(artwork.height),
-    width: textOf(artwork.width),
-    depth: textOf(artwork.depth),
-    dimensionUnit: artwork.dimensionUnit,
+    height: measureText(measures.height),
+    width: measureText(measures.width),
+    depth: measureText(measures.depth),
     description: artwork.description ?? "",
     notes: artwork.notes ?? "",
     tags: artwork.tags.join(", "),
@@ -79,17 +93,28 @@ function parseNumber(text: string): number | null {
     : Number.NaN;
 }
 
-export function parseFormValues(
-  values: ArtworkFormValues,
-):
-  | { ok: true; fields: ArtworkFields }
-  | { ok: false; errors: ArtworkFormErrors } {
-  const result = artworkFieldsSchema.safeParse({
-    ...values,
-    year: parseNumber(values.year),
+/** The measures typed in the form, in the settings unit. */
+export function enteredMeasures(values: ArtworkFormValues): Measures {
+  return {
     height: parseNumber(values.height),
     width: parseNumber(values.width),
     depth: parseNumber(values.depth),
+  };
+}
+
+/** `previous` keeps measures left as shown from drifting on save. */
+export function parseFormValues(
+  values: ArtworkFormValues,
+  unit: DimensionUnit,
+  previous: Dimensions,
+):
+  | { ok: true; fields: ArtworkFields }
+  | { ok: false; errors: ArtworkFormErrors } {
+  // Unknown keys, such as the measure texts, are dropped by the schema.
+  const result = artworkFieldsSchema.safeParse({
+    ...values,
+    year: parseNumber(values.year),
+    dimensions: withEnteredMeasures(previous, unit, enteredMeasures(values)),
     price: parseNumber(values.price),
     currency: values.currency.trim().toUpperCase(),
     tags: values.tags
@@ -101,7 +126,11 @@ export function parseFormValues(
 
   const errors: ArtworkFormErrors = {};
   for (const issue of result.error.issues) {
-    const field = issue.path[0] as keyof ArtworkFormValues;
+    // Measures are checked in both units; the error goes on the input.
+    const [first, , axis] = issue.path;
+    const field = (
+      first === "dimensions" ? axis : first
+    ) as keyof ArtworkFormValues;
     errors[field] ??= ERROR_MESSAGES[field] ?? DEFAULT_ERROR;
   }
   return { ok: false, errors };

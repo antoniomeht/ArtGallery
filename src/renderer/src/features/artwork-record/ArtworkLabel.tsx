@@ -1,6 +1,9 @@
 import type { Artwork } from "../../../../shared/artwork";
 import {
   formatDimensions,
+  type DimensionUnit,
+} from "../../../../shared/dimensions";
+import {
   formatMedium,
   formatPrice,
   formatYear,
@@ -9,11 +12,13 @@ import {
 
 interface ArtworkLabelProps {
   artwork: Artwork;
+  unit: DimensionUnit;
 }
 
 /** Read-only record laid out like a museum wall label, then the details. */
-export function ArtworkLabel({ artwork }: ArtworkLabelProps) {
+export function ArtworkLabel({ artwork, unit }: ArtworkLabelProps) {
   const medium = formatMedium(artwork);
+  const dimensions = formatDimensions(artwork.dimensions, unit);
   const details: [string, string | null][] = [
     ["Categoría", artwork.category],
     ["Estado", STATUS_LABELS[artwork.status]],
@@ -30,7 +35,7 @@ export function ArtworkLabel({ artwork }: ArtworkLabelProps) {
           {formatYear(artwork) && <span>, {formatYear(artwork)}</span>}
         </h2>
         {medium && <p>{medium}</p>}
-        {formatDimensions(artwork) && <p>{formatDimensions(artwork)}</p>}
+        {dimensions && <p>{dimensions}</p>}
       </header>
 
       <dl className="label__details">

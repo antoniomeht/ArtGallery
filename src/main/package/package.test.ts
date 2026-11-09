@@ -4,6 +4,7 @@ import { readdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { ZipFile } from "yazl";
+import { fromSingleUnit } from "../../shared/dimensions";
 import { createTestImage, useTempDir } from "../testing/fixtures";
 import { openInventory } from "../testing/inventory";
 import { toExportArtwork } from "./exportArtwork";
@@ -23,8 +24,7 @@ async function exportableInventory(dataDir: string) {
     title: "Marina",
     artist: "Lucía Ferrer",
     tags: ["mar"],
-    height: 65,
-    width: 81,
+    dimensions: fromSingleUnit({ height: 65, width: 81, depth: null }, "cm"),
     price: 1200.5,
   });
   await service.createArtwork({ title: "Boceto", imagePaths: [] });
@@ -187,6 +187,36 @@ describe("artgallery package", () => {
 
     expect(read.manifest.formatVersion).toBe(1);
     expect(read.data.exhibitions).toEqual([]);
+  });
+
+  it("converts measures from packages before v3, which had a single unit", async () => {
+    const dir = await useTempDir();
+    const file = join(dir, "v2.artgallery");
+    const artwork = {
+      id: "0b5c3c5e-3f0e-4a8e-9a43-2f1d3c4b5a60",
+      title: "Marina",
+      height: 10,
+      width: 8,
+      dimensionUnit: "in",
+      createdAt: "2026-11-02T10:00:00.000Z",
+      updatedAt: "2026-11-02T10:00:00.000Z",
+      deletedAt: null,
+      images: [],
+    };
+    await zipWith(file, {
+      "manifest.json": MANIFEST.replace('"artworks":0', '"artworks":1').replace(
+        '"formatVersion":1',
+        '"formatVersion":2',
+      ),
+      "data.json": JSON.stringify({ artworks: [artwork], exhibitions: [] }),
+    });
+
+    const read = await readPackage(file, join(dir, "staging"));
+
+    expect(read.data.artworks[0]?.dimensions).toEqual({
+      in: { height: 10, width: 8, depth: null },
+      cm: { height: 25.4, width: 20.32, depth: null },
+    });
   });
 
   it("rejects exhibitions that refer to artworks outside the package", async () => {

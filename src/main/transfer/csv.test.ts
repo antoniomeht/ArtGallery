@@ -29,7 +29,7 @@ describe("CSV export", () => {
       toCsv([
         artwork({
           title: "Marina",
-          height: 65.5,
+          dimensions: { cm: { height: 65.5 }, in: { height: 25.787 } },
           status: "loaned",
           tags: ["mar", "puerto"],
           yearApproximate: true,
@@ -38,7 +38,9 @@ describe("CSV export", () => {
     );
 
     expect(row).toContain(";Marina;");
+    // Alto (cm), then in the inch columns 25.787 shown with one decimal.
     expect(row).toContain(";65,5;");
+    expect(row).toContain(";25,8;");
     expect(row).toContain(";Prestada;");
     expect(row).toContain(";mar, puerto;");
     expect(row).toContain(";Sí;");

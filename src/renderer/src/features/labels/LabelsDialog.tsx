@@ -10,6 +10,7 @@ import {
   type LabelOptions,
 } from "../../../../shared/labels";
 import type { PrintSource } from "../../../../shared/print";
+import { useDimensionUnit } from "../../hooks/useDimensionUnit";
 import { LabelCard } from "../print/LabelCard";
 import { loadSourceArtworks } from "../print/printData";
 import { Button } from "../../components/Button";
@@ -40,6 +41,7 @@ export function LabelsDialog({ source, onClose, onSaved }: LabelsDialogProps) {
   const [options, setOptions] = useState<LabelOptions>(DEFAULT_LABEL_OPTIONS);
   const [isSaving, setIsSaving] = useState(false);
   const [failed, setFailed] = useState(false);
+  const unit = useDimensionUnit();
   // Fixed when the dialog opens; parents may pass a new object on render.
   const [fixedSource] = useState(source);
 
@@ -171,8 +173,8 @@ export function LabelsDialog({ source, onClose, onSaved }: LabelsDialogProps) {
           </div>
 
           <div className="labels-dialog__preview" aria-label="Vista previa">
-            {artworks?.[0] && valid && (
-              <LabelCard artwork={artworks[0]} options={options} />
+            {artworks?.[0] && valid && unit && (
+              <LabelCard artwork={artworks[0]} options={options} unit={unit} />
             )}
           </div>
         </div>

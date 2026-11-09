@@ -287,3 +287,10 @@
   padding: var(--space-4) 0;
   background: var(--surface-page);
 }
+
+.artwork-form__hint {
+  margin: calc(-1 * var(--space-2)) 0 0;
+  font-size: var(--font-size-caption);
+  line-height: var(--line-height-caption);
+  color: var(--text-secondary);
+}

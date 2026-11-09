@@ -10,10 +10,18 @@ export const ARTWORK_STATUSES = [
 ] as const;
 export type ArtworkStatus = (typeof ARTWORK_STATUSES)[number];
 
-export const DIMENSION_UNITS = ["cm", "in"] as const;
-export type DimensionUnit = (typeof DIMENSION_UNITS)[number];
-
 const optionalMeasure = optionalNumber(z.number().positive().max(100_000));
+
+export const measuresSchema = z.object({
+  height: optionalMeasure,
+  width: optionalMeasure,
+  depth: optionalMeasure,
+});
+
+/** Both units; see `Dimensions`. Missing measures are null. */
+const dimensionsSchema = z
+  .object({ cm: measuresSchema.prefault({}), in: measuresSchema.prefault({}) })
+  .prefault({});
 
 const title = z.string().trim().min(1).max(300);
 
@@ -25,10 +33,7 @@ export const artworkFieldsSchema = z.object({
   support: optionalText(200),
   year: optionalNumber(z.number().int().min(-5000).max(3000)),
   yearApproximate: z.boolean().default(false),
-  height: optionalMeasure,
-  width: optionalMeasure,
-  depth: optionalMeasure,
-  dimensionUnit: z.enum(DIMENSION_UNITS).default("cm"),
+  dimensions: dimensionsSchema,
   description: optionalText(5000),
   notes: optionalText(5000),
   tags: z

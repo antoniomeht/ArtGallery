@@ -1,6 +1,7 @@
 import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { Artwork } from "../../../../shared/artwork";
+import { useDimensionUnit } from "../../hooks/useDimensionUnit";
 import { ArtworkForm } from "./ArtworkForm";
 import { ArtworkLabel } from "./ArtworkLabel";
 import { ImageViewer } from "./ImageViewer";
@@ -33,6 +34,7 @@ export function ArtworkRecordDialog({
   const [state, setState] = useState<RecordState>({ status: "loading" });
   const [isEditing, setIsEditing] = useState(isNew);
   const [isUnsaved, setIsUnsaved] = useState(isNew);
+  const unit = useDimensionUnit();
 
   useEffect(() => {
     dialogRef.current?.showModal();
@@ -94,7 +96,7 @@ export function ArtworkRecordDialog({
         </p>
       )}
 
-      {state.status === "ready" && (
+      {state.status === "ready" && unit && (
         <div className="record__layout">
           <ImageViewer
             artwork={state.artwork}
@@ -107,6 +109,7 @@ export function ArtworkRecordDialog({
             {isEditing ? (
               <ArtworkForm
                 artwork={state.artwork}
+                unit={unit}
                 isUnsaved={isUnsaved}
                 onCancel={() =>
                   isUnsaved ? onMoveToTrash(state.artwork) : setIsEditing(false)
@@ -119,7 +122,7 @@ export function ArtworkRecordDialog({
                 }}
               />
             ) : (
-              <ArtworkLabel artwork={state.artwork} />
+              <ArtworkLabel artwork={state.artwork} unit={unit} />
             )}
           </div>
         </div>

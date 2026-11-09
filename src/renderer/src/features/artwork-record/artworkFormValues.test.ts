@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { artworkFieldsSchema, type Artwork } from "../../../../shared/artwork";
+import { fromSingleUnit } from "../../../../shared/dimensions";
 import { parseFormValues, toFormValues } from "./artworkFormValues";
 
 const artwork: Artwork = {
@@ -14,20 +15,23 @@ const artwork: Artwork = {
 
 describe("artwork form values", () => {
   it("accepts decimal commas and comma-separated tags", () => {
-    const result = parseFormValues({
-      ...toFormValues(artwork),
-      height: "65,5",
-      width: "81",
-      price: "1200,50",
-      tags: "mar, puerto, , mar",
-      currency: "usd",
-    });
+    const result = parseFormValues(
+      {
+        ...toFormValues(artwork, "cm"),
+        height: "65,5",
+        width: "81",
+        price: "1200,50",
+        tags: "mar, puerto, , mar",
+        currency: "usd",
+      },
+      "cm",
+      artwork.dimensions,
+    );
 
     expect(result).toMatchObject({
       ok: true,
       fields: {
-        height: 65.5,
-        width: 81,
+        dimensions: { cm: { height: 65.5, width: 81, depth: null } },
         price: 1200.5,
         tags: ["mar", "puerto"],
         currency: "USD",
@@ -36,23 +40,37 @@ describe("artwork form values", () => {
   });
 
   it("round-trips an existing record without changes", () => {
-    const record = { ...artwork, height: 12.25, price: 99.9, tags: ["a"] };
+    const record: Artwork = {
+      ...artwork,
+      dimensions: fromSingleUnit({ height: 46, width: 55, depth: null }, "cm"),
+      price: 99.9,
+      tags: ["a"],
+    };
 
-    const result = parseFormValues(toFormValues(record));
+    // Shown in inches as 18,1 × 21,7: saving keeps the exact stored values.
+    const result = parseFormValues(
+      toFormValues(record, "in"),
+      "in",
+      record.dimensions,
+    );
 
     expect(result).toMatchObject({
       ok: true,
-      fields: { height: 12.25, price: 99.9, tags: ["a"] },
+      fields: { dimensions: record.dimensions, price: 99.9, tags: ["a"] },
     });
   });
 
   it("explains which fields are invalid", () => {
-    const result = parseFormValues({
-      ...toFormValues(artwork),
-      title: " ",
-      width: "ancho",
-      year: "1998.5",
-    });
+    const result = parseFormValues(
+      {
+        ...toFormValues(artwork, "cm"),
+        title: " ",
+        width: "ancho",
+        year: "1998.5",
+      },
+      "cm",
+      artwork.dimensions,
+    );
 
     expect(result).toEqual({
       ok: false,

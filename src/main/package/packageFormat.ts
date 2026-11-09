@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { artworkFieldsSchema } from "../../shared/artwork";
+import { DIMENSION_UNITS, fromSingleUnit } from "../../shared/dimensions";
 import { exhibitionBaseSchema } from "../../shared/exhibition";
 import type { PackageFailure } from "../../shared/transfer";
 import { SUPPORTED_IMAGE_EXTENSIONS } from "../../shared/media";
@@ -15,8 +16,11 @@ import { SUPPORTED_IMAGE_EXTENSIONS } from "../../shared/media";
  * another computer. Thumbnails are not included: they are rebuilt on import.
  */
 export const PACKAGE_FORMAT = "artgallery";
-/** v2 added exhibitions; v1 packages are still read, with none. */
-export const PACKAGE_FORMAT_VERSION = 2;
+/**
+ * v2 added exhibitions; v3 keeps measures in both units. Older packages are
+ * still read: v1 with no exhibitions, and v1–v2 measures are converted.
+ */
+export const PACKAGE_FORMAT_VERSION = 3;
 export const PACKAGE_EXTENSION = ".artgallery";
 
 export const MANIFEST_ENTRY = "manifest.json";
@@ -56,7 +60,30 @@ export const packageImageSchema = z.object({
 
 export type PackageImage = z.infer<typeof packageImageSchema>;
 
-export const packageArtworkSchema = artworkFieldsSchema.extend({
+/** Measures of packages before v3: one set, in the artwork's own unit. */
+const legacyMeasuresSchema = z.object({
+  height: z.number().nullish(),
+  width: z.number().nullish(),
+  depth: z.number().nullish(),
+  dimensionUnit: z.enum(DIMENSION_UNITS).default("cm"),
+});
+
+function withBothUnits(artwork: unknown): unknown {
+  if (typeof artwork !== "object" || artwork === null) return artwork;
+  if ("dimensions" in artwork) return artwork;
+  const legacy = legacyMeasuresSchema.safeParse(artwork);
+  if (!legacy.success) return artwork;
+  const { height, width, depth, dimensionUnit } = legacy.data;
+  return {
+    ...artwork,
+    dimensions: fromSingleUnit(
+      { height: height ?? null, width: width ?? null, depth: depth ?? null },
+      dimensionUnit,
+    ),
+  };
+}
+
+const currentArtworkSchema = artworkFieldsSchema.extend({
   id: z.string().regex(UUID),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
@@ -67,7 +94,12 @@ export const packageArtworkSchema = artworkFieldsSchema.extend({
   images: z.array(packageImageSchema),
 });
 
-export type PackageArtwork = z.infer<typeof packageArtworkSchema>;
+export const packageArtworkSchema = z.preprocess(
+  withBothUnits,
+  currentArtworkSchema,
+);
+
+export type PackageArtwork = z.infer<typeof currentArtworkSchema>;
 
 export const packageExhibitionSchema = exhibitionBaseSchema.extend({
   id: z.string().regex(UUID),
