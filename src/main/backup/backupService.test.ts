@@ -19,6 +19,8 @@ function openApp(
   const backups = new BackupService({
     inventory: inventory.service,
     images: inventory.images,
+    collections: inventory.collections,
+    documents: inventory.documents,
     settings: new SettingsStore(join(dataDir, "settings.json")),
     defaultFolder: join(root, "Documents", "ArtGallery backups"),
     workDir: join(dataDir, "tmp"),

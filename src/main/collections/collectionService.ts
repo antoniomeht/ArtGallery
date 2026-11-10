@@ -1,10 +1,17 @@
 import { randomUUID } from "node:crypto";
+import { sortKey } from "../database/sortKey";
 import {
   collectionNameSchema,
   type CollectionSummary,
   type DeletedCollection,
 } from "../../shared/collection";
-import type { CollectionRepository } from "./collectionRepository";
+import type {
+  CollectionRecord,
+  CollectionRepository,
+} from "./collectionRepository";
+
+/** Compares names as the database does: ignoring case and accents. */
+const sameKey = (a: string, b: string) => sortKey(a) === sortKey(b);
 
 export class CollectionNameTakenError extends Error {
   constructor() {
@@ -59,6 +66,23 @@ export class CollectionService {
   ): void {
     this.find(id);
     this.collections.setMembership(id, artworkIds, member, this.timestamp());
+  }
+
+  /** Every collection with its members, for backups and exports. */
+  listRecords(): CollectionRecord[] {
+    return this.collections.listRecords();
+  }
+
+  replaceAll(collections: readonly CollectionRecord[]): void {
+    this.collections.replaceAll(collections);
+  }
+
+  /** The collection with this name, ignoring case and accents, or a new one. */
+  findOrCreate(name: string): CollectionSummary {
+    const existing = this.list().find((collection) =>
+      sameKey(collection.name, name),
+    );
+    return existing ?? this.create(name);
   }
 
   private availableName(name: string, exceptId: string | null): string {

@@ -11,6 +11,15 @@ const SUMMARY_SQL = `SELECT c.id, c.name,
      WHERE ca.collection_id = c.id AND a.deleted_at IS NULL) AS artworkCount
   FROM collections c`;
 
+/** A collection with every member, for backups and exports. */
+export interface CollectionRecord {
+  id: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+  artworkIds: string[];
+}
+
 export class CollectionRepository {
   constructor(private readonly db: DatabaseSync) {}
 
@@ -34,6 +43,47 @@ export class CollectionRepository {
          ORDER BY sort_key(c.name)`,
       )
       .all(artworkId) as unknown as CollectionSummary[];
+  }
+
+  listRecords(): CollectionRecord[] {
+    const rows = this.db
+      .prepare(
+        `SELECT id, name, created_at AS createdAt, updated_at AS updatedAt
+         FROM collections ORDER BY sort_key(name)`,
+      )
+      .all() as unknown as Omit<CollectionRecord, "artworkIds">[];
+    const members = this.db.prepare(
+      "SELECT artwork_id AS id FROM collection_artworks WHERE collection_id = ?",
+    );
+    return rows.map((row) => ({
+      ...row,
+      artworkIds: (members.all(row.id) as { id: string }[]).map(({ id }) => id),
+    }));
+  }
+
+  /** Replaces every collection; joins a transaction already open. */
+  replaceAll(collections: readonly CollectionRecord[]): void {
+    transaction(this.db, () => {
+      this.db.exec("DELETE FROM collections");
+      for (const collection of collections) {
+        this.db
+          .prepare(
+            `INSERT INTO collections (id, name, created_at, updated_at)
+             VALUES (?, ?, ?, ?)`,
+          )
+          .run(
+            collection.id,
+            collection.name,
+            collection.createdAt,
+            collection.updatedAt,
+          );
+        this.addArtworks(
+          collection.id,
+          collection.artworkIds,
+          collection.updatedAt,
+        );
+      }
+    });
   }
 
   /** Whether another collection uses the name, ignoring case and accents. */

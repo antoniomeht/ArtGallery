@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { copyFile, mkdir, rename, rm, stat } from "node:fs/promises";
+import { copyFile, mkdir, readdir, rename, rm, stat } from "node:fs/promises";
 import { join } from "node:path";
 import type { UploadFailureReason } from "../../shared/document";
 import {
@@ -50,6 +50,20 @@ export class DocumentStore {
       throw new DocumentFileError("unreadable");
     }
     return { fileName, extension, bytes: info.size };
+  }
+
+  /** Copies a file into the store under the name it already has. */
+  async copyIn(sourcePath: string, fileName: string): Promise<void> {
+    const path = this.path(fileName);
+    await mkdir(this.rootDir, { recursive: true });
+    await copyFile(sourcePath, `${path}.tmp`);
+    await rename(`${path}.tmp`, path);
+  }
+
+  /** Names of every file in the store. */
+  async listFiles(): Promise<string[]> {
+    const names = await readdir(this.rootDir).catch(() => []);
+    return names.filter((name) => STORED_FILE_NAME.test(name));
   }
 
   async delete(fileName: string): Promise<void> {

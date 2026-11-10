@@ -122,6 +122,13 @@ function fieldValues(fields: ArtworkFields): SQLInputValue[] {
 const placeholders = (values: readonly unknown[]) =>
   values.map(() => "?").join(", ");
 
+/** Tables that link other things to an artwork by `artwork_id`. */
+const LINK_TABLES = [
+  "exhibition_artworks",
+  "collection_artworks",
+  "document_artworks",
+] as const;
+
 export class ArtworkRepository {
   constructor(private readonly db: DatabaseSync) {}
 
@@ -243,13 +250,34 @@ export class ArtworkRepository {
     });
   }
 
-  /** Inserts the artworks, replacing any that already exist with the same id. */
+  /**
+   * Inserts the artworks, replacing any that already exist with the same id.
+   * A replaced artwork stays in its exhibitions and collections and keeps
+   * its documents: deleting the row would drop those links in cascade.
+   */
   upsertAll(artworks: readonly Artwork[]): void {
     transaction(this.db, () => {
       const remove = this.db.prepare("DELETE FROM artworks WHERE id = ?");
       for (const artwork of artworks) {
+        const links = LINK_TABLES.map((table) => ({
+          table,
+          rows: this.db
+            .prepare(`SELECT * FROM ${table} WHERE artwork_id = ?`)
+            .all(artwork.id) as Record<string, SQLInputValue>[],
+        }));
         remove.run(artwork.id);
         this.insertComplete(artwork);
+        for (const { table, rows } of links) {
+          for (const row of rows) {
+            const columns = Object.keys(row);
+            this.db
+              .prepare(
+                `INSERT OR IGNORE INTO ${table} (${columns.join(", ")})
+                 VALUES (${columns.map(() => "?").join(", ")})`,
+              )
+              .run(...columns.map((column) => row[column] ?? null));
+          }
+        }
       }
     });
   }

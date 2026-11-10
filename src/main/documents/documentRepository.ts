@@ -11,7 +11,7 @@ import type {
   DocumentSummary,
 } from "../../shared/document";
 import type { TextContent } from "../../shared/editorSchema";
-import { pageSetupSchema } from "../../shared/pageSetup";
+import { pageSetupSchema, type PageSetup } from "../../shared/pageSetup";
 import { transaction } from "../database/transaction";
 
 interface DocumentRow {
@@ -39,6 +39,25 @@ export interface NewDocumentRecord {
   bytes: number | null;
   content: string | null;
   timestamp: string;
+}
+
+/** A document with everything it has, for backups. */
+export interface DocumentRecord {
+  id: string;
+  title: string;
+  notes: string | null;
+  kind: DocumentKind;
+  createdAt: string;
+  updatedAt: string;
+  fileName: string | null;
+  originalName: string | null;
+  extension: string | null;
+  bytes: number | null;
+  content: TextContent | null;
+  pageSetup: PageSetup | null;
+  assets: string[];
+  comments: DocumentComment[];
+  links: { artworks: string[]; exhibitions: string[]; collections: string[] };
 }
 
 export interface DocumentFile {
@@ -257,6 +276,109 @@ export class DocumentRepository {
     this.db
       .prepare("UPDATE documents SET deleted_at = ? WHERE id = ?")
       .run(deletedAt, id);
+  }
+
+  /** Every document outside the deletion queue, with all it has. */
+  listRecords(): DocumentRecord[] {
+    const rows = this.db
+      .prepare("SELECT * FROM documents WHERE deleted_at IS NULL ORDER BY id")
+      .all() as unknown as DocumentRow[];
+    const ids = (sql: string, id: string) =>
+      (this.db.prepare(sql).all(id) as { id: string }[]).map((row) => row.id);
+    return rows.map((row) => {
+      const detail = toDetail(row);
+      return {
+        id: row.id,
+        title: row.title,
+        notes: row.notes,
+        kind: row.kind,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+        fileName: row.file_name,
+        originalName: row.original_name,
+        extension: row.extension,
+        bytes: row.bytes,
+        content: detail.content,
+        pageSetup: detail.pageSetup,
+        assets: ids(
+          "SELECT file_name AS id FROM document_assets WHERE document_id = ?",
+          row.id,
+        ),
+        comments: this.listComments(row.id),
+        links: Object.fromEntries(
+          (["artwork", "exhibition", "collection"] as const).map((type) => [
+            `${type}s`,
+            ids(
+              `SELECT ${LINKS[type].column} AS id FROM ${LINKS[type].table}
+               WHERE document_id = ?`,
+              row.id,
+            ),
+          ]),
+        ) as DocumentRecord["links"],
+      };
+    });
+  }
+
+  /**
+   * Replaces every document, its images, comments and links. Links to
+   * anything missing are skipped. Joins a transaction already open.
+   */
+  replaceAll(records: readonly DocumentRecord[]): void {
+    transaction(this.db, () => {
+      this.db.exec("DELETE FROM documents");
+      for (const record of records) {
+        this.db
+          .prepare(
+            `INSERT INTO documents (id, title, kind, notes, file_name,
+               original_name, extension, bytes, content, page_setup,
+               created_at, updated_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          )
+          .run(
+            record.id,
+            record.title,
+            record.kind,
+            record.notes,
+            record.fileName,
+            record.originalName,
+            record.extension,
+            record.bytes,
+            record.content ? JSON.stringify(record.content) : null,
+            record.pageSetup ? JSON.stringify(record.pageSetup) : null,
+            record.createdAt,
+            record.updatedAt,
+          );
+        for (const fileName of record.assets)
+          this.addAsset(record.id, fileName);
+        for (const comment of record.comments)
+          this.addComment(record.id, comment);
+        const linked = [
+          ["artwork", record.links.artworks],
+          ["exhibition", record.links.exhibitions],
+          ["collection", record.links.collections],
+        ] as const;
+        for (const [type, targetIds] of linked) {
+          const { table, column, target } = LINKS[type];
+          const add = this.db.prepare(
+            `INSERT OR IGNORE INTO ${table} (document_id, ${column})
+             SELECT ?, id FROM ${target} WHERE id = ?`,
+          );
+          for (const targetId of targetIds) add.run(record.id, targetId);
+        }
+      }
+    });
+  }
+
+  /** Every file the documents use, including those waiting to be purged. */
+  listFileNames(): string[] {
+    return (
+      this.db
+        .prepare(
+          `SELECT file_name AS name FROM documents WHERE file_name IS NOT NULL
+           UNION SELECT file_name FROM document_assets`,
+        )
+        .all() as { name: string }[]
+    ).map(({ name }) => name);
   }
 
   addComment(documentId: string, comment: DocumentComment): void {

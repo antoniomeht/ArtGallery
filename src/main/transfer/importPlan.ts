@@ -2,6 +2,7 @@ import type { Exhibition } from "../../shared/exhibition";
 import type { DuplicatePolicy } from "../../shared/transfer";
 import type {
   PackageArtwork,
+  PackageCollection,
   PackageExhibition,
 } from "../package/packageFormat";
 
@@ -13,6 +14,8 @@ export interface ImportPlan {
   trashedSkipped: number;
   freshExhibitions: PackageExhibition[];
   duplicateExhibitions: PackageExhibition[];
+  /** Matched by name on import; their own ids do not travel. */
+  collections: PackageCollection[];
 }
 
 /** Sorts the contents of a package before anything is written. */
@@ -20,9 +23,11 @@ export function planImport(
   {
     artworks,
     exhibitions,
+    collections = [],
   }: {
     artworks: readonly PackageArtwork[];
     exhibitions: readonly PackageExhibition[];
+    collections?: readonly PackageCollection[];
   },
   existing: {
     artworkIds: ReadonlySet<string>;
@@ -35,6 +40,7 @@ export function planImport(
     trashedSkipped: 0,
     freshExhibitions: [],
     duplicateExhibitions: [],
+    collections: [...collections],
   };
   for (const artwork of uniqueById(artworks)) {
     if (artwork.deletedAt) plan.trashedSkipped++;
@@ -56,6 +62,8 @@ export interface ResolvedImport {
   artworks: PackageArtwork[];
   /** Exhibitions to write, pointing at the final artwork ids. */
   exhibitions: Exhibition[];
+  /** Collections by name, pointing at the final artwork ids. */
+  collections: { name: string; artworkIds: string[] }[];
   added: number;
   replaced: number;
   skipped: number;
@@ -106,6 +114,10 @@ export function resolveImport(
   return {
     artworks: [...plan.fresh, ...duplicates],
     exhibitions,
+    collections: plan.collections.map(({ name, artworkIds }) => ({
+      name,
+      artworkIds: artworkIds.map((id) => renamed.get(id) ?? id),
+    })),
     added: plan.fresh.length + (policy === "copy" ? duplicates.length : 0),
     replaced: policy === "replace" ? duplicates.length : 0,
     skipped: policy === "skip" ? plan.duplicates.length : 0,

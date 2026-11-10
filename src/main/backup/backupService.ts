@@ -7,6 +7,8 @@ import type {
   BackupOrigin,
   RestoreResult,
 } from "../../shared/backup";
+import type { CollectionService } from "../collections/collectionService";
+import type { DocumentService } from "../documents/documentService";
 import type { ImageStore } from "../images/imageStore";
 import type { InventoryService } from "../inventory/inventoryService";
 import { toExportArtwork } from "../package/exportArtwork";
@@ -29,6 +31,8 @@ const ORIGIN_SUFFIX: Record<BackupOrigin, string> = {
 export interface BackupServiceOptions {
   inventory: InventoryService;
   images: ImageStore;
+  collections: CollectionService;
+  documents: DocumentService;
   settings: SettingsStore;
   /** Used while no folder has been chosen in the settings. */
   defaultFolder: string;
@@ -66,6 +70,8 @@ export class BackupService {
         .listAllArtworks()
         .map((artwork) => toExportArtwork(artwork, images)),
       exhibitions: inventory.listAllExhibitions(),
+      collections: this.options.collections.listRecords(),
+      documents: this.options.documents.listForExport(),
       appVersion,
       now: this.now(),
     });
@@ -146,15 +152,29 @@ export class BackupService {
         return { ok: false, reason: "not-a-backup" };
       }
 
-      const { inventory } = this.options;
-      const safety =
-        inventory.listAllArtworks().length > 0
-          ? await this.createBackup("before-restore")
-          : null;
-      await inventory.replaceInventory(
-        restoredArtworks(backup, backup.data.artworks),
-        backup.data.exhibitions,
+      const { inventory, collections, documents } = this.options;
+      const isEmpty =
+        inventory.listAllArtworks().length === 0 &&
+        documents.listForExport().length === 0 &&
+        collections.list().length === 0;
+      const safety = isEmpty ? null : await this.createBackup("before-restore");
+      const restoredDocuments = await documents.copyFromPackage(
+        backup.data.documents,
+        backup.documentPath,
       );
+      try {
+        await inventory.replaceInventory(
+          restoredArtworks(backup, backup.data.artworks),
+          backup.data.exhibitions,
+          () => {
+            collections.replaceAll(backup.data.collections);
+            documents.replaceAll(restoredDocuments);
+          },
+        );
+      } finally {
+        // Files of the old inventory, or copies a failed restore left behind.
+        await documents.removeUnusedFiles();
+      }
       return { ok: true, safetyBackup: safety?.fileName ?? null };
     });
   }

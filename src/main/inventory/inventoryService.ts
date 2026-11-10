@@ -77,6 +77,8 @@ export class InventoryService {
   async replaceInventory(
     artworks: readonly RestoredArtwork[],
     exhibitions: readonly Exhibition[],
+    /** Further replacements that must succeed or fail together with these. */
+    alsoReplace: () => void = () => undefined,
   ): Promise<void> {
     await this.writeRestored(
       artworks,
@@ -85,6 +87,7 @@ export class InventoryService {
         this.artworks.inTransaction(() => {
           this.artworks.replaceAll(complete);
           this.exhibitions.replaceAll(exhibitions);
+          alsoReplace();
         }),
     );
   }
