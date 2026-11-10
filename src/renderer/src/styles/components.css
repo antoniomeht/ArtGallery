@@ -309,3 +309,51 @@ textarea.field__input {
   padding-top: 0;
   border-top: none;
 }
+
+/* Mutually exclusive choice drawn as joined buttons; still native radios. */
+.segmented {
+  display: flex;
+  width: fit-content;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius-control);
+  overflow: hidden;
+}
+
+.segmented__option {
+  display: flex;
+  align-items: center;
+  min-height: var(--control-md);
+  padding: 0 var(--space-4);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.segmented__option + .segmented__option {
+  border-left: 1px solid var(--border-control);
+}
+
+.segmented__option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.segmented__option:has(input:checked) {
+  color: var(--on-accent);
+  background: var(--accent);
+}
+
+.segmented__option:has(input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: -4px;
+}
+
+.segmented__option:has(input:checked:focus-visible) {
+  outline-color: var(--on-accent);
+}
+
+.segmented__option:not(:has(input:checked)):hover {
+  background: var(--surface-hover);
+}

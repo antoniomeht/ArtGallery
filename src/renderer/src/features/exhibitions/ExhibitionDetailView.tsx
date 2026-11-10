@@ -17,6 +17,7 @@ import { thumbnailUrl } from "../../../../shared/media";
 import { ActionNotice, type NoticeAction } from "../../components/ActionNotice";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { LabelsDialog } from "../labels/LabelsDialog";
+import { LinkedDocuments } from "../documents/LinkedDocuments";
 import { CatalogDialog } from "./CatalogDialog";
 import { ChooseArtworksDialog } from "./ChooseArtworksDialog";
 import { ExhibitionFormDialog } from "./ExhibitionFormDialog";
@@ -200,6 +201,13 @@ export function ExhibitionDetailView({
           ))}
         </ol>
       )}
+
+      <div className="exhibition__documents">
+        <LinkedDocuments
+          target={{ type: "exhibition", id: exhibition.id }}
+          targetLabel={exhibition.name}
+        />
+      </div>
 
       {dialog === "edit" && (
         <ExhibitionFormDialog

@@ -12,6 +12,7 @@ import type { CollectionSummary, DeletedCollection } from "./collection";
 import type {
   DocumentDetail,
   DocumentFieldsInput,
+  DocumentLinkRef,
   DocumentQuery,
   DocumentSummary,
   UploadResult,
@@ -107,6 +108,9 @@ export interface ArtGalleryApi {
   restoreDocument(id: string): Promise<void>;
   /** Opens a copy of the file with the system's application for it. */
   openDocumentExternally(id: string): Promise<void>;
+  linkDocuments(documentIds: string[], target: DocumentLinkRef): Promise<void>;
+  unlinkDocument(documentId: string, target: DocumentLinkRef): Promise<void>;
+  listLinkedDocuments(target: DocumentLinkRef): Promise<DocumentSummary[]>;
   /** Asks where to save a copy of the file. */
   saveDocumentAs(id: string): Promise<{ path: string } | null>;
   /** Asks where to save and writes the exhibition catalogue as PDF. */
@@ -188,6 +192,9 @@ export const IpcChannel = {
   restoreDocument: "documents:restore",
   openDocumentExternally: "documents:open-externally",
   saveDocumentAs: "documents:save-as",
+  linkDocuments: "documents:link",
+  unlinkDocument: "documents:unlink",
+  listLinkedDocuments: "documents:list-linked",
   exportCatalogPdf: "print:catalog",
   exportLabelsPdf: "print:labels",
   printReady: "print:ready",

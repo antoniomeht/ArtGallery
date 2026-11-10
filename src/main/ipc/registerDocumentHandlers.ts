@@ -4,7 +4,10 @@ import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
 import { z } from "zod";
 import { IpcChannel } from "../../shared/api";
-import { documentQuerySchema } from "../../shared/document";
+import {
+  documentLinkRefSchema,
+  documentQuerySchema,
+} from "../../shared/document";
 import { DOCUMENT_EXTENSIONS } from "../../shared/documentFormats";
 import type { DocumentService } from "../documents/documentService";
 import { showOpenDialog, showSaveDialog } from "./dialogs";
@@ -56,6 +59,25 @@ export function registerDocumentHandlers(documents: DocumentService): void {
   );
   ipcMain.handle(IpcChannel.restoreDocument, (_event, documentId: unknown) =>
     documents.restore(id.parse(documentId)),
+  );
+  ipcMain.handle(
+    IpcChannel.linkDocuments,
+    (_event, documentIds: unknown, target: unknown) =>
+      documents.link(
+        z.array(id).max(500).parse(documentIds),
+        documentLinkRefSchema.parse(target),
+      ),
+  );
+  ipcMain.handle(
+    IpcChannel.unlinkDocument,
+    (_event, documentId: unknown, target: unknown) =>
+      documents.unlink(
+        id.parse(documentId),
+        documentLinkRefSchema.parse(target),
+      ),
+  );
+  ipcMain.handle(IpcChannel.listLinkedDocuments, (_event, target: unknown) =>
+    documents.listLinked(documentLinkRefSchema.parse(target)),
   );
   ipcMain.handle(
     IpcChannel.openDocumentExternally,

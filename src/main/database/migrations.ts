@@ -136,6 +136,31 @@ const migrations: readonly string[] = [
     deleted_at TEXT
   );
   `,
+  `
+  -- What each document is linked to.
+  CREATE TABLE document_artworks (
+    document_id TEXT NOT NULL REFERENCES documents (id) ON DELETE CASCADE,
+    artwork_id TEXT NOT NULL REFERENCES artworks (id) ON DELETE CASCADE,
+    PRIMARY KEY (document_id, artwork_id)
+  );
+  CREATE INDEX document_artworks_artwork ON document_artworks (artwork_id);
+
+  CREATE TABLE document_exhibitions (
+    document_id TEXT NOT NULL REFERENCES documents (id) ON DELETE CASCADE,
+    exhibition_id TEXT NOT NULL REFERENCES exhibitions (id) ON DELETE CASCADE,
+    PRIMARY KEY (document_id, exhibition_id)
+  );
+  CREATE INDEX document_exhibitions_exhibition
+    ON document_exhibitions (exhibition_id);
+
+  CREATE TABLE document_collections (
+    document_id TEXT NOT NULL REFERENCES documents (id) ON DELETE CASCADE,
+    collection_id TEXT NOT NULL REFERENCES collections (id) ON DELETE CASCADE,
+    PRIMARY KEY (document_id, collection_id)
+  );
+  CREATE INDEX document_collections_collection
+    ON document_collections (collection_id);
+  `,
 ];
 
 export const LATEST_SCHEMA_VERSION = migrations.length;

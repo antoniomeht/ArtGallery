@@ -11,6 +11,8 @@ import type {
   DocumentSummary,
 } from "../../../../shared/document";
 import { ActionNotice } from "../../components/ActionNotice";
+import type { DocumentsRoute } from "../../components/Navigation";
+import { LinkedFilter, type LinkedChoice } from "./LinkedFilter";
 import { Button } from "../../components/Button";
 import { useActionNotice } from "../../hooks/useActionNotice";
 import { useDebouncedValue } from "../../hooks/useDebouncedValue";
@@ -25,13 +27,20 @@ type Sort = "recent" | "title";
 const countLabel = (count: number) =>
   count === 1 ? "1 documento" : `${count} documentos`;
 
-export function DocumentsPage() {
+interface DocumentsPageProps {
+  route: DocumentsRoute;
+}
+
+export function DocumentsPage({ route }: DocumentsPageProps) {
   const [text, setText] = useState("");
   const [kind, setKind] = useState<DocumentKind | "">("");
   const [sort, setSort] = useState<Sort>("recent");
   const [documents, setDocuments] = useState<DocumentSummary[] | null>(null);
   const [failed, setFailed] = useState(false);
-  const [openId, setOpenId] = useState<string | null>(null);
+  const [openId, setOpenId] = useState<string | null>(route.openId ?? null);
+  const [linkedTo, setLinkedTo] = useState<LinkedChoice | null>(
+    route.linkedTo ?? null,
+  );
   const [version, setVersion] = useState(0);
   const appliedText = useDebouncedValue(text, 250);
   const reload = useCallback(() => setVersion((current) => current + 1), []);
@@ -40,7 +49,14 @@ export function DocumentsPage() {
   useEffect(() => {
     let isCurrent = true;
     window.artGallery
-      .listDocuments({ text: appliedText, kind: kind || undefined, sort })
+      .listDocuments({
+        text: appliedText,
+        kind: kind || undefined,
+        sort,
+        linkedTo: linkedTo
+          ? { type: linkedTo.type, id: linkedTo.id }
+          : undefined,
+      })
       .then(
         (list) => isCurrent && setDocuments(list),
         () => isCurrent && setFailed(true),
@@ -48,7 +64,7 @@ export function DocumentsPage() {
     return () => {
       isCurrent = false;
     };
-  }, [appliedText, kind, sort, version]);
+  }, [appliedText, kind, sort, linkedTo, version]);
 
   async function upload() {
     const paths = await window.artGallery.pickDocumentFiles();
@@ -87,7 +103,7 @@ export function DocumentsPage() {
     );
   }
 
-  const isFiltering = Boolean(appliedText.trim() || kind);
+  const isFiltering = Boolean(appliedText.trim() || kind || linkedTo);
 
   return (
     <section className="documents" aria-labelledby="documents-title">
@@ -136,6 +152,7 @@ export function DocumentsPage() {
             <option value="text">Documentos de texto</option>
           </select>
         </label>
+        <LinkedFilter value={linkedTo} onChange={setLinkedTo} />
         <label className="documents__sort">
           Ordenar
           <select

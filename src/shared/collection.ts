@@ -14,5 +14,7 @@ export interface DeletedCollection {
   id: string;
   name: string;
   artworkIds: string[];
+  /** Documents that were linked to the collection. */
+  documentIds: string[];
   createdAt: string;
 }

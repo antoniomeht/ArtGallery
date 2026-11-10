@@ -69,15 +69,21 @@ export class CollectionRepository {
         .prepare(
           "SELECT id, name, created_at AS createdAt FROM collections WHERE id = ?",
         )
-        .get(id) as Omit<DeletedCollection, "artworkIds"> | undefined;
+        .get(id) as
+        Omit<DeletedCollection, "artworkIds" | "documentIds"> | undefined;
       if (!row) return null;
-      const members = this.db
-        .prepare(
-          "SELECT artwork_id AS id FROM collection_artworks WHERE collection_id = ?",
-        )
-        .all(id) as { id: string }[];
+      const ids = (sql: string) =>
+        (this.db.prepare(sql).all(id) as { id: string }[]).map(
+          (member) => member.id,
+        );
+      const artworkIds = ids(
+        "SELECT artwork_id AS id FROM collection_artworks WHERE collection_id = ?",
+      );
+      const documentIds = ids(
+        "SELECT document_id AS id FROM document_collections WHERE collection_id = ?",
+      );
       this.db.prepare("DELETE FROM collections WHERE id = ?").run(id);
-      return { ...row, artworkIds: members.map((member) => member.id) };
+      return { ...row, artworkIds, documentIds };
     });
   }
 
@@ -90,6 +96,13 @@ export class CollectionRepository {
         )
         .run(deleted.id, deleted.name, deleted.createdAt, timestamp);
       this.addArtworks(deleted.id, deleted.artworkIds, timestamp);
+      const link = this.db.prepare(
+        `INSERT OR IGNORE INTO document_collections (document_id, collection_id)
+         SELECT id, ? FROM documents WHERE id = ?`,
+      );
+      for (const documentId of deleted.documentIds) {
+        link.run(deleted.id, documentId);
+      }
     });
   }
 
