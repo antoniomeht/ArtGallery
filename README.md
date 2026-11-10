@@ -67,7 +67,7 @@ Las capturas son de la aplicación real con los [datos de demostración](#datos-
 
 **Documentación**
 
-- PDF, imágenes, Word, Excel, PowerPoint, OpenDocument, TXT, CSV y RTF, hasta 100 MB por archivo. Los PDF y las imágenes se ven dentro de la app; el resto se abre con la aplicación del sistema sobre una copia, y «Reemplazar archivo» guarda una versión nueva.
+- PDF, imágenes, Word, Excel, PowerPoint, OpenDocument, TXT, CSV y RTF, hasta 500 MB por archivo. Los PDF y las imágenes se ven dentro de la app; el resto se abre con la aplicación del sistema sobre una copia, y «Reemplazar archivo» guarda una versión nueva.
 - Documentos de texto escritos en la app, con un editor que cubre lo básico de Word:
   - estilos, fuentes, tamaños, negrita, cursiva, subrayado, tachado, superíndice, subíndice, color y resaltado;
   - alineación, listas con niveles, sangría e interlineado;

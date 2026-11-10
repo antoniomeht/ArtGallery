@@ -24,7 +24,9 @@ export const DOCUMENT_EXTENSIONS = [
 
 export type DocumentExtension = (typeof DOCUMENT_EXTENSIONS)[number];
 
-export const MAX_DOCUMENT_BYTES = 100 * 1024 * 1024;
+/** Large enough for print-ready posters and books. */
+export const MAX_DOCUMENT_BYTES = 500 * 1024 * 1024;
+export const MAX_DOCUMENT_MB = MAX_DOCUMENT_BYTES / (1024 * 1024);
 
 /** Images the app can show itself; TIFF opens with the system viewer. */
 const VIEWABLE_IMAGES: readonly string[] = [

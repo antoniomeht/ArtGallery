@@ -52,7 +52,7 @@ describe("document texts", () => {
         ),
       ).message,
     ).toBe(
-      "2 documentos añadidos. No se pudo añadir planos.dwg (formato no admitido) ni video.mov (supera 100 MB)",
+      "2 documentos añadidos. No se pudo añadir planos.dwg (formato no admitido) ni video.mov (supera 500 MB)",
     );
     expect(
       uploadSummary(
