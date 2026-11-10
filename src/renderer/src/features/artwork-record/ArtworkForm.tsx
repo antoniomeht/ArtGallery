@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
   ARTWORK_STATUSES,
   type Artwork,
@@ -40,6 +40,8 @@ interface ArtworkFormProps {
   unit: DimensionUnit;
   /** A new artwork: its title is ready to be typed over, and it can be discarded. */
   isUnsaved: boolean;
+  /** Label of the field to start on, e.g. "Técnica"; the title otherwise. */
+  focusField?: string;
   onCancel: () => void;
   onSaved: (artwork: Artwork) => void;
 }
@@ -48,9 +50,29 @@ export function ArtworkForm({
   artwork,
   unit,
   isUnsaved,
+  focusField,
   onCancel,
   onSaved,
 }: ArtworkFormProps) {
+  const formRef = useRef<HTMLFormElement>(null);
+
+  // Opened by clicking a value: the cursor goes to the end of that field.
+  useEffect(() => {
+    if (!focusField) return;
+    const label = [...(formRef.current?.querySelectorAll("label") ?? [])].find(
+      (candidate) => candidate.textContent?.trim().startsWith(focusField),
+    );
+    const control = label?.control;
+    if (!control) return;
+    control.focus();
+    if (
+      control instanceof HTMLInputElement ||
+      control instanceof HTMLTextAreaElement
+    ) {
+      const end = control.value.length;
+      control.setSelectionRange(end, end);
+    }
+  }, [focusField]);
   const [values, setValues] = useState(() => toFormValues(artwork, unit));
   const [errors, setErrors] = useState<ArtworkFormErrors>({});
   const [saveError, setSaveError] = useState(false);
@@ -102,7 +124,12 @@ export function ArtworkForm({
   }
 
   return (
-    <form className="artwork-form" onSubmit={handleSubmit} noValidate>
+    <form
+      ref={formRef}
+      className="artwork-form"
+      onSubmit={handleSubmit}
+      noValidate
+    >
       <h2 className="artwork-form__title">Editar ficha</h2>
 
       <Field

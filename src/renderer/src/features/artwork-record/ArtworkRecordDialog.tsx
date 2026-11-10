@@ -37,6 +37,8 @@ export function ArtworkRecordDialog({
   const [state, setState] = useState<RecordState>({ status: "loading" });
   const [isEditing, setIsEditing] = useState(isNew);
   const [isUnsaved, setIsUnsaved] = useState(isNew);
+  /** The field clicked in the label, focused when the form opens. */
+  const [focusField, setFocusField] = useState<string | undefined>();
   const unit = useDimensionUnit();
 
   useEffect(() => {
@@ -81,7 +83,12 @@ export function ArtworkRecordDialog({
               <Trash2 aria-hidden size={16} />
               Mover a la papelera
             </Button>
-            <Button onClick={() => setIsEditing(true)}>
+            <Button
+              onClick={() => {
+                setFocusField(undefined);
+                setIsEditing(true);
+              }}
+            >
               <Pencil aria-hidden size={16} />
               Editar
             </Button>
@@ -116,6 +123,7 @@ export function ArtworkRecordDialog({
                 artwork={state.artwork}
                 unit={unit}
                 isUnsaved={isUnsaved}
+                focusField={focusField}
                 onCancel={() =>
                   isUnsaved ? onMoveToTrash(state.artwork) : setIsEditing(false)
                 }
@@ -127,7 +135,14 @@ export function ArtworkRecordDialog({
                 }}
               />
             ) : (
-              <ArtworkLabel artwork={state.artwork} unit={unit} />
+              <ArtworkLabel
+                artwork={state.artwork}
+                unit={unit}
+                onEditField={(fieldLabel) => {
+                  setFocusField(fieldLabel);
+                  setIsEditing(true);
+                }}
+              />
             )}
             <ArtworkCollectionsField
               artworkId={state.artwork.id}

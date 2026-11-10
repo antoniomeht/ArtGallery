@@ -294,3 +294,15 @@
   line-height: var(--line-height-caption);
   color: var(--text-secondary);
 }
+
+/* Values in the label open the form on that field. */
+.label__editable {
+  border-radius: var(--radius-control);
+  cursor: pointer;
+  transition: background var(--motion-fast) ease-out;
+}
+
+.label__editable:hover {
+  background: var(--surface-sunken);
+  box-shadow: 0 0 0 4px var(--surface-sunken);
+}
