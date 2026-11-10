@@ -35,6 +35,12 @@ import type {
   ImportResult,
 } from "./transfer";
 
+/** A text document made from a Word file, and the HTML the editor loads. */
+export interface ImportedText {
+  documentId: string;
+  html: string;
+}
+
 export interface BackupOverview {
   /** Where backups are written and looked for. */
   folder: string;
@@ -128,6 +134,12 @@ export interface ArtGalleryApi {
   /** Asks where to save a copy of the file. */
   saveDocumentAs(id: string): Promise<{ path: string } | null>;
   savePageSetup(id: string, setup: PageSetupInput): Promise<DocumentDetail>;
+  /** Asks for a Word file and makes a new text document from it. */
+  importDocxAsText(): Promise<ImportedText | null>;
+  /** Makes a new text document from an uploaded Word file. */
+  convertDocumentToText(id: string): Promise<ImportedText>;
+  /** Asks where to save and writes a text document as a Word file. */
+  exportDocumentDocx(id: string): Promise<{ path: string } | null>;
   /** Asks where to save and writes a text document as PDF. */
   exportDocumentPdf(id: string): Promise<{ path: string } | null>;
   /** Opens the system print dialog; false if nothing was printed. */
@@ -221,6 +233,9 @@ export const IpcChannel = {
   unlinkDocument: "documents:unlink",
   listLinkedDocuments: "documents:list-linked",
   savePageSetup: "documents:save-page-setup",
+  importDocxAsText: "documents:import-docx",
+  convertDocumentToText: "documents:convert-to-text",
+  exportDocumentDocx: "documents:export-docx",
   exportDocumentPdf: "print:document-pdf",
   printTextDocument: "print:document",
   exportCatalogPdf: "print:catalog",

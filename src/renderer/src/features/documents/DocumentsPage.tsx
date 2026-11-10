@@ -1,4 +1,4 @@
-import { MoreHorizontal, Plus, Search, Upload } from "lucide-react";
+import { FileText, MoreHorizontal, Plus, Search, Upload } from "lucide-react";
 import {
   useCallback,
   useEffect,
@@ -21,6 +21,7 @@ import { useActionNotice } from "../../hooks/useActionNotice";
 import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 import { DocumentBadge } from "./DocumentBadge";
 import { formatBytes, formatDate, uploadSummary } from "./documentText";
+import { setPendingImport } from "../editor/pendingImports";
 import { DocumentView } from "./DocumentView";
 import { formatName } from "../../../../shared/documentFormats";
 import "./DocumentsPage.css";
@@ -78,6 +79,13 @@ export function DocumentsPage({ route }: DocumentsPageProps) {
     reload();
   }
 
+  async function importWord() {
+    const imported = await window.artGallery.importDocxAsText();
+    if (!imported) return;
+    setPendingImport(imported.documentId, imported.html);
+    setOpenId(imported.documentId);
+  }
+
   async function createText() {
     const created = await window.artGallery.createTextDocument(
       "Documento sin título",
@@ -131,6 +139,10 @@ export function DocumentsPage({ route }: DocumentsPageProps) {
           <Button onClick={() => void upload()}>
             <Upload aria-hidden size={16} />
             Subir archivo
+          </Button>
+          <Button onClick={() => void importWord()}>
+            <FileText aria-hidden size={16} />
+            Desde un Word…
           </Button>
           <Button variant="primary" onClick={() => void createText()}>
             <Plus aria-hidden size={16} />

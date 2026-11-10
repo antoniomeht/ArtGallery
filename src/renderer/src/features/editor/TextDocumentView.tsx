@@ -8,6 +8,7 @@ import {
   ArrowLeft,
   Check,
   FileDown,
+  FileText,
   LoaderCircle,
   Printer,
   Trash2,
@@ -19,6 +20,7 @@ import type {
 } from "../../../../shared/document";
 import { Button } from "../../components/Button";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
+import { MoreMenu } from "../../components/MoreMenu";
 import {
   DocumentLinksPanel,
   DocumentNotesField,
@@ -32,6 +34,7 @@ import {
   type PageSetup,
 } from "../../../../shared/pageSetup";
 import { FindBar } from "./FindBar";
+import { takePendingImport } from "./pendingImports";
 import { PageSetupDialog, pageSetupSummary } from "./PageSetupDialog";
 import { TextPromptDialog } from "./TextPromptDialog";
 import { createEditorExtensions } from "./extensions";
@@ -113,10 +116,24 @@ export function TextDocumentView({
           )}
           {STATUS_TEXT[autosave.status]}
         </p>
-        <Button onClick={() => setIsConfirmingDelete(true)}>
-          <Trash2 aria-hidden size={16} />
-          Eliminar
-        </Button>
+        <MoreMenu
+          label="Más acciones del documento"
+          items={[
+            {
+              label: "Exportar a Word…",
+              icon: FileText,
+              onSelect: async () => {
+                await autosave.flush();
+                await window.artGallery.exportDocumentDocx(document.id);
+              },
+            },
+            {
+              label: "Eliminar",
+              icon: Trash2,
+              onSelect: () => setIsConfirmingDelete(true),
+            },
+          ]}
+        />
         <Button
           onClick={async () => {
             await autosave.flush();
@@ -260,6 +277,12 @@ function TextEditor({
     onEditor(editor);
     return () => onEditor(null);
   }, [editor, onEditor]);
+
+  // A document just made from a Word file loads its text once, then saves.
+  useEffect(() => {
+    const html = editor ? takePendingImport(documentId) : null;
+    if (editor && html) editor.commands.setContent(html, { emitUpdate: true });
+  }, [editor, documentId]);
 
   if (!editor) return null;
 

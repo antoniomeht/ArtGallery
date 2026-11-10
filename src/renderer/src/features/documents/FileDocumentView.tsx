@@ -2,6 +2,7 @@ import {
   ArrowLeft,
   Download,
   ExternalLink,
+  FilePen,
   RefreshCw,
   Trash2,
 } from "lucide-react";
@@ -17,6 +18,8 @@ import {
 import { documentFileUrl } from "../../../../shared/media";
 import { Button } from "../../components/Button";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
+import { useNavigation } from "../../components/Navigation";
+import { setPendingImport } from "../editor/pendingImports";
 import { DocumentLinksPanel, DocumentNotesField } from "./DocumentSidePanel";
 import { DocumentBadge } from "./DocumentBadge";
 import { formatBytes, formatDate } from "./documentText";
@@ -37,6 +40,7 @@ export function FileDocumentView({
   const [failed, setFailed] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [openError, setOpenError] = useState<string | null>(null);
+  const { showDocuments } = useNavigation();
 
   const load = useCallback(() => {
     window.artGallery
@@ -63,6 +67,13 @@ export function FileDocumentView({
         "No hay ninguna aplicación en este equipo para abrir este archivo.",
       );
     }
+  }
+
+  /** A new text document from this Word file; the file stays as it is. */
+  async function convertToText() {
+    const imported = await window.artGallery.convertDocumentToText(documentId);
+    setPendingImport(imported.documentId, imported.html);
+    showDocuments({ openId: imported.documentId });
   }
 
   async function replace() {
@@ -150,6 +161,12 @@ export function FileDocumentView({
                 <ExternalLink aria-hidden size={16} />
                 Abrir con la aplicación del sistema
               </Button>
+              {extension === "docx" && (
+                <Button onClick={() => void convertToText()}>
+                  <FilePen aria-hidden size={16} />
+                  Convertir en documento editable
+                </Button>
+              )}
               <p className="document-view__hint">
                 Se abre una copia. Si la cambias, usa «Reemplazar archivo» para
                 guardar aquí la nueva versión.
