@@ -1,14 +1,17 @@
 import { ipcMain, shell } from "electron";
 import { copyFile, mkdir, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { basename, join } from "node:path";
+import { join } from "node:path";
 import { z } from "zod";
 import { IpcChannel } from "../../shared/api";
 import {
   documentLinkRefSchema,
   documentQuerySchema,
 } from "../../shared/document";
-import { DOCUMENT_EXTENSIONS } from "../../shared/documentFormats";
+import {
+  DOCUMENT_EXTENSIONS,
+  externalFileName,
+} from "../../shared/documentFormats";
 import { ARTWORK_IMAGE_SRC } from "../../shared/editorSchema";
 import type { ImageStore } from "../images/imageStore";
 import type { DocumentService } from "../documents/documentService";
@@ -182,7 +185,13 @@ export function registerDocumentHandlers(
       const document = documents.get(id.parse(documentId));
       // A copy with its real name: the stored file is never edited by mistake.
       const folder = join(tmpdir(), "ArtGallery", document.id);
-      const copy = join(folder, basename(document.originalName ?? "documento"));
+      const copy = join(
+        folder,
+        externalFileName(
+          document.originalName ?? document.title,
+          document.extension ?? "",
+        ),
+      );
       await mkdir(folder, { recursive: true });
       await copyFile(documents.filePath(document.id), copy);
       const error = await shell.openPath(copy);
@@ -195,7 +204,10 @@ export function registerDocumentHandlers(
       const document = documents.get(id.parse(documentId));
       const path = await showSaveDialog(event.sender, {
         title: "Descargar documento",
-        defaultPath: document.originalName ?? document.title,
+        defaultPath: externalFileName(
+          document.originalName ?? document.title,
+          document.extension ?? "",
+        ),
       });
       if (!path) return null;
       await copyFile(documents.filePath(document.id), path);
