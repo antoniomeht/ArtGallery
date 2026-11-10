@@ -3,9 +3,11 @@ import type {
   UploadResult,
 } from "../../../../shared/document";
 
+import { MAX_DOCUMENT_MB } from "../../../../shared/documentFormats";
+
 const REASONS: Record<UploadFailureReason, string> = {
   unsupported: "formato no admitido",
-  "too-large": "supera 100 MB",
+  "too-large": `supera ${MAX_DOCUMENT_MB} MB`,
   unreadable: "no se puede leer",
 };
 
