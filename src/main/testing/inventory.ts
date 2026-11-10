@@ -2,6 +2,9 @@ import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { CollectionRepository } from "../collections/collectionRepository";
 import { CollectionService } from "../collections/collectionService";
+import { DocumentRepository } from "../documents/documentRepository";
+import { DocumentService } from "../documents/documentService";
+import { DocumentStore } from "../documents/documentStore";
 import { openDatabase } from "../database/openDatabase";
 import { ExhibitionRepository } from "../exhibitions/exhibitionRepository";
 import { ExhibitionService } from "../exhibitions/exhibitionService";
@@ -23,5 +26,10 @@ export function openInventory(dataDir: string, now?: () => Date) {
   });
   const exhibitions = new ExhibitionService(exhibitionRepository, now);
   const collections = new CollectionService(new CollectionRepository(db), now);
-  return { db, images, service, exhibitions, collections };
+  const documents = new DocumentService(
+    new DocumentRepository(db),
+    new DocumentStore(join(dataDir, "documents")),
+    now,
+  );
+  return { db, images, service, exhibitions, collections, documents };
 }

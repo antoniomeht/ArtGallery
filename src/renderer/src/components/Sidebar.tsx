@@ -1,5 +1,6 @@
 import {
   ArrowLeftRight,
+  FileText,
   HardDriveDownload,
   Images,
   Landmark,
@@ -9,11 +10,12 @@ import {
 import "./Sidebar.css";
 
 export type Section =
-  "gallery" | "exhibitions" | "transfer" | "backups" | "trash";
+  "gallery" | "exhibitions" | "documents" | "transfer" | "backups" | "trash";
 
 const SECTIONS: { id: Section; label: string; icon: LucideIcon }[] = [
   { id: "gallery", label: "Galería", icon: Images },
   { id: "exhibitions", label: "Exposiciones", icon: Landmark },
+  { id: "documents", label: "Documentación", icon: FileText },
   { id: "transfer", label: "Exportación e importación", icon: ArrowLeftRight },
   { id: "backups", label: "Copias y ajustes", icon: HardDriveDownload },
 ];

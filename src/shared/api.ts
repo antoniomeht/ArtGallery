@@ -10,6 +10,13 @@ import type {
 import type { BackupInfo, RestoreResult } from "./backup";
 import type { CollectionSummary, DeletedCollection } from "./collection";
 import type {
+  DocumentDetail,
+  DocumentFieldsInput,
+  DocumentQuery,
+  DocumentSummary,
+  UploadResult,
+} from "./document";
+import type {
   Exhibition,
   ExhibitionDetail,
   ExhibitionFieldsInput,
@@ -83,6 +90,25 @@ export interface ArtGalleryApi {
     member: boolean,
   ): Promise<void>;
   listArtworkCollections(artworkId: string): Promise<CollectionSummary[]>;
+  listDocuments(query?: DocumentQuery): Promise<DocumentSummary[]>;
+  getDocument(id: string): Promise<DocumentDetail>;
+  /** Adds each file on its own and reports the ones refused. */
+  uploadDocuments(paths: string[]): Promise<UploadResult>;
+  /** Opens the system file picker and returns the chosen paths. */
+  pickDocumentFiles(): Promise<string[]>;
+  /** Asks for a file and puts it in place of the current one; null if cancelled. */
+  replaceDocumentFile(id: string): Promise<DocumentDetail | null>;
+  updateDocument(
+    id: string,
+    fields: DocumentFieldsInput,
+  ): Promise<DocumentDetail>;
+  /** Hides the document; `restoreDocument` undoes it until the app restarts. */
+  deleteDocument(id: string): Promise<void>;
+  restoreDocument(id: string): Promise<void>;
+  /** Opens a copy of the file with the system's application for it. */
+  openDocumentExternally(id: string): Promise<void>;
+  /** Asks where to save a copy of the file. */
+  saveDocumentAs(id: string): Promise<{ path: string } | null>;
   /** Asks where to save and writes the exhibition catalogue as PDF. */
   exportCatalogPdf(
     exhibitionId: string,
@@ -152,6 +178,16 @@ export const IpcChannel = {
   restoreCollection: "collections:restore",
   setCollectionMembership: "collections:set-membership",
   listArtworkCollections: "collections:for-artwork",
+  listDocuments: "documents:list",
+  getDocument: "documents:get",
+  uploadDocuments: "documents:upload",
+  pickDocumentFiles: "dialog:pick-documents",
+  replaceDocumentFile: "documents:replace-file",
+  updateDocument: "documents:update",
+  deleteDocument: "documents:delete",
+  restoreDocument: "documents:restore",
+  openDocumentExternally: "documents:open-externally",
+  saveDocumentAs: "documents:save-as",
   exportCatalogPdf: "print:catalog",
   exportLabelsPdf: "print:labels",
   printReady: "print:ready",

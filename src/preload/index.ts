@@ -65,6 +65,20 @@ const api: ArtGalleryApi = {
     ),
   listArtworkCollections: (artworkId) =>
     ipcRenderer.invoke(IpcChannel.listArtworkCollections, artworkId),
+  listDocuments: (query) => ipcRenderer.invoke(IpcChannel.listDocuments, query),
+  getDocument: (id) => ipcRenderer.invoke(IpcChannel.getDocument, id),
+  uploadDocuments: (paths) =>
+    ipcRenderer.invoke(IpcChannel.uploadDocuments, paths),
+  pickDocumentFiles: () => ipcRenderer.invoke(IpcChannel.pickDocumentFiles),
+  replaceDocumentFile: (id) =>
+    ipcRenderer.invoke(IpcChannel.replaceDocumentFile, id),
+  updateDocument: (id, fields) =>
+    ipcRenderer.invoke(IpcChannel.updateDocument, id, fields),
+  deleteDocument: (id) => ipcRenderer.invoke(IpcChannel.deleteDocument, id),
+  restoreDocument: (id) => ipcRenderer.invoke(IpcChannel.restoreDocument, id),
+  openDocumentExternally: (id) =>
+    ipcRenderer.invoke(IpcChannel.openDocumentExternally, id),
+  saveDocumentAs: (id) => ipcRenderer.invoke(IpcChannel.saveDocumentAs, id),
   exportCatalogPdf: (exhibitionId, options) =>
     ipcRenderer.invoke(IpcChannel.exportCatalogPdf, exhibitionId, options),
   exportLabelsPdf: (source, options) =>
