@@ -12,6 +12,7 @@ import { createEditorExtensions } from "../editor/extensions";
 import "../editor/editor.css";
 import { DocumentBadge } from "./DocumentBadge";
 import { formatBytes, formatDate } from "./documentText";
+import { SlowPdfNotice } from "./SlowPdfNotice";
 
 interface DocumentPreviewProps {
   documentId: string;
@@ -68,6 +69,7 @@ export function DocumentPreview({ documentId, onOpen }: DocumentPreviewProps) {
           Abrir
         </Button>
       </header>
+      <SlowPdfNotice document={document} />
       <div className="document-preview__body">
         <PreviewBody key={document.id} document={document} />
       </div>
