@@ -9,7 +9,9 @@ import { STATUS_LABELS } from "../../../../shared/artworkFormat";
 import { ActionNotice } from "../../components/ActionNotice";
 import { useActionNotice } from "../../hooks/useActionNotice";
 import { useArtworkList } from "../../hooks/useArtworkList";
+import { useCollections } from "../../hooks/useCollections";
 import { useDebouncedValue } from "../../hooks/useDebouncedValue";
+import { ManageCollectionsDialog } from "../collections/ManageCollectionsDialog";
 import { ArtworkRecordDialog } from "../artwork-record/ArtworkRecordDialog";
 import { LabelsDialog } from "../labels/LabelsDialog";
 import { AddToExhibitionDialog } from "./AddToExhibitionDialog";
@@ -32,7 +34,19 @@ interface GalleryPageProps {
 
 export function GalleryPage({ inventoryVersion, onAdd }: GalleryPageProps) {
   const [sort, setSort] = useState<ArtworkSort>("recent");
-  const [filters, setFilters] = useState(EMPTY_FILTERS);
+  const [chosenFilters, setFilters] = useState(EMPTY_FILTERS);
+  const { collections, reload: reloadCollections } =
+    useCollections(inventoryVersion);
+  // A deleted collection stops filtering, and filters again if restored.
+  const filters = useMemo(
+    () => ({
+      ...chosenFilters,
+      collections: chosenFilters.collections.filter((id) =>
+        collections.some((collection) => collection.id === id),
+      ),
+    }),
+    [chosenFilters, collections],
+  );
   const [options, setOptions] = useState<FilterOptions | null>(null);
   // Typing should not query the database on every keystroke.
   const appliedFilters = useDebouncedValue(filters, 250);
@@ -60,13 +74,15 @@ export function GalleryPage({ inventoryVersion, onAdd }: GalleryPageProps) {
     reloadResults();
     reloadInventory();
     loadOptions();
-  }, [reloadResults, reloadInventory, loadOptions]);
+    reloadCollections();
+  }, [reloadResults, reloadInventory, loadOptions, reloadCollections]);
   const { notice, setNotice, moveToTrash } = useActionNotice(reload);
   const [openArtworkId, setOpenArtworkId] = useState<string | null>(null);
   /** Null outside selection mode. */
   const [selectedIds, setSelectedIds] = useState<Set<string> | null>(null);
   const [isChoosingExhibition, setIsChoosingExhibition] = useState(false);
   const [isPrintingLabels, setIsPrintingLabels] = useState(false);
+  const [isManagingCollections, setIsManagingCollections] = useState(false);
 
   const artworks = useMemo(
     () => (state.status === "ready" ? state.artworks : []),
@@ -126,7 +142,9 @@ export function GalleryPage({ inventoryVersion, onAdd }: GalleryPageProps) {
             <div className="page-header__action">
               {visibleSelection ? (
                 <SelectionToolbar
-                  selectedCount={visibleSelection.size}
+                  selectedIds={[...visibleSelection]}
+                  collections={collections}
+                  onCollectionsChanged={reload}
                   totalCount={artworks.length}
                   onSelectAll={() =>
                     setSelectedIds(new Set(artworks.map(({ id }) => id)))
@@ -172,7 +190,9 @@ export function GalleryPage({ inventoryVersion, onAdd }: GalleryPageProps) {
         <GalleryFilters
           filters={filters}
           options={options}
+          collections={collections}
           onChange={setFilters}
+          onManageCollections={() => setIsManagingCollections(true)}
         />
       )}
 
@@ -263,6 +283,24 @@ export function GalleryPage({ inventoryVersion, onAdd }: GalleryPageProps) {
             });
             setSelectedIds(null);
           }}
+        />
+      )}
+
+      {isManagingCollections && (
+        <ManageCollectionsDialog
+          collections={collections}
+          onChanged={reload}
+          onDeleted={(deleted) => {
+            reload();
+            setNotice({
+              message: `Colección «${deleted.name}» eliminada. Sus obras siguen en la Galería.`,
+              undo: async () => {
+                await window.artGallery.restoreCollection(deleted);
+                reload();
+              },
+            });
+          }}
+          onClose={() => setIsManagingCollections(false)}
         />
       )}
 

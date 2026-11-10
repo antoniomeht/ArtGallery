@@ -16,6 +16,7 @@ describe("gallery filters", () => {
       techniques: undefined,
       tags: undefined,
       locations: undefined,
+      collections: undefined,
       yearFrom: undefined,
       yearTo: undefined,
     });
@@ -65,5 +66,17 @@ describe("gallery filters", () => {
     expect(bubble?.label).toBe("2015–…");
     expect(bubble?.without).toEqual(EMPTY_FILTERS);
     expect(filterBubbles({ ...EMPTY_FILTERS, yearTo: "abc" })).toEqual([]);
+  });
+
+  it("filters by collection ids and names their bubbles", () => {
+    const filters = { ...EMPTY_FILTERS, collections: ["c1", "c2"] };
+    const names = new Map([["c1", "Serie del puerto"]]);
+
+    expect(toArtworkQuery(filters).collections).toEqual(["c1", "c2"]);
+    const bubbles = filterBubbles(filters, names);
+    expect(
+      bubbles.map(({ filterLabel, label }) => [filterLabel, label]),
+    ).toEqual([["Colección", "Serie del puerto"]]);
+    expect(bubbles[0]?.without.collections).toEqual(["c2"]);
   });
 });

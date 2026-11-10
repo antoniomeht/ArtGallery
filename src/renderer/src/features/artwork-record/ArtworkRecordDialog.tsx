@@ -2,6 +2,7 @@ import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { Artwork } from "../../../../shared/artwork";
 import { useDimensionUnit } from "../../hooks/useDimensionUnit";
+import { ArtworkCollectionsField } from "../collections/ArtworkCollectionsField";
 import { ArtworkForm } from "./ArtworkForm";
 import { ArtworkLabel } from "./ArtworkLabel";
 import { ImageViewer } from "./ImageViewer";
@@ -124,6 +125,10 @@ export function ArtworkRecordDialog({
             ) : (
               <ArtworkLabel artwork={state.artwork} unit={unit} />
             )}
+            <ArtworkCollectionsField
+              artworkId={state.artwork.id}
+              onChanged={onChanged}
+            />
           </div>
         </div>
       )}

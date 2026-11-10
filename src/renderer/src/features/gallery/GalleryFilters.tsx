@@ -5,8 +5,10 @@ import {
   type FilterOptions,
 } from "../../../../shared/artwork";
 import { STATUS_LABELS } from "../../../../shared/artworkFormat";
+import type { CollectionSummary } from "../../../../shared/collection";
 import { Button } from "../../components/Button";
 import { Field } from "../../components/Field";
+import { CollectionChips } from "../collections/CollectionChips";
 import { FilterDropdown } from "./FilterDropdown";
 import {
   EMPTY_FILTERS,
@@ -19,7 +21,9 @@ import "./GalleryFilters.css";
 interface GalleryFiltersProps {
   filters: Filters;
   options: FilterOptions | null;
+  collections: CollectionSummary[];
   onChange: (filters: Filters) => void;
+  onManageCollections: () => void;
 }
 
 /** With a single value in the inventory there is nothing to choose between. */
@@ -59,10 +63,15 @@ function CheckboxList<T extends string>({
 export function GalleryFilters({
   filters,
   options,
+  collections,
   onChange,
+  onManageCollections,
 }: GalleryFiltersProps) {
   const searchRef = useRef<HTMLInputElement>(null);
-  const bubbles = filterBubbles(filters);
+  const collectionNames = new Map(
+    collections.map(({ id, name }) => [id, name]),
+  );
+  const bubbles = filterBubbles(filters, collectionNames);
   const update = (changes: Partial<Filters>) =>
     onChange({ ...filters, ...changes });
 
@@ -91,7 +100,7 @@ export function GalleryFilters({
             className="field__input gallery-search__input"
             value={filters.text}
             onChange={(event) => update({ text: event.target.value })}
-            placeholder="Buscar por título, técnica, etiqueta…"
+            placeholder="Buscar por título, técnica, colección…"
           />
         </label>
 
@@ -103,6 +112,17 @@ export function GalleryFilters({
             onChange={(statuses) => update({ statuses })}
           />
         </FilterDropdown>
+
+        {collections.length > 0 && (
+          <FilterDropdown label="Colección" count={filters.collections.length}>
+            <CheckboxList
+              values={collections.map(({ id }) => id)}
+              chosen={filters.collections}
+              labelOf={(id) => collectionNames.get(id) ?? id}
+              onChange={(chosen) => update({ collections: chosen })}
+            />
+          </FilterDropdown>
+        )}
 
         {VALUE_FILTERS.map(({ key, label }) => {
           const values = options?.[key] ?? [];
@@ -145,6 +165,21 @@ export function GalleryFilters({
           </div>
         </FilterDropdown>
       </div>
+
+      <CollectionChips
+        collections={collections}
+        activeIds={filters.collections}
+        onToggle={(id) =>
+          update({
+            collections: toggled(
+              filters.collections,
+              id,
+              !filters.collections.includes(id),
+            ),
+          })
+        }
+        onManage={onManageCollections}
+      />
 
       {bubbles.length > 0 && (
         <ul className="filter-bubbles" aria-label="Filtros aplicados">
