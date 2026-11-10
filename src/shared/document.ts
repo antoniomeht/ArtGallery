@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { TextContent } from "./editorSchema";
 import { optionalText } from "./fields";
 
 /** An uploaded file, or a text document written in the app. */
@@ -44,6 +45,8 @@ export interface DocumentDetail extends DocumentSummary {
   originalName: string | null;
   /** Name inside the document store, e.g. `<id>.pdf`. */
   fileName: string | null;
+  /** What a text document says; null for uploaded files. */
+  content: TextContent | null;
   createdAt: string;
 }
 

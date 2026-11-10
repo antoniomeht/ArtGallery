@@ -60,6 +60,14 @@ export function registerDocumentHandlers(documents: DocumentService): void {
   ipcMain.handle(IpcChannel.restoreDocument, (_event, documentId: unknown) =>
     documents.restore(id.parse(documentId)),
   );
+  ipcMain.handle(IpcChannel.createTextDocument, (_event, title: unknown) =>
+    documents.createText(z.string().parse(title)),
+  );
+  ipcMain.handle(
+    IpcChannel.saveDocumentContent,
+    (_event, documentId: unknown, content: unknown) =>
+      documents.saveContent(id.parse(documentId), content),
+  );
   ipcMain.handle(
     IpcChannel.linkDocuments,
     (_event, documentIds: unknown, target: unknown) =>

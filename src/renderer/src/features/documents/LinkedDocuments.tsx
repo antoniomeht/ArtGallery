@@ -1,4 +1,4 @@
-import { Link2, Upload, X } from "lucide-react";
+import { FilePlus2, Link2, Upload, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import type {
   DocumentLinkRef,
@@ -52,6 +52,14 @@ export function LinkedDocuments({ target, targetLabel }: LinkedDocumentsProps) {
     reload();
   }
 
+  async function createText() {
+    const created = await window.artGallery.createTextDocument(
+      `Documento de ${targetLabel}`.slice(0, 300),
+    );
+    await window.artGallery.linkDocuments([created.id], target);
+    showDocuments({ openId: created.id });
+  }
+
   async function unlink(document: DocumentSummary) {
     await window.artGallery.unlinkDocument(document.id, target);
     reload();
@@ -71,6 +79,10 @@ export function LinkedDocuments({ target, targetLabel }: LinkedDocumentsProps) {
         <Button onClick={() => void upload()}>
           <Upload aria-hidden size={16} />
           Subir archivo…
+        </Button>
+        <Button onClick={() => void createText()}>
+          <FilePlus2 aria-hidden size={16} />
+          Nuevo documento
         </Button>
       </div>
       {documents.length > 0 && (

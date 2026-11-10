@@ -21,7 +21,7 @@ import { useActionNotice } from "../../hooks/useActionNotice";
 import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 import { DocumentBadge } from "./DocumentBadge";
 import { formatBytes, formatDate, uploadSummary } from "./documentText";
-import { FileDocumentView } from "./FileDocumentView";
+import { DocumentView } from "./DocumentView";
 import { formatName } from "../../../../shared/documentFormats";
 import "./DocumentsPage.css";
 
@@ -78,6 +78,13 @@ export function DocumentsPage({ route }: DocumentsPageProps) {
     reload();
   }
 
+  async function createText() {
+    const created = await window.artGallery.createTextDocument(
+      "Documento sin título",
+    );
+    setOpenId(created.id);
+  }
+
   async function remove(document: DocumentSummary) {
     await window.artGallery.deleteDocument(document.id);
     setOpenId(null);
@@ -94,7 +101,7 @@ export function DocumentsPage({ route }: DocumentsPageProps) {
   if (openId) {
     return (
       <>
-        <FileDocumentView
+        <DocumentView
           documentId={openId}
           onBack={() => {
             setOpenId(null);
@@ -125,7 +132,7 @@ export function DocumentsPage({ route }: DocumentsPageProps) {
             <Upload aria-hidden size={16} />
             Subir archivo
           </Button>
-          <Button variant="primary" disabled title="Llega con el editor">
+          <Button variant="primary" onClick={() => void createText()}>
             <Plus aria-hidden size={16} />
             Nuevo documento
           </Button>

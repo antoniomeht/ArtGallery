@@ -1,0 +1,241 @@
+.text-editor {
+  display: flex;
+  flex: 999 1 560px;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  background: var(--surface-sunken);
+}
+
+.editor-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface-page);
+}
+
+.editor-toolbar__row,
+.editor-toolbar__group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 20px;
+  margin: 0 var(--space-2);
+  background: var(--border-subtle);
+}
+
+.tool-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 var(--space-1);
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  color: var(--text-primary);
+  background: none;
+  cursor: pointer;
+}
+
+.tool-button:hover:not(:disabled) {
+  background: var(--surface-sunken);
+}
+
+.tool-button[aria-pressed="true"] {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-subtle);
+}
+
+.tool-button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.editor-select {
+  height: 30px;
+  padding: 0 var(--space-1);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius-control);
+  font: inherit;
+  font-size: 13px;
+  color: var(--text-primary);
+  background: var(--surface-page);
+}
+
+.editor-select--style {
+  width: 104px;
+}
+
+.editor-select--font {
+  width: 150px;
+  margin-left: var(--space-1);
+}
+
+.editor-select--size {
+  width: 60px;
+  margin-left: var(--space-1);
+}
+
+.color-tool {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-control);
+  cursor: pointer;
+}
+
+.color-tool:hover {
+  background: var(--surface-sunken);
+}
+
+.color-tool input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.color-tool:has(input:focus-visible) {
+  outline: 2px solid var(--accent);
+}
+
+.color-tool__swatch {
+  width: 16px;
+  height: 3px;
+  margin-top: 1px;
+}
+
+.text-editor__canvas {
+  flex: 1;
+  /* Scrolls inside the editor, so the toolbar and word count stay in view. */
+  min-height: 0;
+  padding: var(--space-6) var(--space-4);
+  overflow: auto;
+}
+
+/* A4 at screen size, with the normal margins of the PDF. */
+.document-page {
+  --page-width: 210mm;
+  --page-margin: 25mm;
+
+  box-sizing: border-box;
+  width: var(--page-width);
+  max-width: 100%;
+  min-height: 297mm;
+  margin: 0 auto;
+  padding: var(--page-margin);
+  background: #ffffff;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.15);
+}
+
+.document-page__content {
+  min-height: 200px;
+  outline: none;
+  font-family: "Instrument Sans Variable", "Instrument Sans", sans-serif;
+  font-size: 11pt;
+  line-height: 1.15;
+  color: #222222;
+}
+
+.document-page__content p {
+  margin: 0 0 0.6em;
+}
+
+.document-page__content h1,
+.document-page__content h2,
+.document-page__content h3 {
+  margin: 0.8em 0 0.4em;
+  line-height: 1.2;
+}
+
+.document-page__content h1 {
+  font-size: 24pt;
+}
+
+.document-page__content h2 {
+  font-size: 18pt;
+}
+
+.document-page__content h3 {
+  font-size: 14pt;
+}
+
+.document-page__content blockquote {
+  margin: 0 0 0.6em;
+  padding-left: 1em;
+  border-left: 3px solid #b9b9b3;
+  color: #444444;
+}
+
+.document-page__content ul,
+.document-page__content ol {
+  margin: 0 0 0.6em;
+  padding-left: 1.6em;
+}
+
+.document-page__content hr {
+  margin: 1em 0;
+  border: 0;
+  border-top: 1px solid #b9b9b3;
+}
+
+.document-page__content mark {
+  padding: 0 1px;
+  border-radius: 2px;
+}
+
+.text-editor__status {
+  margin: 0;
+  padding: var(--space-1) var(--space-4);
+  border-top: 1px solid var(--border-subtle);
+  font-size: var(--font-size-caption);
+  color: var(--text-secondary);
+  background: var(--surface-page);
+}
+
+.save-status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin: 0;
+  font-size: var(--font-size-caption);
+  color: var(--text-secondary);
+}
+
+.save-status--error {
+  color: var(--danger);
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spin {
+    animation: none;
+  }
+}
+
+/* The editor fills the window and scrolls its page inside. */
+.document-view__body:has(.text-editor) {
+  flex-wrap: nowrap;
+}
