@@ -1,4 +1,9 @@
-import { EditorContent, useEditor, useEditorState } from "@tiptap/react";
+import {
+  EditorContent,
+  useEditor,
+  useEditorState,
+  type Editor,
+} from "@tiptap/react";
 import { ArrowLeft, Check, LoaderCircle, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import type {
@@ -11,8 +16,10 @@ import {
   DocumentLinksPanel,
   DocumentNotesField,
 } from "../documents/DocumentSidePanel";
+import { CommentsPanel } from "./CommentsPanel";
 import { EditorToolbar } from "./EditorToolbar";
 import { FindBar } from "./FindBar";
+import { TextPromptDialog } from "./TextPromptDialog";
 import { createEditorExtensions } from "./extensions";
 import { useAutosave, type SaveStatus } from "./useAutosave";
 import "./editor.css";
@@ -37,6 +44,8 @@ export function TextDocumentView({
 }: TextDocumentViewProps) {
   const [document, setDocument] = useState<DocumentDetail | null>(null);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const [editor, setEditor] = useState<Editor | null>(null);
+  const [commentsVersion, setCommentsVersion] = useState(0);
   const load = useCallback(() => {
     void window.artGallery.getDocument(documentId).then(setDocument);
   }, [documentId]);
@@ -99,6 +108,8 @@ export function TextDocumentView({
           documentId={document.id}
           initialContent={document.content}
           onChange={autosave.schedule}
+          onEditor={setEditor}
+          onCommentAdded={() => setCommentsVersion((current) => current + 1)}
         />
         <aside
           className="document-view__aside"
@@ -106,6 +117,13 @@ export function TextDocumentView({
         >
           <DocumentLinksPanel document={document} onChanged={load} />
           <DocumentNotesField document={document} onSave={saveFields} />
+          {editor && (
+            <CommentsPanel
+              documentId={document.id}
+              editor={editor}
+              version={autosave.savedVersion + commentsVersion}
+            />
+          )}
         </aside>
       </div>
 
@@ -129,13 +147,21 @@ function TextEditor({
   documentId,
   initialContent,
   onChange,
+  onEditor,
+  onCommentAdded,
 }: {
   documentId: string;
   initialContent: DocumentDetail["content"];
   onChange: (content: unknown) => void;
+  onEditor: (editor: Editor | null) => void;
+  onCommentAdded: () => void;
 }) {
   const [find, setFind] = useState<"find" | "replace" | null>(null);
   const [isLinking, setIsLinking] = useState(false);
+  const [footnote, setFootnote] = useState<{
+    pos: number;
+    text: string;
+  } | null>(null);
   const editor = useEditor({
     extensions: createEditorExtensions(),
     content: initialContent ?? undefined,
@@ -151,6 +177,12 @@ function TextEditor({
         const link = (event.target as Element).closest("a[href]");
         if (!link || !(event.ctrlKey || event.metaKey)) return false;
         window.open(link.getAttribute("href") ?? "", "_blank");
+        return true;
+      },
+      // Clicking a footnote number opens its text for editing.
+      handleClickOn: (_view, pos, node) => {
+        if (node.type.name !== "footnote") return false;
+        setFootnote({ pos, text: String(node.attrs.text ?? "") });
         return true;
       },
       handleKeyDown: (_view, event) => {
@@ -172,6 +204,11 @@ function TextEditor({
       current?.storage.characterCount.words() ?? 0,
   });
 
+  useEffect(() => {
+    onEditor(editor);
+    return () => onEditor(null);
+  }, [editor, onEditor]);
+
   if (!editor) return null;
 
   return (
@@ -182,6 +219,7 @@ function TextEditor({
         onFind={() => setFind("find")}
         isLinking={isLinking}
         setIsLinking={setIsLinking}
+        onCommentAdded={onCommentAdded}
       />
       {find && (
         <FindBar
@@ -198,6 +236,26 @@ function TextEditor({
       <p className="text-editor__status">
         {words === 1 ? "1 palabra" : `${words} palabras`}
       </p>
+      {footnote && (
+        <TextPromptDialog
+          title="Nota al pie"
+          label="Texto de la nota"
+          initialValue={footnote.text}
+          confirmLabel="Guardar"
+          maxLength={2000}
+          onRemove={() =>
+            editor
+              .chain()
+              .focus()
+              .deleteRange({ from: footnote.pos, to: footnote.pos + 1 })
+              .run()
+          }
+          onConfirm={(text) =>
+            editor.chain().focus().updateFootnote(footnote.pos, text).run()
+          }
+          onClose={() => setFootnote(null)}
+        />
+      )}
     </div>
   );
 }

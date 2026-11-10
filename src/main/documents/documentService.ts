@@ -1,7 +1,9 @@
 import { randomUUID } from "node:crypto";
 import { basename, extname } from "node:path";
 import {
+  commentBodySchema,
   documentFieldsSchema,
+  type DocumentComment,
   documentQuerySchema,
   type DocumentDetail,
   type DocumentFieldsInput,
@@ -11,6 +13,7 @@ import {
   type UploadResult,
 } from "../../shared/document";
 import {
+  commentIdsIn,
   EMPTY_TEXT_CONTENT,
   textContentSchema,
 } from "../../shared/editorSchema";
@@ -94,6 +97,32 @@ export class DocumentService {
     const parsed = textContentSchema.parse(content);
     this.documents.saveContent(id, JSON.stringify(parsed), this.timestamp());
     return this.get(id);
+  }
+
+  addComment(documentId: string, body: string): DocumentComment {
+    if (this.get(documentId).kind !== "text") {
+      throw new Error(`Document ${documentId} is not a text document`);
+    }
+    const comment = {
+      id: randomUUID(),
+      body: commentBodySchema.parse(body),
+      createdAt: this.timestamp(),
+    };
+    this.documents.addComment(documentId, comment);
+    return comment;
+  }
+
+  /** Only comments whose text is still there; the rest are hidden. */
+  listComments(documentId: string): DocumentComment[] {
+    const { content } = this.get(documentId);
+    const marked = content ? commentIdsIn(content) : new Set<string>();
+    return this.documents
+      .listComments(documentId)
+      .filter(({ id }) => marked.has(id));
+  }
+
+  deleteComment(id: string): void {
+    this.documents.deleteComment(id);
   }
 
   /** Copies an image for a text document; returns how the editor refers to it. */

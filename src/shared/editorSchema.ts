@@ -75,6 +75,9 @@ export const NODE_RULES: Record<string, Rules> = {
   hardBreak: {},
   horizontalRule: {},
   pageBreak: {},
+  tableOfContents: {},
+  columns: { count: z.union([z.literal(2), z.literal(3)]) },
+  footnote: { text: z.string().trim().min(1).max(2000) },
   table: {},
   tableRow: {},
   tableHeader: CELL_ATTRS,
@@ -107,6 +110,7 @@ export const MARK_RULES: Record<string, Rules> = {
   },
   highlight: { color: color.nullable() },
   link: { href: z.string().max(2000).refine(isSafeHref) },
+  comment: { id: z.string().regex(new RegExp(`^${UUID}$`)) },
 };
 
 export interface TextMark {
@@ -178,3 +182,18 @@ export const EMPTY_TEXT_CONTENT: TextContent = {
   type: "doc",
   content: [{ type: "paragraph" }],
 };
+
+/** Ids of the comments the text still marks; deleted text drops its comment. */
+export function commentIdsIn(content: TextContent): Set<string> {
+  const ids = new Set<string>();
+  const visit = (node: TextContent) => {
+    for (const mark of node.marks ?? []) {
+      if (mark.type === "comment" && typeof mark.attrs?.id === "string") {
+        ids.add(mark.attrs.id);
+      }
+    }
+    node.content?.forEach(visit);
+  };
+  visit(content);
+  return ids;
+}

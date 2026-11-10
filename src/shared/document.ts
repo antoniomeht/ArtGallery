@@ -75,3 +75,12 @@ export interface UploadResult {
   added: DocumentDetail[];
   failed: { name: string; reason: UploadFailureReason }[];
 }
+
+/** A note on part of a text document, for the user only. */
+export interface DocumentComment {
+  id: string;
+  body: string;
+  createdAt: string;
+}
+
+export const commentBodySchema = z.string().trim().min(1).max(5000);

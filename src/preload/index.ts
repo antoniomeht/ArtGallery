@@ -85,6 +85,12 @@ const api: ArtGalleryApi = {
     ipcRenderer.invoke(IpcChannel.saveDocumentContent, id, content),
   addDocumentImage: (documentId) =>
     ipcRenderer.invoke(IpcChannel.addDocumentImage, documentId),
+  addDocumentComment: (documentId, body) =>
+    ipcRenderer.invoke(IpcChannel.addDocumentComment, documentId, body),
+  listDocumentComments: (documentId) =>
+    ipcRenderer.invoke(IpcChannel.listDocumentComments, documentId),
+  deleteDocumentComment: (commentId) =>
+    ipcRenderer.invoke(IpcChannel.deleteDocumentComment, commentId),
   linkDocuments: (documentIds, target) =>
     ipcRenderer.invoke(IpcChannel.linkDocuments, documentIds, target),
   unlinkDocument: (documentId, target) =>

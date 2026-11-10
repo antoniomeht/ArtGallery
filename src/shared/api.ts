@@ -10,6 +10,7 @@ import type {
 import type { BackupInfo, RestoreResult } from "./backup";
 import type { CollectionSummary, DeletedCollection } from "./collection";
 import type {
+  DocumentComment,
   DocumentDetail,
   DocumentFieldsInput,
   DocumentLinkRef,
@@ -113,6 +114,13 @@ export interface ArtGalleryApi {
   saveDocumentContent(id: string, content: unknown): Promise<DocumentDetail>;
   /** Asks for an image and copies it for the document; null if cancelled. */
   addDocumentImage(documentId: string): Promise<{ src: string } | null>;
+  addDocumentComment(
+    documentId: string,
+    body: string,
+  ): Promise<DocumentComment>;
+  /** Comments whose text is still in the saved document. */
+  listDocumentComments(documentId: string): Promise<DocumentComment[]>;
+  deleteDocumentComment(commentId: string): Promise<void>;
   linkDocuments(documentIds: string[], target: DocumentLinkRef): Promise<void>;
   unlinkDocument(documentId: string, target: DocumentLinkRef): Promise<void>;
   listLinkedDocuments(target: DocumentLinkRef): Promise<DocumentSummary[]>;
@@ -200,6 +208,9 @@ export const IpcChannel = {
   createTextDocument: "documents:create-text",
   saveDocumentContent: "documents:save-content",
   addDocumentImage: "documents:add-image",
+  addDocumentComment: "documents:add-comment",
+  listDocumentComments: "documents:list-comments",
+  deleteDocumentComment: "documents:delete-comment",
   linkDocuments: "documents:link",
   unlinkDocument: "documents:unlink",
   listLinkedDocuments: "documents:list-linked",

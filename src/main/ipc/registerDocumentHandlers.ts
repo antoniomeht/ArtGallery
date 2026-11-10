@@ -86,6 +86,17 @@ export function registerDocumentHandlers(documents: DocumentService): void {
     },
   );
   ipcMain.handle(
+    IpcChannel.addDocumentComment,
+    (_event, documentId: unknown, body: unknown) =>
+      documents.addComment(id.parse(documentId), z.string().parse(body)),
+  );
+  ipcMain.handle(IpcChannel.listDocumentComments, (_event, documentId) =>
+    documents.listComments(id.parse(documentId)),
+  );
+  ipcMain.handle(IpcChannel.deleteDocumentComment, (_event, commentId) =>
+    documents.deleteComment(id.parse(commentId)),
+  );
+  ipcMain.handle(
     IpcChannel.linkDocuments,
     (_event, documentIds: unknown, target: unknown) =>
       documents.link(

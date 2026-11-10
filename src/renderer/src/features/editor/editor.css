@@ -456,3 +456,121 @@
   aspect-ratio: 1;
   object-fit: cover;
 }
+
+.document-page__content .toc {
+  margin: 0 0 1em;
+  padding: 0.6em 0.8em;
+  border: 1px solid #e2e2de;
+  border-radius: 4px;
+  user-select: none;
+}
+
+.document-page__content .toc__title,
+.document-page__content .footnotes__title {
+  margin: 0 0 0.4em;
+  font-weight: 600;
+}
+
+.document-page__content .toc__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.document-page__content .toc__item {
+  padding: 1px 0;
+  cursor: pointer;
+}
+
+.document-page__content .toc__item:hover {
+  color: #1f3fbf;
+  text-decoration: underline;
+}
+
+.document-page__content .toc__item--2 {
+  padding-left: 1.2em;
+}
+
+.document-page__content .toc__item--3 {
+  padding-left: 2.4em;
+}
+
+.document-page__content .toc__empty {
+  margin: 0;
+  color: #85857f;
+}
+
+.document-page__content .footnote {
+  cursor: pointer;
+  color: #1f3fbf;
+}
+
+.document-page__content .footnote::after {
+  content: attr(data-number);
+}
+
+.document-page__content .footnotes {
+  margin-top: 2em;
+  padding-top: 0.6em;
+  border-top: 1px solid #b9b9b3;
+  font-size: 0.85em;
+  user-select: none;
+}
+
+.document-page__content .footnotes ol {
+  margin: 0;
+  padding-left: 1.6em;
+}
+
+.document-page__content .columns {
+  column-gap: 1.5em;
+  margin: 0 0 0.6em;
+  padding: 2px;
+  outline: 1px dashed #d4d4ce;
+}
+
+.document-page__content .columns[data-columns="2"] {
+  column-count: 2;
+}
+
+.document-page__content .columns[data-columns="3"] {
+  column-count: 3;
+}
+
+.document-page__content .comment {
+  border-bottom: 2px solid #e0b400;
+  background: rgb(255 241 168 / 0.5);
+}
+
+.document-comments {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.document-comment {
+  padding: var(--space-2);
+  border: 1px solid #e0c766;
+  border-radius: var(--radius-overlay);
+  background: #fff9e0;
+}
+
+.document-comment__body {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  white-space: pre-wrap;
+  background: none;
+  cursor: pointer;
+}
+
+.document-comment__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--font-size-caption);
+  color: var(--text-secondary);
+}

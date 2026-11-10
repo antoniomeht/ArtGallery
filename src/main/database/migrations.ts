@@ -169,6 +169,16 @@ const migrations: readonly string[] = [
   );
   CREATE INDEX document_assets_document ON document_assets (document_id);
   `,
+  `
+  -- Comments on parts of a text document; the text marks them by id.
+  CREATE TABLE document_comments (
+    id TEXT PRIMARY KEY,
+    document_id TEXT NOT NULL REFERENCES documents (id) ON DELETE CASCADE,
+    body TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  );
+  CREATE INDEX document_comments_document ON document_comments (document_id);
+  `,
 ];
 
 export const LATEST_SCHEMA_VERSION = migrations.length;
