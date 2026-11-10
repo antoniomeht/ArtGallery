@@ -28,10 +28,40 @@
   color: var(--text-secondary);
 }
 
+/* The list, with a preview of the chosen document beside it. */
+.documents__workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 42%);
+  gap: var(--space-6);
+  align-items: start;
+  padding: 0 var(--space-8) var(--space-8);
+}
+
+@media (max-width: 1000px) {
+  .documents__workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .document-preview {
+    display: none;
+  }
+}
+
 .documents__table {
-  width: calc(100% - 2 * var(--space-8));
-  margin: 0 var(--space-8) var(--space-8);
+  width: 100%;
   border-collapse: collapse;
+}
+
+.documents__table tbody tr {
+  cursor: default;
+}
+
+.documents__table tbody tr:hover {
+  background: var(--surface-hover);
+}
+
+.documents__table tbody tr.documents__row--chosen {
+  background: var(--accent-subtle);
 }
 
 .documents__table th {
@@ -334,4 +364,77 @@
 
 .documents__collection-docs:hover {
   text-decoration: underline;
+}
+
+.document-preview {
+  position: sticky;
+  top: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 2 * var(--space-4));
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-overlay);
+  background: var(--surface-page);
+}
+
+.document-preview__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.document-preview__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.document-preview__header .documents__detail {
+  margin: var(--space-1) 0 0;
+}
+
+.document-preview__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  overflow: auto;
+  background: var(--surface-sunken);
+}
+
+.document-preview__pdf {
+  flex: 1;
+  width: 100%;
+  border: 0;
+}
+
+.document-preview__image {
+  max-width: 100%;
+  max-height: 100%;
+  margin: auto;
+  object-fit: contain;
+}
+
+/* A text document on a sheet, scaled to the panel. */
+.document-preview__text {
+  margin: var(--space-4);
+  padding: var(--space-6);
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 12%);
+}
+
+.document-preview__outside {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  margin: auto;
+  padding: var(--space-6);
+  color: var(--text-secondary);
+  text-align: center;
 }
