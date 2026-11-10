@@ -4,7 +4,10 @@ import { DIMENSION_UNITS, fromSingleUnit } from "../../shared/dimensions";
 import { exhibitionBaseSchema } from "../../shared/exhibition";
 import { collectionNameSchema } from "../../shared/collection";
 import { commentBodySchema, documentFieldsSchema } from "../../shared/document";
-import { DOCUMENT_EXTENSIONS } from "../../shared/documentFormats";
+import {
+  DOCUMENT_EXTENSIONS,
+  documentExtension,
+} from "../../shared/documentFormats";
 import { textContentSchema } from "../../shared/editorSchema";
 import { pageSetupSchema } from "../../shared/pageSetup";
 import type { PackageFailure } from "../../shared/transfer";
@@ -184,6 +187,13 @@ export const packageDocumentSchema = z
         ? document.file !== null && document.content === null
         : document.file === null && document.content !== null,
     { message: "A document is either an uploaded file or a text" },
+  )
+  // The name must not claim another format: copies opened outside the app
+  // use it, and a ".exe" name on a stored PDF must never reach the system.
+  .refine(
+    ({ file }) =>
+      !file || documentExtension(file.originalName) === file.extension,
+    { message: "The file name does not match its format" },
   );
 
 export type PackageDocument = z.infer<typeof packageDocumentSchema>;

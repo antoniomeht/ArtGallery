@@ -77,3 +77,25 @@ export function formatName(extension: string | null): string {
   if (!extension) return "Documento de texto";
   return FORMAT_NAMES[extension] ?? "Imagen";
 }
+
+const FORBIDDEN_IN_NAMES = '<>:"|?*';
+
+/**
+ * Name for a copy opened or saved outside the app. It always ends with the
+ * stored format, from the allowed list, whatever the original name says, so
+ * a document can never become a program; folders and characters the system
+ * rejects are dropped.
+ */
+export function externalFileName(
+  originalName: string,
+  extension: DocumentExtension | string,
+): string {
+  const name = originalName.split(/[\\/]/).pop() ?? "";
+  const dot = name.lastIndexOf(".");
+  const stem = [...(dot > 0 ? name.slice(0, dot) : name)]
+    .filter((char) => char >= " " && !FORBIDDEN_IN_NAMES.includes(char))
+    .join("")
+    .replace(/\s+/g, " ")
+    .trim();
+  return `${stem || "documento"}.${extension}`;
+}
