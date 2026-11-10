@@ -4,8 +4,15 @@ import {
   useEditorState,
   type Editor,
 } from "@tiptap/react";
-import { ArrowLeft, Check, LoaderCircle, Trash2 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import {
+  ArrowLeft,
+  Check,
+  FileDown,
+  LoaderCircle,
+  Printer,
+  Trash2,
+} from "lucide-react";
+import { useCallback, useEffect, useState, type CSSProperties } from "react";
 import type {
   DocumentDetail,
   DocumentSummary,
@@ -18,7 +25,14 @@ import {
 } from "../documents/DocumentSidePanel";
 import { CommentsPanel } from "./CommentsPanel";
 import { EditorToolbar } from "./EditorToolbar";
+import {
+  DEFAULT_PAGE_SETUP,
+  MARGINS_MM,
+  pageSize,
+  type PageSetup,
+} from "../../../../shared/pageSetup";
 import { FindBar } from "./FindBar";
+import { PageSetupDialog, pageSetupSummary } from "./PageSetupDialog";
 import { TextPromptDialog } from "./TextPromptDialog";
 import { createEditorExtensions } from "./extensions";
 import { useAutosave, type SaveStatus } from "./useAutosave";
@@ -46,6 +60,7 @@ export function TextDocumentView({
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [editor, setEditor] = useState<Editor | null>(null);
   const [commentsVersion, setCommentsVersion] = useState(0);
+  const [isEditingPage, setIsEditingPage] = useState(false);
   const load = useCallback(() => {
     void window.artGallery.getDocument(documentId).then(setDocument);
   }, [documentId]);
@@ -63,6 +78,7 @@ export function TextDocumentView({
   }
 
   if (!document) return null;
+  const setup = document.pageSetup ?? DEFAULT_PAGE_SETUP;
 
   return (
     <section className="document-view" aria-label={document.title}>
@@ -101,11 +117,32 @@ export function TextDocumentView({
           <Trash2 aria-hidden size={16} />
           Eliminar
         </Button>
+        <Button
+          onClick={async () => {
+            await autosave.flush();
+            await window.artGallery.printTextDocument(document.id);
+          }}
+        >
+          <Printer aria-hidden size={16} />
+          Imprimir…
+        </Button>
+        <Button
+          variant="primary"
+          onClick={async () => {
+            await autosave.flush();
+            await window.artGallery.exportDocumentPdf(document.id);
+          }}
+        >
+          <FileDown aria-hidden size={16} />
+          Descargar PDF
+        </Button>
       </header>
 
       <div className="document-view__body">
         <TextEditor
           documentId={document.id}
+          pageSetup={setup}
+          onEditPageSetup={() => setIsEditingPage(true)}
           initialContent={document.content}
           onChange={autosave.schedule}
           onEditor={setEditor}
@@ -127,6 +164,17 @@ export function TextDocumentView({
         </aside>
       </div>
 
+      {isEditingPage && (
+        <PageSetupDialog
+          setup={setup}
+          onSave={async (next) =>
+            setDocument(
+              await window.artGallery.savePageSetup(document.id, next),
+            )
+          }
+          onClose={() => setIsEditingPage(false)}
+        />
+      )}
       {isConfirmingDelete && (
         <ConfirmDialog
           title="¿Eliminar este documento?"
@@ -145,12 +193,16 @@ export function TextDocumentView({
 
 function TextEditor({
   documentId,
+  pageSetup,
+  onEditPageSetup,
   initialContent,
   onChange,
   onEditor,
   onCommentAdded,
 }: {
   documentId: string;
+  pageSetup: PageSetup;
+  onEditPageSetup: () => void;
   initialContent: DocumentDetail["content"];
   onChange: (content: unknown) => void;
   onEditor: (editor: Editor | null) => void;
@@ -229,13 +281,20 @@ function TextEditor({
         />
       )}
       <div className="text-editor__canvas">
-        <div className="document-page">
+        <div className="document-page" style={pageStyle(pageSetup)}>
           <EditorContent editor={editor} />
         </div>
       </div>
-      <p className="text-editor__status">
-        {words === 1 ? "1 palabra" : `${words} palabras`}
-      </p>
+      <div className="text-editor__status">
+        <span>{words === 1 ? "1 palabra" : `${words} palabras`}</span>
+        <button
+          type="button"
+          className="text-editor__page-setup"
+          onClick={onEditPageSetup}
+        >
+          Diseño de página: {pageSetupSummary(pageSetup)}
+        </button>
+      </div>
       {footnote && (
         <TextPromptDialog
           title="Nota al pie"
@@ -258,4 +317,14 @@ function TextEditor({
       )}
     </div>
   );
+}
+
+/** The sheet on screen has the size and margins it will print with. */
+function pageStyle(setup: PageSetup): CSSProperties {
+  const { width, height } = pageSize(setup);
+  return {
+    "--page-width": `${width}mm`,
+    "--page-height": `${height}mm`,
+    "--page-margin": `${MARGINS_MM[setup.margins]}mm`,
+  } as CSSProperties;
 }

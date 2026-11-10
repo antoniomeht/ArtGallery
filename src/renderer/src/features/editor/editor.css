@@ -129,12 +129,13 @@
 /* A4 at screen size, with the normal margins of the PDF. */
 .document-page {
   --page-width: 210mm;
+  --page-height: 297mm;
   --page-margin: 25mm;
 
   box-sizing: border-box;
   width: var(--page-width);
   max-width: 100%;
-  min-height: 297mm;
+  min-height: var(--page-height);
   margin: 0 auto;
   padding: var(--page-margin);
   background: #ffffff;
@@ -198,6 +199,10 @@
 }
 
 .text-editor__status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
   margin: 0;
   padding: var(--space-1) var(--space-4);
   border-top: 1px solid var(--border-subtle);
@@ -573,4 +578,73 @@
   justify-content: space-between;
   font-size: var(--font-size-caption);
   color: var(--text-secondary);
+}
+
+.text-editor__page-setup {
+  padding: 2px var(--space-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-control);
+  font: inherit;
+  font-size: var(--font-size-caption);
+  color: var(--text-primary);
+  background: var(--surface-page);
+  cursor: pointer;
+}
+
+.text-editor__page-setup:hover {
+  border-color: var(--border-control);
+}
+
+.page-setup__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+/* The printed document: what is only for the screen goes away. */
+.print-text-document .document-page__content {
+  min-height: 0;
+}
+
+.print-text-document .page-break {
+  height: 0;
+  margin: 0;
+  break-after: page;
+}
+
+.print-text-document .page-break::before,
+.print-text-document .page-break::after {
+  display: none;
+}
+
+.print-text-document .comment {
+  border: 0;
+  background: none;
+}
+
+.print-text-document .columns {
+  padding: 0;
+  outline: none;
+}
+
+.print-text-document .toc {
+  padding: 0;
+  border: 0;
+}
+
+.print-text-document .footnote,
+.print-text-document a {
+  color: inherit;
+}
+
+.print-text-document [data-resize-handle] {
+  display: none;
+}
+
+.print-text-document img,
+.print-text-document tr {
+  break-inside: avoid;
 }

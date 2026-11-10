@@ -21,6 +21,7 @@ import {
   documentExtension,
   isViewableImage,
 } from "../../shared/documentFormats";
+import { pageSetupSchema } from "../../shared/pageSetup";
 import type { DocumentRepository } from "./documentRepository";
 import { DocumentFileError, type DocumentStore } from "./documentStore";
 
@@ -96,6 +97,15 @@ export class DocumentService {
     }
     const parsed = textContentSchema.parse(content);
     this.documents.saveContent(id, JSON.stringify(parsed), this.timestamp());
+    return this.get(id);
+  }
+
+  savePageSetup(id: string, input: unknown): DocumentDetail {
+    if (this.get(id).kind !== "text") {
+      throw new Error(`Document ${id} is not a text document`);
+    }
+    const setup = pageSetupSchema.parse(input);
+    this.documents.savePageSetup(id, JSON.stringify(setup), this.timestamp());
     return this.get(id);
   }
 

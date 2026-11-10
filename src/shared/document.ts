@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { TextContent } from "./editorSchema";
+import type { PageSetup } from "./pageSetup";
 import { optionalText } from "./fields";
 
 /** An uploaded file, or a text document written in the app. */
@@ -47,6 +48,8 @@ export interface DocumentDetail extends DocumentSummary {
   fileName: string | null;
   /** What a text document says; null for uploaded files. */
   content: TextContent | null;
+  /** How a text document is printed; null for uploaded files. */
+  pageSetup: PageSetup | null;
   createdAt: string;
 }
 
