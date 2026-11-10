@@ -4,10 +4,14 @@ import {
   type ArtworkStatus,
 } from "../../../../shared/artwork";
 import { STATUS_LABELS } from "../../../../shared/artworkFormat";
+import type { CollectionSummary } from "../../../../shared/collection";
 import { Button } from "../../components/Button";
+import { CollectionMenu } from "../collections/CollectionMenu";
 
 interface SelectionToolbarProps {
-  selectedCount: number;
+  selectedIds: string[];
+  collections: CollectionSummary[];
+  onCollectionsChanged: () => void;
   totalCount: number;
   onSelectAll: () => void;
   onClear: () => void;
@@ -20,7 +24,9 @@ interface SelectionToolbarProps {
 }
 
 export function SelectionToolbar({
-  selectedCount,
+  selectedIds,
+  collections,
+  onCollectionsChanged,
   totalCount,
   onSelectAll,
   onClear,
@@ -31,6 +37,7 @@ export function SelectionToolbar({
   onPrintLabels,
   onDone,
 }: SelectionToolbarProps) {
+  const selectedCount = selectedIds.length;
   const hasSelection = selectedCount > 0;
 
   return (
@@ -67,6 +74,12 @@ export function SelectionToolbar({
         <Landmark aria-hidden size={16} />
         Añadir a exposición…
       </Button>
+      <CollectionMenu
+        collections={collections}
+        selectedIds={selectedIds}
+        disabled={!hasSelection}
+        onChanged={onCollectionsChanged}
+      />
       <Button disabled={!hasSelection} onClick={onExport}>
         <FileDown aria-hidden size={16} />
         Exportar…

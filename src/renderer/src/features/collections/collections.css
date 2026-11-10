@@ -1,0 +1,119 @@
+.collection-menu {
+  min-width: 280px;
+  max-height: 420px;
+}
+
+.collection-menu__hint {
+  margin: 0;
+  padding: var(--space-1) var(--space-2) var(--space-2);
+  font-size: var(--font-size-caption);
+  color: var(--text-secondary);
+}
+
+.collection-menu__partial {
+  margin-left: auto;
+  padding-left: var(--space-3);
+  font-size: var(--font-size-caption);
+  color: var(--text-secondary);
+}
+
+.collection-menu__new {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.collection-menu__new .field__input {
+  flex: 1;
+  min-width: 0;
+}
+
+.manage-collections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.manage-collections__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.manage-collections__name {
+  flex: 1;
+  min-width: 0;
+}
+
+.manage-collections__count {
+  min-width: 64px;
+  font-size: var(--font-size-caption);
+  color: var(--text-secondary);
+  text-align: right;
+}
+
+.artwork-collections {
+  margin-top: var(--space-6);
+}
+
+.chip-input {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: var(--control-md);
+  padding: 3px var(--space-1);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius-control);
+  background: var(--surface-page);
+}
+
+.chip-input:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.chip-input__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 1px 2px 1px var(--space-2);
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-caption);
+  font-weight: 500;
+  color: var(--accent);
+  background: var(--accent-subtle);
+}
+
+.chip-input__remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  color: inherit;
+  background: none;
+  cursor: pointer;
+}
+
+.chip-input__remove:hover {
+  background: var(--surface-page);
+}
+
+.chip-input__input {
+  flex: 1;
+  min-width: 100px;
+  border: 0;
+  outline: 0;
+  font: inherit;
+  color: var(--text-primary);
+  background: transparent;
+}

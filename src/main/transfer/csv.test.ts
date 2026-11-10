@@ -68,4 +68,15 @@ describe("CSV export", () => {
 
     expect(row).toContain(";-500;");
   });
+
+  it("lists the collections of each artwork", () => {
+    const csv = toCsv([artwork({ title: "Marina" })], () => [
+      "Obra en papel",
+      "Serie del puerto",
+    ]);
+    const [header, row] = rowsOf(csv.slice(1));
+
+    expect(header).toContain(";Colecciones;");
+    expect(row).toContain(";Obra en papel, Serie del puerto;");
+  });
 });

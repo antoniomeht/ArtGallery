@@ -10,7 +10,12 @@ import {
 /** Lets Excel detect the encoding. */
 const UTF8_BOM = String.fromCharCode(0xfeff);
 
-const COLUMNS: [header: string, value: (artwork: Artwork) => unknown][] = [
+type Column = [
+  header: string,
+  value: (artwork: Artwork, collections: string[]) => unknown,
+];
+
+const COLUMNS: Column[] = [
   ["Id", (a) => a.id],
   ["Título", (a) => a.title],
   ["Artista", (a) => a.artist],
@@ -20,7 +25,7 @@ const COLUMNS: [header: string, value: (artwork: Artwork) => unknown][] = [
   ["Año", (a) => a.year],
   ["Año aproximado", (a) => (a.yearApproximate ? "Sí" : "No")],
   ...DIMENSION_UNITS.flatMap((unit) =>
-    MEASURE_AXES.map((axis): [string, (artwork: Artwork) => unknown] => [
+    MEASURE_AXES.map((axis): Column => [
       `${AXIS_LABELS[axis]} (${unit})`,
       (a) => {
         const value = a.dimensions[unit][axis];
@@ -33,6 +38,7 @@ const COLUMNS: [header: string, value: (artwork: Artwork) => unknown][] = [
   ["Moneda", (a) => a.currency],
   ["Ubicación", (a) => a.location],
   ["Etiquetas", (a) => a.tags.join(", ")],
+  ["Colecciones", (_a, collections) => collections.join(", ")],
   ["Descripción", (a) => a.description],
   ["Notas", (a) => a.notes],
   ["Imágenes", (a) => a.images.length],
@@ -43,12 +49,16 @@ const COLUMNS: [header: string, value: (artwork: Artwork) => unknown][] = [
  * Metadata only, for spreadsheets. Uses ";" and a UTF-8 BOM, which is what
  * Excel expects with Spanish regional settings.
  */
-export function toCsv(artworks: readonly Artwork[]): string {
+export function toCsv(
+  artworks: readonly Artwork[],
+  collectionsOf: (artworkId: string) => string[] = () => [],
+): string {
   const rows = [
     COLUMNS.map(([header]) => header),
-    ...artworks.map((artwork) =>
-      COLUMNS.map(([, value]) => cell(value(artwork))),
-    ),
+    ...artworks.map((artwork) => {
+      const collections = collectionsOf(artwork.id);
+      return COLUMNS.map(([, value]) => cell(value(artwork, collections)));
+    }),
   ];
   return `${UTF8_BOM}${rows.map((row) => row.map(quote).join(";")).join("\r\n")}\r\n`;
 }

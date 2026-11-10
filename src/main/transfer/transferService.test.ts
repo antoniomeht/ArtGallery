@@ -12,6 +12,7 @@ function openComputer(root: string, name: string) {
   const transfer = new TransferService({
     inventory: inventory.service,
     exhibitions: inventory.exhibitions,
+    collections: inventory.collections,
     images: inventory.images,
     workDir: join(dataDir, "tmp"),
     appVersion: "0.1.0",
@@ -230,6 +231,21 @@ describe("export and import", () => {
 
     const csv = await readFile(file, "utf8");
     expect(csv.split("\r\n")[1]).toContain(";Marina;");
+    studio.db.close();
+  });
+
+  it("exports the collections of each artwork to CSV", async () => {
+    const root = await useTempDir();
+    const studio = openComputer(root, "studio");
+    const { id } = await addArtwork(studio, "Marina");
+    const collection = studio.collections.create("Serie del puerto");
+    studio.collections.setMembership(collection.id, [id], true);
+    const file = join(root, "inventario.csv");
+
+    await studio.transfer.exportCsv(file, null);
+
+    const csv = await readFile(file, "utf8");
+    expect(csv.split("\r\n")[1]).toContain(";Serie del puerto;");
     studio.db.close();
   });
 });

@@ -11,6 +11,8 @@ type ValueFilterKey = Exclude<keyof FilterOptions, "supports">;
 export interface GalleryFilters extends Record<ValueFilterKey, string[]> {
   text: string;
   statuses: ArtworkStatus[];
+  /** Collection ids. */
+  collections: string[];
   yearFrom: string;
   yearTo: string;
 }
@@ -27,6 +29,7 @@ export const VALUE_FILTERS: { key: ValueFilterKey; label: string }[] = [
 export const EMPTY_FILTERS: GalleryFilters = {
   text: "",
   statuses: [],
+  collections: [],
   categories: [],
   artists: [],
   techniques: [],
@@ -52,6 +55,7 @@ export function toArtworkQuery(filters: GalleryFilters): ArtworkQuery {
     techniques: optionalList(filters.techniques),
     tags: optionalList(filters.tags),
     locations: optionalList(filters.locations),
+    collections: optionalList(filters.collections),
     yearFrom: optionalYear(filters.yearFrom),
     yearTo: optionalYear(filters.yearTo),
   };
@@ -73,7 +77,10 @@ export interface FilterBubble {
 }
 
 /** Bubbles for everything chosen. The search text has its own field. */
-export function filterBubbles(filters: GalleryFilters): FilterBubble[] {
+export function filterBubbles(
+  filters: GalleryFilters,
+  collectionNames: ReadonlyMap<string, string> = new Map(),
+): FilterBubble[] {
   const statuses = filters.statuses.map((status) => ({
     id: `status:${status}`,
     filterLabel: "Estado",
@@ -107,5 +114,21 @@ export function filterBubbles(filters: GalleryFilters): FilterBubble[] {
             without: { ...filters, yearFrom: "", yearTo: "" },
           },
         ];
-  return [...statuses, ...values, ...years];
+  // A collection deleted meanwhile has no name and no bubble.
+  const collections = filters.collections.flatMap((id) => {
+    const name = collectionNames.get(id);
+    if (name === undefined) return [];
+    return [
+      {
+        id: `collection:${id}`,
+        filterLabel: "Colección",
+        label: name,
+        without: {
+          ...filters,
+          collections: filters.collections.filter((item) => item !== id),
+        },
+      },
+    ];
+  });
+  return [...statuses, ...collections, ...values, ...years];
 }

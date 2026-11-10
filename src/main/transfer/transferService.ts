@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import type { CollectionService } from "../collections/collectionService";
 import { rm, writeFile } from "node:fs/promises";
 import { basename, join } from "node:path";
 import type { Artwork } from "../../shared/artwork";
@@ -22,6 +23,7 @@ import { planImport, resolveImport, type ImportPlan } from "./importPlan";
 export interface TransferServiceOptions {
   inventory: InventoryService;
   exhibitions: ExhibitionService;
+  collections: CollectionService;
   images: ImageStore;
   /** Scratch space where packages are validated before importing. */
   workDir: string;
@@ -85,7 +87,12 @@ export class TransferService {
     ids: readonly string[] | null,
   ): Promise<ExportResult> {
     const artworks = this.artworksToExport(ids);
-    await writeFile(destination, toCsv(artworks), "utf8");
+    const csv = toCsv(artworks, (artworkId) =>
+      this.options.collections
+        .listForArtwork(artworkId)
+        .map((collection) => collection.name),
+    );
+    await writeFile(destination, csv, "utf8");
     return { path: destination, artworks: artworks.length };
   }
 

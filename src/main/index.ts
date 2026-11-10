@@ -102,6 +102,7 @@ void app.whenReady().then(async () => {
   const transfer = new TransferService({
     inventory,
     exhibitions,
+    collections,
     images: imageStore,
     workDir: join(dataDir, "tmp"),
     appVersion: app.getVersion(),
