@@ -108,6 +108,9 @@ export interface ArtGalleryApi {
   restoreDocument(id: string): Promise<void>;
   /** Opens a copy of the file with the system's application for it. */
   openDocumentExternally(id: string): Promise<void>;
+  createTextDocument(title: string): Promise<DocumentDetail>;
+  /** Checked against what the editor can make before it is written. */
+  saveDocumentContent(id: string, content: unknown): Promise<DocumentDetail>;
   linkDocuments(documentIds: string[], target: DocumentLinkRef): Promise<void>;
   unlinkDocument(documentId: string, target: DocumentLinkRef): Promise<void>;
   listLinkedDocuments(target: DocumentLinkRef): Promise<DocumentSummary[]>;
@@ -192,6 +195,8 @@ export const IpcChannel = {
   restoreDocument: "documents:restore",
   openDocumentExternally: "documents:open-externally",
   saveDocumentAs: "documents:save-as",
+  createTextDocument: "documents:create-text",
+  saveDocumentContent: "documents:save-content",
   linkDocuments: "documents:link",
   unlinkDocument: "documents:unlink",
   listLinkedDocuments: "documents:list-linked",

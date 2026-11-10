@@ -10,6 +10,10 @@ import {
   type DocumentSummary,
   type UploadResult,
 } from "../../shared/document";
+import {
+  EMPTY_TEXT_CONTENT,
+  textContentSchema,
+} from "../../shared/editorSchema";
 import type { DocumentRepository } from "./documentRepository";
 import { DocumentFileError, type DocumentStore } from "./documentStore";
 
@@ -49,6 +53,7 @@ export class DocumentService {
           originalName: name,
           extension: file.extension,
           bytes: file.bytes,
+          content: null,
           timestamp: this.timestamp(),
         });
         result.added.push(this.get(id));
@@ -58,6 +63,33 @@ export class DocumentService {
       }
     }
     return result;
+  }
+
+  /** A new, empty text document. */
+  createText(title: string): DocumentDetail {
+    const id = randomUUID();
+    this.documents.insert({
+      id,
+      title: documentFieldsSchema.shape.title.parse(title),
+      kind: "text",
+      fileName: null,
+      originalName: null,
+      extension: null,
+      bytes: null,
+      content: JSON.stringify(EMPTY_TEXT_CONTENT),
+      timestamp: this.timestamp(),
+    });
+    return this.get(id);
+  }
+
+  /** Content is checked before it is written; anything unknown is refused. */
+  saveContent(id: string, content: unknown): DocumentDetail {
+    if (this.get(id).kind !== "text") {
+      throw new Error(`Document ${id} is not a text document`);
+    }
+    const parsed = textContentSchema.parse(content);
+    this.documents.saveContent(id, JSON.stringify(parsed), this.timestamp());
+    return this.get(id);
   }
 
   async replaceFile(id: string, path: string): Promise<DocumentDetail> {

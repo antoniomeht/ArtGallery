@@ -9,6 +9,7 @@ import type {
   DocumentQuery,
   DocumentSummary,
 } from "../../shared/document";
+import type { TextContent } from "../../shared/editorSchema";
 import { transaction } from "../database/transaction";
 
 interface DocumentRow {
@@ -20,6 +21,7 @@ interface DocumentRow {
   original_name: string | null;
   extension: string | null;
   bytes: number | null;
+  content: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -32,6 +34,7 @@ export interface NewDocumentRecord {
   originalName: string | null;
   extension: string | null;
   bytes: number | null;
+  content: string | null;
   timestamp: string;
 }
 
@@ -166,8 +169,8 @@ export class DocumentRepository {
     this.db
       .prepare(
         `INSERT INTO documents (id, title, kind, file_name, original_name,
-           extension, bytes, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+           extension, bytes, content, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .run(
         record.id,
@@ -177,6 +180,7 @@ export class DocumentRepository {
         record.originalName,
         record.extension,
         record.bytes,
+        record.content,
         record.timestamp,
         record.timestamp,
       );
@@ -227,6 +231,16 @@ export class DocumentRepository {
     });
   }
 
+  saveContent(id: string, content: string, timestamp: string): boolean {
+    const { changes } = this.db
+      .prepare(
+        `UPDATE documents SET content = ?, updated_at = ?
+         WHERE id = ? AND kind = 'text' AND deleted_at IS NULL`,
+      )
+      .run(content, timestamp, id);
+    return changes > 0;
+  }
+
   setDeletedAt(id: string, deletedAt: string | null): void {
     this.db
       .prepare("UPDATE documents SET deleted_at = ? WHERE id = ?")
@@ -265,6 +279,7 @@ function toDetail(row: DocumentRow): DocumentDetail {
     notes: row.notes,
     originalName: row.original_name,
     fileName: row.file_name,
+    content: row.content ? (JSON.parse(row.content) as TextContent) : null,
     createdAt: row.created_at,
   };
 }

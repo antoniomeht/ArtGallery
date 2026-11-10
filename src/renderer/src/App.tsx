@@ -21,16 +21,22 @@ import { TrashPage } from "./features/trash/TrashPage";
 export function App() {
   const [section, setSection] = useState<Section>("gallery");
   const [documentsRoute, setDocumentsRoute] = useState<DocumentsRoute>({});
+  // Every visit starts Documentación afresh, even from Documentación itself.
+  const [documentsVisit, setDocumentsVisit] = useState(0);
+  const visitDocuments = useCallback((route: DocumentsRoute) => {
+    setDocumentsRoute(route);
+    setDocumentsVisit((current) => current + 1);
+  }, []);
   const [documentsVersion, setDocumentsVersion] = useState(0);
   const navigation = useMemo(
     () => ({
       documentsVersion,
       showDocuments: (route: DocumentsRoute) => {
-        setDocumentsRoute(route);
+        visitDocuments(route);
         setSection("documents");
       },
     }),
-    [documentsVersion],
+    [documentsVersion, visitDocuments],
   );
   const newArtworks = useNewArtworks(() => setSection("gallery"), section);
   const topBanner = useTopBanner();
@@ -50,7 +56,7 @@ export function App() {
         <Sidebar
           current={section}
           onNavigate={(next) => {
-            setDocumentsRoute({});
+            visitDocuments({});
             setSection(next);
           }}
         />
@@ -66,10 +72,7 @@ export function App() {
           )}
           {section === "exhibitions" && <ExhibitionsPage />}
           {section === "documents" && (
-            <DocumentsPage
-              key={JSON.stringify(documentsRoute)}
-              route={documentsRoute}
-            />
+            <DocumentsPage key={documentsVisit} route={documentsRoute} />
           )}
           {section === "transfer" && <TransferPage />}
           {section === "backups" && <BackupsPage />}
