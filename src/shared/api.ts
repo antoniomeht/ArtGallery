@@ -111,6 +111,8 @@ export interface ArtGalleryApi {
   createTextDocument(title: string): Promise<DocumentDetail>;
   /** Checked against what the editor can make before it is written. */
   saveDocumentContent(id: string, content: unknown): Promise<DocumentDetail>;
+  /** Asks for an image and copies it for the document; null if cancelled. */
+  addDocumentImage(documentId: string): Promise<{ src: string } | null>;
   linkDocuments(documentIds: string[], target: DocumentLinkRef): Promise<void>;
   unlinkDocument(documentId: string, target: DocumentLinkRef): Promise<void>;
   listLinkedDocuments(target: DocumentLinkRef): Promise<DocumentSummary[]>;
@@ -197,6 +199,7 @@ export const IpcChannel = {
   saveDocumentAs: "documents:save-as",
   createTextDocument: "documents:create-text",
   saveDocumentContent: "documents:save-content",
+  addDocumentImage: "documents:add-image",
   linkDocuments: "documents:link",
   unlinkDocument: "documents:unlink",
   listLinkedDocuments: "documents:list-linked",

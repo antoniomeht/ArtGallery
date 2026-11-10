@@ -161,6 +161,14 @@ const migrations: readonly string[] = [
   CREATE INDEX document_collections_collection
     ON document_collections (collection_id);
   `,
+  `
+  -- Images copied into the document store for a text document.
+  CREATE TABLE document_assets (
+    file_name TEXT PRIMARY KEY,
+    document_id TEXT NOT NULL REFERENCES documents (id) ON DELETE CASCADE
+  );
+  CREATE INDEX document_assets_document ON document_assets (document_id);
+  `,
 ];
 
 export const LATEST_SCHEMA_VERSION = migrations.length;

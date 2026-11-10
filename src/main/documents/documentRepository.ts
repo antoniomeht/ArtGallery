@@ -247,11 +247,25 @@ export class DocumentRepository {
       .run(deletedAt, id);
   }
 
-  /** Removes deleted documents; returns their file names. */
+  addAsset(documentId: string, fileName: string): void {
+    this.db
+      .prepare(
+        "INSERT INTO document_assets (file_name, document_id) VALUES (?, ?)",
+      )
+      .run(fileName, documentId);
+  }
+
+  /** Removes deleted documents; returns their files and images. */
   purgeDeleted(): string[] {
     return transaction(this.db, () => {
       const rows = this.db
-        .prepare("SELECT file_name FROM documents WHERE deleted_at IS NOT NULL")
+        .prepare(
+          `SELECT file_name FROM documents WHERE deleted_at IS NOT NULL
+           UNION ALL
+           SELECT a.file_name FROM document_assets a
+           JOIN documents d ON d.id = a.document_id
+           WHERE d.deleted_at IS NOT NULL`,
+        )
         .all() as { file_name: string | null }[];
       this.db
         .prepare("DELETE FROM documents WHERE deleted_at IS NOT NULL")

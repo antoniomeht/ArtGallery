@@ -22,6 +22,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { ReactNode } from "react";
+import { InsertControls } from "./InsertControls";
 import {
   EDITOR_FONTS,
   FONT_SIZES,
@@ -86,8 +87,22 @@ function Group({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
+interface EditorToolbarProps {
+  editor: Editor;
+  documentId: string;
+  onFind: () => void;
+  isLinking: boolean;
+  setIsLinking: (isLinking: boolean) => void;
+}
+
 /** Formatting in two rows, as in Word's Home tab. */
-export function EditorToolbar({ editor }: { editor: Editor }) {
+export function EditorToolbar({
+  editor,
+  documentId,
+  onFind,
+  isLinking,
+  setIsLinking,
+}: EditorToolbarProps) {
   const state = useEditorState({
     editor,
     selector: ({ editor: current }) => {
@@ -118,12 +133,23 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
         align: (["left", "center", "right", "justify"] as const).find((align) =>
           current.isActive({ textAlign: align }),
         ),
+        isImage: current.isActive("image"),
+        imageAlign: current.getAttributes("image").align as string | undefined,
         bulletList: current.isActive("bulletList"),
         orderedList: current.isActive("orderedList"),
       };
     },
   });
   const chain = () => editor.chain().focus();
+  // With an image selected, the alignment buttons place the image.
+  const align = (value: "left" | "center" | "right" | "justify") =>
+    state.isImage && value !== "justify"
+      ? chain().setImageAlign(value).run()
+      : chain().setTextAlign(value).run();
+  const isAligned = (value: string) =>
+    state.isImage
+      ? (state.imageAlign ?? "left") === value
+      : state.align === value;
 
   function setStyle(value: string) {
     if (value === "quote") {
@@ -266,26 +292,27 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
           <ToolButton
             icon={AlignLeft}
             label="Alinear a la izquierda"
-            isActive={state.align === "left"}
-            onClick={() => chain().setTextAlign("left").run()}
+            isActive={isAligned("left")}
+            onClick={() => align("left")}
           />
           <ToolButton
             icon={AlignCenter}
             label="Centrar"
-            isActive={state.align === "center"}
-            onClick={() => chain().setTextAlign("center").run()}
+            isActive={isAligned("center")}
+            onClick={() => align("center")}
           />
           <ToolButton
             icon={AlignRight}
             label="Alinear a la derecha"
-            isActive={state.align === "right"}
-            onClick={() => chain().setTextAlign("right").run()}
+            isActive={isAligned("right")}
+            onClick={() => align("right")}
           />
           <ToolButton
             icon={AlignJustify}
             label="Justificar"
-            isActive={state.align === "justify"}
-            onClick={() => chain().setTextAlign("justify").run()}
+            isActive={isAligned("justify")}
+            disabled={state.isImage}
+            onClick={() => align("justify")}
           />
         </Group>
         <Divider />
@@ -326,6 +353,14 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
             </option>
           ))}
         </select>
+        <Divider />
+        <InsertControls
+          editor={editor}
+          documentId={documentId}
+          onFind={onFind}
+          isLinking={isLinking}
+          setIsLinking={setIsLinking}
+        />
       </div>
     </div>
   );

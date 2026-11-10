@@ -239,3 +239,220 @@
 .document-view__body:has(.text-editor) {
   flex-wrap: nowrap;
 }
+
+.tool-button--text {
+  gap: var(--space-1);
+  padding: 0 var(--space-2);
+  font: inherit;
+  font-size: 13px;
+}
+
+.document-page__content a {
+  color: #1f3fbf;
+  text-decoration: underline;
+  cursor: text;
+}
+
+.document-page__content table {
+  width: 100%;
+  margin: 0 0 0.8em;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.document-page__content th,
+.document-page__content td {
+  position: relative;
+  padding: 4px 6px;
+  border: 1px solid #b9b9b3;
+  vertical-align: top;
+}
+
+.document-page__content th {
+  font-weight: 600;
+  text-align: left;
+  background: #f3f3f0;
+}
+
+.document-page__content td p,
+.document-page__content th p {
+  margin: 0;
+}
+
+.document-page__content .selectedCell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgb(31 63 191 / 0.12);
+  pointer-events: none;
+}
+
+.document-page__content .column-resize-handle {
+  position: absolute;
+  top: 0;
+  right: -2px;
+  bottom: 0;
+  width: 4px;
+  background: #1f3fbf;
+  pointer-events: none;
+}
+
+.document-page__content.resize-cursor {
+  cursor: col-resize;
+}
+
+.document-page__content .tableWrapper {
+  overflow-x: auto;
+}
+
+.document-page__content img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 0 0.8em;
+}
+
+.document-page__content img[data-align="center"] {
+  margin-inline: auto;
+}
+
+.document-page__content img[data-align="right"] {
+  margin-left: auto;
+}
+
+.document-page__content [data-resize-container]:has(img[data-align="center"]) {
+  justify-content: center;
+}
+
+.document-page__content [data-resize-container]:has(img[data-align="right"]) {
+  justify-content: flex-end;
+}
+
+.document-page__content [data-resize-handle] {
+  width: 10px;
+  height: 10px;
+  border: 1px solid #ffffff;
+  background: #1f3fbf;
+  opacity: 0;
+}
+
+.document-page__content [data-resize-handle="bottom-right"] {
+  cursor: nwse-resize;
+}
+
+.document-page__content [data-resize-handle="bottom-left"] {
+  cursor: nesw-resize;
+}
+
+.document-page__content .ProseMirror-selectednode [data-resize-handle],
+.document-page__content [data-resize-container]:hover [data-resize-handle],
+.document-page__content [data-resize-state="true"] [data-resize-handle] {
+  opacity: 1;
+}
+
+.document-page__content .ProseMirror-selectednode img,
+.document-page__content img.ProseMirror-selectednode {
+  outline: 2px solid #1f3fbf;
+}
+
+/* Shown while writing; in the PDF it starts a new page. */
+.document-page__content .page-break {
+  position: relative;
+  height: 1.4em;
+  margin: 1em 0;
+}
+
+.document-page__content .page-break::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  border-top: 1px dashed #b9b9b3;
+}
+
+.document-page__content .page-break::after {
+  content: "Salto de página";
+  position: relative;
+  display: block;
+  width: fit-content;
+  margin: 0 auto;
+  padding: 0 8px;
+  font-size: 11px;
+  line-height: 1.4em;
+  color: #85857f;
+  background: #ffffff;
+}
+
+.document-page__content .page-break.ProseMirror-selectednode {
+  outline: 2px solid #1f3fbf;
+}
+
+.search-match {
+  background: #fff1a8;
+}
+
+.search-match--current {
+  background: #f5b041;
+}
+
+.find-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface-page);
+}
+
+.find-bar__input {
+  width: 180px;
+}
+
+.find-bar__count {
+  min-width: 90px;
+  font-size: var(--font-size-caption);
+  color: var(--text-secondary);
+}
+
+.find-bar__case {
+  font-size: 13px;
+}
+
+.artwork-picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: var(--space-2);
+  max-height: 360px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.artwork-picker__item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  width: 100%;
+  padding: var(--space-1);
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  font: inherit;
+  font-size: var(--font-size-caption);
+  text-align: left;
+  background: none;
+  cursor: pointer;
+}
+
+.artwork-picker__item:hover,
+.artwork-picker__item:focus-visible {
+  border-color: var(--accent);
+}
+
+.artwork-picker__item img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+}

@@ -12,6 +12,7 @@ import {
   DocumentNotesField,
 } from "../documents/DocumentSidePanel";
 import { EditorToolbar } from "./EditorToolbar";
+import { FindBar } from "./FindBar";
 import { createEditorExtensions } from "./extensions";
 import { useAutosave, type SaveStatus } from "./useAutosave";
 import "./editor.css";
@@ -95,6 +96,7 @@ export function TextDocumentView({
 
       <div className="document-view__body">
         <TextEditor
+          documentId={document.id}
           initialContent={document.content}
           onChange={autosave.schedule}
         />
@@ -124,12 +126,16 @@ export function TextDocumentView({
 }
 
 function TextEditor({
+  documentId,
   initialContent,
   onChange,
 }: {
+  documentId: string;
   initialContent: DocumentDetail["content"];
   onChange: (content: unknown) => void;
 }) {
+  const [find, setFind] = useState<"find" | "replace" | null>(null);
+  const [isLinking, setIsLinking] = useState(false);
   const editor = useEditor({
     extensions: createEditorExtensions(),
     content: initialContent ?? undefined,
@@ -139,6 +145,23 @@ function TextEditor({
         "aria-label": "Contenido del documento",
         spellcheck: "true",
         lang: "es",
+      },
+      // Ctrl+click opens a link in the browser, as in Word.
+      handleClick: (_view, _pos, event) => {
+        const link = (event.target as Element).closest("a[href]");
+        if (!link || !(event.ctrlKey || event.metaKey)) return false;
+        window.open(link.getAttribute("href") ?? "", "_blank");
+        return true;
+      },
+      handleKeyDown: (_view, event) => {
+        if (!(event.ctrlKey || event.metaKey)) return false;
+        const key = event.key.toLowerCase();
+        if (key === "k") setIsLinking(true);
+        else if (key === "f") setFind("find");
+        else if (key === "h") setFind("replace");
+        else return false;
+        event.preventDefault();
+        return true;
       },
     },
     onUpdate: ({ editor: current }) => onChange(current.getJSON()),
@@ -153,7 +176,20 @@ function TextEditor({
 
   return (
     <div className="text-editor">
-      <EditorToolbar editor={editor} />
+      <EditorToolbar
+        editor={editor}
+        documentId={documentId}
+        onFind={() => setFind("find")}
+        isLinking={isLinking}
+        setIsLinking={setIsLinking}
+      />
+      {find && (
+        <FindBar
+          editor={editor}
+          focusReplace={find === "replace"}
+          onClose={() => setFind(null)}
+        />
+      )}
       <div className="text-editor__canvas">
         <div className="document-page">
           <EditorContent editor={editor} />
