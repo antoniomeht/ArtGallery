@@ -8,6 +8,7 @@ import type {
   FilterOptions,
 } from "./artwork";
 import type { BackupInfo, RestoreResult } from "./backup";
+import type { CollectionSummary, DeletedCollection } from "./collection";
 import type {
   Exhibition,
   ExhibitionDetail,
@@ -70,6 +71,18 @@ export interface ArtGalleryApi {
     artworkIds: string[],
   ): Promise<ExhibitionDetail>;
   addToExhibition(id: string, artworkIds: string[]): Promise<ExhibitionDetail>;
+  listCollections(): Promise<CollectionSummary[]>;
+  createCollection(name: string): Promise<CollectionSummary>;
+  renameCollection(id: string, name: string): Promise<CollectionSummary>;
+  /** Deletes the collection only; returns what is needed to restore it. */
+  deleteCollection(id: string): Promise<DeletedCollection>;
+  restoreCollection(deleted: DeletedCollection): Promise<void>;
+  setCollectionMembership(
+    id: string,
+    artworkIds: string[],
+    member: boolean,
+  ): Promise<void>;
+  listArtworkCollections(artworkId: string): Promise<CollectionSummary[]>;
   /** Asks where to save and writes the exhibition catalogue as PDF. */
   exportCatalogPdf(
     exhibitionId: string,
@@ -132,6 +145,13 @@ export const IpcChannel = {
   deleteExhibition: "exhibitions:delete",
   setExhibitionArtworks: "exhibitions:set-artworks",
   addToExhibition: "exhibitions:add-artworks",
+  listCollections: "collections:list",
+  createCollection: "collections:create",
+  renameCollection: "collections:rename",
+  deleteCollection: "collections:delete",
+  restoreCollection: "collections:restore",
+  setCollectionMembership: "collections:set-membership",
+  listArtworkCollections: "collections:for-artwork",
   exportCatalogPdf: "print:catalog",
   exportLabelsPdf: "print:labels",
   printReady: "print:ready",

@@ -100,6 +100,23 @@ const migrations: readonly string[] = [
   ALTER TABLE artworks DROP COLUMN depth;
   ALTER TABLE artworks DROP COLUMN dimension_unit;
   `,
+  `
+  -- Named groups of artworks; an artwork can be in several.
+  CREATE TABLE collections (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+
+  CREATE TABLE collection_artworks (
+    collection_id TEXT NOT NULL REFERENCES collections (id) ON DELETE CASCADE,
+    artwork_id TEXT NOT NULL REFERENCES artworks (id) ON DELETE CASCADE,
+    added_at TEXT NOT NULL,
+    PRIMARY KEY (collection_id, artwork_id)
+  );
+  CREATE INDEX collection_artworks_artwork ON collection_artworks (artwork_id);
+  `,
 ];
 
 export const LATEST_SCHEMA_VERSION = migrations.length;

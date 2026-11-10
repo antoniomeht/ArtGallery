@@ -1,6 +1,8 @@
 import { app, BrowserWindow, shell } from "electron";
 import { join } from "node:path";
 import { BackupService } from "./backup/backupService";
+import { CollectionRepository } from "./collections/collectionRepository";
+import { CollectionService } from "./collections/collectionService";
 import { openDatabase } from "./database/openDatabase";
 import { seedDemoInventory } from "./demo/demoInventory";
 import { ExhibitionRepository } from "./exhibitions/exhibitionRepository";
@@ -9,6 +11,7 @@ import { ImageStore } from "./images/imageStore";
 import { ArtworkRepository } from "./inventory/artworkRepository";
 import { InventoryService } from "./inventory/inventoryService";
 import { registerBackupHandlers } from "./ipc/registerBackupHandlers";
+import { registerCollectionHandlers } from "./ipc/registerCollectionHandlers";
 import { registerExhibitionHandlers } from "./ipc/registerExhibitionHandlers";
 import { registerIpcHandlers } from "./ipc/registerIpcHandlers";
 import { registerPrintHandlers } from "./ipc/registerPrintHandlers";
@@ -79,6 +82,7 @@ void app.whenReady().then(async () => {
     images: imageStore,
   });
   const exhibitions = new ExhibitionService(exhibitionRepository);
+  const collections = new CollectionService(new CollectionRepository(db));
   const settings = new SettingsStore(join(dataDir, "settings.json"));
   // Backups live outside the app data, so they survive an uninstall that
   // removes it, and are easy to find and copy elsewhere.
@@ -114,6 +118,7 @@ void app.whenReady().then(async () => {
   handleMediaRequests(imageStore);
   registerIpcHandlers(inventory, settings);
   registerExhibitionHandlers(exhibitions);
+  registerCollectionHandlers(collections);
   registerPrintHandlers(exhibitions);
   registerBackupHandlers({ backups, settings, dataFolder: dataDir });
   registerTransferHandlers(transfer);

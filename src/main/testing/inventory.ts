@@ -1,5 +1,7 @@
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
+import { CollectionRepository } from "../collections/collectionRepository";
+import { CollectionService } from "../collections/collectionService";
 import { openDatabase } from "../database/openDatabase";
 import { ExhibitionRepository } from "../exhibitions/exhibitionRepository";
 import { ExhibitionService } from "../exhibitions/exhibitionService";
@@ -20,5 +22,6 @@ export function openInventory(dataDir: string, now?: () => Date) {
     now,
   });
   const exhibitions = new ExhibitionService(exhibitionRepository, now);
-  return { db, images, service, exhibitions };
+  const collections = new CollectionService(new CollectionRepository(db), now);
+  return { db, images, service, exhibitions, collections };
 }

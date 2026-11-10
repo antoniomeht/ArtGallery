@@ -49,8 +49,12 @@ export function buildFilterConditions(filter: ArtworkFilter): SqlCondition[] {
     conditions.push({
       sql: `(${columns.join(" OR ")} OR EXISTS (
         SELECT 1 FROM artwork_tags t
-        WHERE t.artwork_id = a.id AND sort_key(t.tag) LIKE ? ESCAPE '\\'))`,
-      params: Array<string>(TEXT_COLUMNS.length + 1).fill(pattern),
+        WHERE t.artwork_id = a.id AND sort_key(t.tag) LIKE ? ESCAPE '\\')
+        OR EXISTS (
+        SELECT 1 FROM collection_artworks ca
+        JOIN collections c ON c.id = ca.collection_id
+        WHERE ca.artwork_id = a.id AND sort_key(c.name) LIKE ? ESCAPE '\\'))`,
+      params: Array<string>(TEXT_COLUMNS.length + 2).fill(pattern),
     });
   }
 
@@ -70,6 +74,15 @@ export function buildFilterConditions(filter: ArtworkFilter): SqlCondition[] {
              WHERE t.artwork_id = a.id
                AND sort_key(t.tag) IN ${sortKeyList(filter.tags)})`,
       params: [...filter.tags],
+    });
+  }
+
+  if (filter.collections?.length) {
+    const placeholders = filter.collections.map(() => "?").join(", ");
+    conditions.push({
+      sql: `EXISTS (SELECT 1 FROM collection_artworks ca
+             WHERE ca.artwork_id = a.id AND ca.collection_id IN (${placeholders}))`,
+      params: [...filter.collections],
     });
   }
 

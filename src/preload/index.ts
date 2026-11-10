@@ -48,6 +48,23 @@ const api: ArtGalleryApi = {
     ipcRenderer.invoke(IpcChannel.setExhibitionArtworks, id, artworkIds),
   addToExhibition: (id, artworkIds) =>
     ipcRenderer.invoke(IpcChannel.addToExhibition, id, artworkIds),
+  listCollections: () => ipcRenderer.invoke(IpcChannel.listCollections),
+  createCollection: (name) =>
+    ipcRenderer.invoke(IpcChannel.createCollection, name),
+  renameCollection: (id, name) =>
+    ipcRenderer.invoke(IpcChannel.renameCollection, id, name),
+  deleteCollection: (id) => ipcRenderer.invoke(IpcChannel.deleteCollection, id),
+  restoreCollection: (deleted) =>
+    ipcRenderer.invoke(IpcChannel.restoreCollection, deleted),
+  setCollectionMembership: (id, artworkIds, member) =>
+    ipcRenderer.invoke(
+      IpcChannel.setCollectionMembership,
+      id,
+      artworkIds,
+      member,
+    ),
+  listArtworkCollections: (artworkId) =>
+    ipcRenderer.invoke(IpcChannel.listArtworkCollections, artworkId),
   exportCatalogPdf: (exhibitionId, options) =>
     ipcRenderer.invoke(IpcChannel.exportCatalogPdf, exhibitionId, options),
   exportLabelsPdf: (source, options) =>
