@@ -5,6 +5,7 @@ import {
   documentQuerySchema,
   type DocumentDetail,
   type DocumentFieldsInput,
+  type DocumentLinkRef,
   type DocumentQuery,
   type DocumentSummary,
   type UploadResult,
@@ -93,6 +94,21 @@ export class DocumentService {
     const files = this.documents.purgeDeleted();
     // Files go only after the database change is committed.
     await Promise.all(files.map((file) => this.store.delete(file)));
+  }
+
+  link(documentIds: readonly string[], target: DocumentLinkRef): void {
+    if (!this.documents.targetExists(target)) {
+      throw new Error(`Link target not found: ${target.type} ${target.id}`);
+    }
+    this.documents.link(documentIds, target);
+  }
+
+  unlink(documentId: string, target: DocumentLinkRef): void {
+    this.documents.unlink(documentId, target);
+  }
+
+  listLinked(target: DocumentLinkRef): DocumentSummary[] {
+    return this.list({ linkedTo: target });
   }
 
   /** Where the file of an uploaded document is stored. */

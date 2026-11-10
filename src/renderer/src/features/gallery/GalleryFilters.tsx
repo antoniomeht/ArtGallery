@@ -9,6 +9,7 @@ import type { CollectionSummary } from "../../../../shared/collection";
 import { Button } from "../../components/Button";
 import { Field } from "../../components/Field";
 import { CollectionChips } from "../collections/CollectionChips";
+import { CollectionDocumentsLink } from "../collections/CollectionDocumentsLink";
 import { FilterDropdown } from "./FilterDropdown";
 import {
   EMPTY_FILTERS,
@@ -180,6 +181,12 @@ export function GalleryFilters({
         }
         onManage={onManageCollections}
       />
+      {filters.collections.length === 1 && (
+        <CollectionDocumentsLink
+          collectionId={filters.collections[0]!}
+          name={collectionNames.get(filters.collections[0]!) ?? ""}
+        />
+      )}
 
       {bubbles.length > 0 && (
         <ul className="filter-bubbles" aria-label="Filtros aplicados">

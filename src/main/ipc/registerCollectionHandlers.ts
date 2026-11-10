@@ -9,6 +9,7 @@ const deletedCollection = z.object({
   id,
   name: z.string(),
   artworkIds,
+  documentIds: z.array(z.string().min(1)).max(10_000).default([]),
   createdAt: z.string(),
 });
 

@@ -4,7 +4,21 @@ import { optionalText } from "./fields";
 /** An uploaded file, or a text document written in the app. */
 export type DocumentKind = "file" | "text";
 
-export type DocumentLinkType = "artwork" | "exhibition" | "collection";
+export const DOCUMENT_LINK_TYPES = [
+  "artwork",
+  "exhibition",
+  "collection",
+] as const;
+
+export type DocumentLinkType = (typeof DOCUMENT_LINK_TYPES)[number];
+
+/** Something a document can be linked to. */
+export const documentLinkRefSchema = z.object({
+  type: z.enum(DOCUMENT_LINK_TYPES),
+  id: z.string().min(1),
+});
+
+export type DocumentLinkRef = z.infer<typeof documentLinkRefSchema>;
 
 /** What a document is linked to, named for showing. */
 export interface DocumentLink {
@@ -40,6 +54,7 @@ export const documentQuerySchema = z.object({
   text: z.string().trim().max(300).optional(),
   kind: z.enum(["file", "text"]).optional(),
   sort: z.enum(DOCUMENT_SORTS).default("recent"),
+  linkedTo: documentLinkRefSchema.optional(),
 });
 
 export type DocumentQuery = z.input<typeof documentQuerySchema>;

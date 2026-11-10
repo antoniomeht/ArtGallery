@@ -79,6 +79,12 @@ const api: ArtGalleryApi = {
   openDocumentExternally: (id) =>
     ipcRenderer.invoke(IpcChannel.openDocumentExternally, id),
   saveDocumentAs: (id) => ipcRenderer.invoke(IpcChannel.saveDocumentAs, id),
+  linkDocuments: (documentIds, target) =>
+    ipcRenderer.invoke(IpcChannel.linkDocuments, documentIds, target),
+  unlinkDocument: (documentId, target) =>
+    ipcRenderer.invoke(IpcChannel.unlinkDocument, documentId, target),
+  listLinkedDocuments: (target) =>
+    ipcRenderer.invoke(IpcChannel.listLinkedDocuments, target),
   exportCatalogPdf: (exhibitionId, options) =>
     ipcRenderer.invoke(IpcChannel.exportCatalogPdf, exhibitionId, options),
   exportLabelsPdf: (source, options) =>

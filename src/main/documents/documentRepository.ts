@@ -1,6 +1,9 @@
 import type { DatabaseSync, SQLInputValue } from "node:sqlite";
 import type {
   DocumentDetail,
+  DocumentLink,
+  DocumentLinkRef,
+  DocumentLinkType,
   DocumentFieldsInput,
   DocumentKind,
   DocumentQuery,
@@ -41,6 +44,40 @@ export interface DocumentFile {
 
 const escapeLike = (text: string) => text.replace(/[\\%_]/g, "\\$&");
 
+/** Where the links of each kind live, and what names their target. */
+const LINKS: Record<
+  DocumentLinkType,
+  { table: string; column: string; target: string; label: string }
+> = {
+  artwork: {
+    table: "document_artworks",
+    column: "artwork_id",
+    target: "artworks",
+    label: "title",
+  },
+  exhibition: {
+    table: "document_exhibitions",
+    column: "exhibition_id",
+    target: "exhibitions",
+    label: "name",
+  },
+  collection: {
+    table: "document_collections",
+    column: "collection_id",
+    target: "collections",
+    label: "name",
+  },
+};
+
+const LINKS_SQL = Object.entries(LINKS)
+  .map(
+    ([type, { table, column, target, label }], order) =>
+      `SELECT '${type}' AS type, t.id AS id, t.${label} AS label, ${order} AS kind_order
+       FROM ${table} l JOIN ${target} t ON t.id = l.${column}
+       WHERE l.document_id = ?`,
+  )
+  .join(" UNION ALL ");
+
 export class DocumentRepository {
   constructor(private readonly db: DatabaseSync) {}
 
@@ -58,6 +95,13 @@ export class DocumentRepository {
       conditions.push("kind = ?");
       params.push(query.kind);
     }
+    if (query.linkedTo) {
+      const { table, column } = LINKS[query.linkedTo.type];
+      conditions.push(
+        `id IN (SELECT document_id FROM ${table} WHERE ${column} = ?)`,
+      );
+      params.push(query.linkedTo.id);
+    }
     const order =
       query.sort === "title" ? "sort_key(title)" : "updated_at DESC, id";
     const rows = this.db
@@ -66,14 +110,56 @@ export class DocumentRepository {
          ORDER BY ${order}`,
       )
       .all(...params) as unknown as DocumentRow[];
-    return rows.map(toSummary);
+    return rows.map((row) => this.toSummary(row));
   }
 
   find(id: string): DocumentDetail | null {
     const row = this.db
       .prepare("SELECT * FROM documents WHERE id = ? AND deleted_at IS NULL")
       .get(id) as DocumentRow | undefined;
-    return row ? toDetail(row) : null;
+    return row ? { ...toDetail(row), links: this.linksOf(row.id) } : null;
+  }
+
+  targetExists({ type, id }: DocumentLinkRef): boolean {
+    const { target } = LINKS[type];
+    return (
+      this.db.prepare(`SELECT 1 FROM ${target} WHERE id = ?`).get(id) !==
+      undefined
+    );
+  }
+
+  /** Links documents outside the deletion queue; existing links stay. */
+  link(documentIds: readonly string[], ref: DocumentLinkRef): void {
+    const { table, column } = LINKS[ref.type];
+    const add = this.db.prepare(
+      `INSERT OR IGNORE INTO ${table} (document_id, ${column})
+       SELECT id, ? FROM documents WHERE id = ? AND deleted_at IS NULL`,
+    );
+    transaction(this.db, () => {
+      for (const documentId of documentIds) add.run(ref.id, documentId);
+    });
+  }
+
+  unlink(documentId: string, ref: DocumentLinkRef): void {
+    const { table, column } = LINKS[ref.type];
+    this.db
+      .prepare(`DELETE FROM ${table} WHERE document_id = ? AND ${column} = ?`)
+      .run(documentId, ref.id);
+  }
+
+  private linksOf(documentId: string): DocumentLink[] {
+    const rows = this.db
+      .prepare(
+        `SELECT * FROM (${LINKS_SQL}) ORDER BY kind_order, sort_key(label)`,
+      )
+      .all(
+        ...Object.keys(LINKS).map(() => documentId),
+      ) as unknown as (DocumentLink & { kind_order: number })[];
+    return rows.map(({ type, id, label }) => ({ type, id, label }));
+  }
+
+  private toSummary(row: DocumentRow): DocumentSummary {
+    return { ...toSummary(row), links: this.linksOf(row.id) };
   }
 
   insert(record: NewDocumentRecord): void {

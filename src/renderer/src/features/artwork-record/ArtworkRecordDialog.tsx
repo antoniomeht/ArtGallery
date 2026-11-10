@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Artwork } from "../../../../shared/artwork";
 import { useDimensionUnit } from "../../hooks/useDimensionUnit";
 import { ArtworkCollectionsField } from "../collections/ArtworkCollectionsField";
+import { LinkedDocuments } from "../documents/LinkedDocuments";
 import { ArtworkForm } from "./ArtworkForm";
 import { ArtworkLabel } from "./ArtworkLabel";
 import { ImageViewer } from "./ImageViewer";
@@ -128,6 +129,10 @@ export function ArtworkRecordDialog({
             <ArtworkCollectionsField
               artworkId={state.artwork.id}
               onChanged={onChanged}
+            />
+            <LinkedDocuments
+              target={{ type: "artwork", id: state.artwork.id }}
+              targetLabel={state.artwork.title}
             />
           </div>
         </div>

@@ -58,3 +58,22 @@
 .collection-chips__manage:hover {
   text-decoration: underline;
 }
+
+.collection-documents {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: var(--space-1);
+  padding: 0;
+  border: 0;
+  font: inherit;
+  font-size: var(--font-size-caption);
+  font-weight: 500;
+  color: var(--accent);
+  background: none;
+  cursor: pointer;
+}
+
+.collection-documents:hover {
+  text-decoration: underline;
+}
