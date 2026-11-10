@@ -23,6 +23,7 @@ import { setPendingImport } from "../editor/pendingImports";
 import { DocumentLinksPanel, DocumentNotesField } from "./DocumentSidePanel";
 import { DocumentBadge } from "./DocumentBadge";
 import { formatBytes, formatDate } from "./documentText";
+import { SlowPdfNotice } from "./SlowPdfNotice";
 
 interface FileDocumentViewProps {
   documentId: string;
@@ -133,6 +134,7 @@ export function FileDocumentView({
         </div>
       </header>
 
+      <SlowPdfNotice document={document} />
       <div className="document-view__body">
         <div className="document-view__preview">
           {url && extension === "pdf" && (

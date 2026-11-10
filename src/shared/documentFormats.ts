@@ -53,6 +53,16 @@ export function isViewableImage(extension: string | null): boolean {
   return extension !== null && VIEWABLE_IMAGES.includes(extension);
 }
 
+/** From this size the PDF viewer takes from seconds to a minute to draw. */
+const SLOW_PDF_BYTES = 100 * 1024 * 1024;
+
+export function isSlowPdf(
+  extension: string | null,
+  bytes: number | null,
+): boolean {
+  return extension === "pdf" && bytes !== null && bytes >= SLOW_PDF_BYTES;
+}
+
 /** Short label for lists: the extension, or TEXTO for documents written here. */
 export function documentBadge(extension: string | null): string {
   return extension ? extension.toUpperCase() : "TEXTO";
