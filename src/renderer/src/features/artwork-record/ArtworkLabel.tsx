@@ -13,10 +13,28 @@ import {
 interface ArtworkLabelProps {
   artwork: Artwork;
   unit: DimensionUnit;
+  /** Called with the form label of a field the user clicks, e.g. "Técnica". */
+  onEditField?: (fieldLabel: string) => void;
 }
 
-/** Read-only record laid out like a museum wall label, then the details. */
-export function ArtworkLabel({ artwork, unit }: ArtworkLabelProps) {
+/**
+ * Read-only record laid out like a museum wall label, then the details.
+ * Clicking a value opens it for editing; the "Editar" button does the same
+ * from the keyboard.
+ */
+export function ArtworkLabel({
+  artwork,
+  unit,
+  onEditField,
+}: ArtworkLabelProps) {
+  const editable = (fieldLabel: string) =>
+    onEditField
+      ? {
+          "data-edit": fieldLabel,
+          className: "label__editable",
+          title: "Haz clic para editar",
+        }
+      : {};
   const medium = formatMedium(artwork);
   const dimensions = formatDimensions(artwork.dimensions, unit);
   const details: [string, string | null][] = [
@@ -27,22 +45,47 @@ export function ArtworkLabel({ artwork, unit }: ArtworkLabelProps) {
   ];
 
   return (
-    <article className="label">
+    <article
+      className="label"
+      onClick={(event) => {
+        // Selecting text to copy it must not open the form.
+        if (window.getSelection()?.toString()) return;
+        const target = (event.target as Element).closest<HTMLElement>(
+          "[data-edit]",
+        );
+        if (target?.dataset.edit) onEditField?.(target.dataset.edit);
+      }}
+    >
       <header className="label__heading">
-        {artwork.artist && <p className="label__artist">{artwork.artist}</p>}
+        {artwork.artist && (
+          <p
+            {...editable("Artista")}
+            className={`label__artist${onEditField ? " label__editable" : ""}`}
+          >
+            {artwork.artist}
+          </p>
+        )}
         <h2 className="label__title">
-          <span className="artwork-title">{artwork.title}</span>
-          {formatYear(artwork) && <span>, {formatYear(artwork)}</span>}
+          <span {...editable("Título")}>
+            <span className="artwork-title">{artwork.title}</span>
+          </span>
+          {formatYear(artwork) && (
+            <span {...editable("Año")}>, {formatYear(artwork)}</span>
+          )}
         </h2>
-        {medium && <p>{medium}</p>}
-        {dimensions && <p>{dimensions}</p>}
+        {medium && <p {...editable("Técnica")}>{medium}</p>}
+        {dimensions && <p {...editable("Alto")}>{dimensions}</p>}
       </header>
 
       <dl className="label__details">
         {details
           .filter(([, value]) => value)
           .map(([term, value]) => (
-            <div key={term} className="label__detail">
+            <div
+              key={term}
+              {...editable(term)}
+              className={`label__detail${onEditField ? " label__editable" : ""}`}
+            >
               <dt>{term}</dt>
               <dd>{value}</dd>
             </div>
@@ -50,7 +93,11 @@ export function ArtworkLabel({ artwork, unit }: ArtworkLabelProps) {
       </dl>
 
       {artwork.tags.length > 0 && (
-        <ul className="label__tags" aria-label="Etiquetas">
+        <ul
+          aria-label="Etiquetas"
+          {...editable("Etiquetas")}
+          className={`label__tags${onEditField ? " label__editable" : ""}`}
+        >
           {artwork.tags.map((tag) => (
             <li key={tag} className="tag">
               {tag}
@@ -60,14 +107,20 @@ export function ArtworkLabel({ artwork, unit }: ArtworkLabelProps) {
       )}
 
       {artwork.description && (
-        <section className="label__text">
+        <section
+          {...editable("Descripción")}
+          className={`label__text${onEditField ? " label__editable" : ""}`}
+        >
           <h3>Descripción</h3>
           <p>{artwork.description}</p>
         </section>
       )}
 
       {artwork.notes && (
-        <section className="label__text">
+        <section
+          {...editable("Notas")}
+          className={`label__text${onEditField ? " label__editable" : ""}`}
+        >
           <h3>Notas</h3>
           <p>{artwork.notes}</p>
         </section>
