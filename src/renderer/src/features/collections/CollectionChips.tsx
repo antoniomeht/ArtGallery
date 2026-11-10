@@ -1,4 +1,5 @@
 import type { CollectionSummary } from "../../../../shared/collection";
+import { dropTargetValue } from "../drop/dropRouter";
 import "./CollectionChips.css";
 
 interface CollectionChipsProps {
@@ -28,7 +29,8 @@ export function CollectionChips({
           type="button"
           className="collection-chip"
           aria-pressed={activeIds.includes(id)}
-          data-drop-target={`collection:${id}`}
+          data-drop-target={dropTargetValue({ type: "collection", id })}
+          data-drop-label={name}
           onClick={() => onToggle(id)}
         >
           {name}

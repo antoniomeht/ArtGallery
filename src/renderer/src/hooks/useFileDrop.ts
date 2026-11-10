@@ -3,7 +3,8 @@ import { useEffect, useRef, useState } from "react";
 interface FileDropOptions {
   /** Decides, at drop time, whether this handler should take the files. */
   isActive: () => boolean;
-  onDrop: (paths: string[]) => void;
+  /** `target` is the element under the pointer when the files were dropped. */
+  onDrop: (paths: string[], target: Element | null) => void;
 }
 
 const carriesFiles = (event: DragEvent) =>
@@ -39,7 +40,8 @@ export function useFileDrop({ isActive, onDrop }: FileDropOptions): boolean {
       const paths = [...(event.dataTransfer?.files ?? [])]
         .map((file) => window.artGallery.pathForFile(file))
         .filter(Boolean);
-      if (paths.length > 0) latest.current.onDrop(paths);
+      const target = event.target instanceof Element ? event.target : null;
+      if (paths.length > 0) latest.current.onDrop(paths, target);
     };
 
     window.addEventListener("dragover", handleOver);

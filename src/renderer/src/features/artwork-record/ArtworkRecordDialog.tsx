@@ -8,6 +8,7 @@ import { ArtworkForm } from "./ArtworkForm";
 import { ArtworkLabel } from "./ArtworkLabel";
 import { ImageViewer } from "./ImageViewer";
 import { Button } from "../../components/Button";
+import { dropTargetValue } from "../drop/dropRouter";
 import "./ArtworkRecordDialog.css";
 
 interface ArtworkRecordDialogProps {
@@ -58,6 +59,8 @@ export function ArtworkRecordDialog({
       ref={dialogRef}
       className="record"
       aria-label="Ficha de la obra"
+      data-drop-target={dropTargetValue({ type: "artwork", id: artworkId })}
+      data-drop-label={state.status === "ready" ? state.artwork.title : ""}
       onClose={onClose}
       onCancel={(event) => {
         // Escape leaves edit mode first instead of closing the record.

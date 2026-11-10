@@ -11,7 +11,10 @@ import type {
   DocumentSummary,
 } from "../../../../shared/document";
 import { ActionNotice } from "../../components/ActionNotice";
-import type { DocumentsRoute } from "../../components/Navigation";
+import {
+  useNavigation,
+  type DocumentsRoute,
+} from "../../components/Navigation";
 import { LinkedFilter, type LinkedChoice } from "./LinkedFilter";
 import { Button } from "../../components/Button";
 import { useActionNotice } from "../../hooks/useActionNotice";
@@ -43,6 +46,7 @@ export function DocumentsPage({ route }: DocumentsPageProps) {
   );
   const [version, setVersion] = useState(0);
   const appliedText = useDebouncedValue(text, 250);
+  const { documentsVersion } = useNavigation();
   const reload = useCallback(() => setVersion((current) => current + 1), []);
   const { notice, setNotice } = useActionNotice(reload);
 
@@ -64,7 +68,7 @@ export function DocumentsPage({ route }: DocumentsPageProps) {
     return () => {
       isCurrent = false;
     };
-  }, [appliedText, kind, sort, linkedTo, version]);
+  }, [appliedText, kind, sort, linkedTo, version, documentsVersion]);
 
   async function upload() {
     const paths = await window.artGallery.pickDocumentFiles();

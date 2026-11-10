@@ -21,7 +21,7 @@ interface LinkedDocumentsProps {
 
 /** The documents of an artwork, exhibition or collection; changes are immediate. */
 export function LinkedDocuments({ target, targetLabel }: LinkedDocumentsProps) {
-  const { showDocuments } = useNavigation();
+  const { showDocuments, documentsVersion } = useNavigation();
   const [documents, setDocuments] = useState<DocumentSummary[]>([]);
   const [version, setVersion] = useState(0);
   const [isLinking, setIsLinking] = useState(false);
@@ -38,7 +38,7 @@ export function LinkedDocuments({ target, targetLabel }: LinkedDocumentsProps) {
     return () => {
       isCurrent = false;
     };
-  }, [type, id, version]);
+  }, [type, id, version, documentsVersion]);
 
   async function upload() {
     const paths = await window.artGallery.pickDocumentFiles();

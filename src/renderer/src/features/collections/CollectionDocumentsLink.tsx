@@ -12,7 +12,7 @@ export function CollectionDocumentsLink({
   collectionId,
   name,
 }: CollectionDocumentsLinkProps) {
-  const { showDocuments } = useNavigation();
+  const { showDocuments, documentsVersion } = useNavigation();
   const [count, setCount] = useState(0);
 
   useEffect(() => {
@@ -23,7 +23,7 @@ export function CollectionDocumentsLink({
     return () => {
       isCurrent = false;
     };
-  }, [collectionId]);
+  }, [collectionId, documentsVersion]);
 
   if (count === 0) return null;
   return (

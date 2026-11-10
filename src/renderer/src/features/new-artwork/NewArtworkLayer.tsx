@@ -1,4 +1,3 @@
-import { ImagePlus } from "lucide-react";
 import { ActionNotice } from "../../components/ActionNotice";
 import { ArtworkRecordDialog } from "../artwork-record/ArtworkRecordDialog";
 import { CreationProgressDialog } from "./CreationProgressDialog";
@@ -16,15 +15,6 @@ export function NewArtworkLayer({ newArtworks }: NewArtworkLayerProps) {
 
   return (
     <>
-      {newArtworks.isDragging && (
-        <div className="drop-overlay">
-          <ImagePlus aria-hidden size={32} />
-          <strong className="drop-overlay__title">
-            Suelta para añadir a la Galería
-          </strong>
-          <span>JPG, PNG, WebP o TIFF</span>
-        </div>
-      )}
       {newArtworks.progress && (
         <CreationProgressDialog progress={newArtworks.progress} />
       )}

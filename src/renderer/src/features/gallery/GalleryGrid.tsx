@@ -2,6 +2,7 @@ import { Check, Pencil } from "lucide-react";
 import type { ArtworkSummary } from "../../../../shared/artwork";
 import { thumbnailUrl } from "../../../../shared/media";
 import { useLongPress } from "../../hooks/useLongPress";
+import { dropTargetValue } from "../drop/dropRouter";
 import "./GalleryGrid.css";
 
 interface GalleryGridProps {
@@ -35,6 +36,11 @@ export function GalleryGrid({
             <button
               type="button"
               className="gallery-tile"
+              data-drop-target={dropTargetValue({
+                type: "artwork",
+                id: artwork.id,
+              })}
+              data-drop-label={artwork.title}
               aria-pressed={selectedIds ? isSelected : undefined}
               aria-keyshortcuts={selectedIds ? undefined : "Shift+Enter"}
               {...pressHandlers(artwork.id)}
