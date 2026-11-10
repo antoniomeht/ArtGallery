@@ -8,6 +8,7 @@ import yauzl, { type Entry, type ZipFile } from "yauzl";
 import type { ZodType } from "zod";
 import {
   DATA_ENTRY,
+  DOCUMENT_ENTRY,
   IMAGE_ENTRY,
   MANIFEST_ENTRY,
   manifestSchema,
@@ -28,6 +29,8 @@ export interface ValidatedPackage {
   imagesDir: string;
   /** Path of an extracted image, as listed in `data`. */
   imagePath: (file: string) => string;
+  /** Path of an extracted document file, as listed in `data`. */
+  documentPath: (file: string) => string;
 }
 
 /** Reads only the manifest, e.g. to list backups without extracting them. */
@@ -71,6 +74,7 @@ async function extract(
   let manifest: PackageManifest | undefined;
   let rawData: unknown;
   const extracted = new Map<string, { sha256: string; bytes: number }>();
+  const documentsDir = join(stagingDir, "documents");
 
   try {
     for await (const entry of entriesOf(zip)) {
@@ -82,6 +86,10 @@ async function extract(
       } else if (IMAGE_ENTRY.test(name) && !extracted.has(name)) {
         // The file name comes from a validated pattern, never from free text.
         const target = join(stagingDir, basename(name));
+        extracted.set(name, await extractImage(zip, entry, target));
+      } else if (DOCUMENT_ENTRY.test(name) && !extracted.has(name)) {
+        await mkdir(documentsDir, { recursive: true });
+        const target = join(documentsDir, basename(name));
         extracted.set(name, await extractImage(zip, entry, target));
       } else {
         throw new PackageError(
@@ -98,24 +106,33 @@ async function extract(
     throw new PackageError("not-a-package", "The package has no manifest.");
   }
   const data = parse(packageDataSchema, rawData, "data.json is not valid.");
-  checkImages(data, extracted);
+  checkFiles(data, extracted);
   checkExhibitions(data);
+  checkCollectionsAndDocuments(data);
 
   return {
     manifest,
     data,
     imagesDir: stagingDir,
     imagePath: (file) => join(stagingDir, basename(file)),
+    documentPath: (file) => join(documentsDir, basename(file)),
   };
 }
 
-/** Every listed image must be present and intact, and nothing more. */
-function checkImages(
+/** Every listed image and document file is present and intact, and nothing more. */
+function checkFiles(
   data: PackageData,
   extracted: Map<string, { sha256: string; bytes: number }>,
 ): void {
   const listed = new Set<string>();
-  for (const image of data.artworks.flatMap((artwork) => artwork.images)) {
+  const files = [
+    ...data.artworks.flatMap((artwork) => artwork.images),
+    ...data.documents.flatMap((document) => [
+      ...(document.file ? [document.file] : []),
+      ...document.assets,
+    ]),
+  ];
+  for (const image of files) {
     const actual = extracted.get(image.file);
     if (!actual) {
       throw new PackageError("missing-image", `Missing image: ${image.file}`);
@@ -144,6 +161,31 @@ function checkExhibitions(data: PackageData): void {
     throw new PackageError(
       "invalid-data",
       `Exhibition refers to missing artworks: ${broken.name}`,
+    );
+  }
+}
+
+/** Collections and document links may only refer to what the package holds. */
+function checkCollectionsAndDocuments(data: PackageData): void {
+  const artworks = new Set(data.artworks.map(({ id }) => id));
+  const exhibitions = new Set(data.exhibitions.map(({ id }) => id));
+  const collections = new Set(data.collections.map(({ id }) => id));
+  const outside = (ids: string[], known: Set<string>) =>
+    ids.some((id) => !known.has(id));
+  const brokenCollection = data.collections.find(({ artworkIds }) =>
+    outside(artworkIds, artworks),
+  );
+  const brokenDocument = data.documents.find(
+    ({ links }) =>
+      outside(links.artworks, artworks) ||
+      outside(links.exhibitions, exhibitions) ||
+      outside(links.collections, collections),
+  );
+  const broken = brokenCollection?.name ?? brokenDocument?.title;
+  if (broken !== undefined) {
+    throw new PackageError(
+      "invalid-data",
+      `Refers to something outside the package: ${broken}`,
     );
   }
 }

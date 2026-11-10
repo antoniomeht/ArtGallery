@@ -10,7 +10,9 @@ import {
   PACKAGE_FORMAT,
   PACKAGE_FORMAT_VERSION,
   type PackageArtwork,
+  type PackageCollection,
   type PackageData,
+  type PackageDocument,
   type PackageExhibition,
   type PackageKind,
   type PackageManifest,
@@ -21,11 +23,27 @@ export type ExportArtwork = Omit<PackageArtwork, "images"> & {
   images: { id: string; fileName: string; path: string }[];
 };
 
+/** A stored file of a document and where it is now. */
+export interface ExportFile {
+  fileName: string;
+  path: string;
+}
+
+/** A document to export: its data plus where its files live. */
+export type ExportDocument = Omit<PackageDocument, "file" | "assets"> & {
+  file: (ExportFile & { originalName: string; extension: string }) | null;
+  assets: ExportFile[];
+};
+
 export interface WritePackageOptions {
   kind: PackageKind;
   artworks: readonly ExportArtwork[];
   /** Must only refer to artworks in `artworks`. */
   exhibitions?: readonly PackageExhibition[];
+  /** Must only refer to artworks in `artworks`. */
+  collections?: readonly PackageCollection[];
+  /** Links must only refer to what the package holds. */
+  documents?: readonly ExportDocument[];
   appVersion: string;
   now?: Date;
 }
@@ -41,6 +59,8 @@ export async function writePackage(
     kind,
     artworks,
     exhibitions = [],
+    collections = [],
+    documents = [],
     appVersion,
     now = new Date(),
   }: WritePackageOptions,
@@ -55,7 +75,11 @@ export async function writePackage(
     kind,
     createdAt: now.toISOString(),
     app: { name: "ArtGallery", version: appVersion },
-    counts: { artworks: artworks.length, images: imageCount },
+    counts: {
+      artworks: artworks.length,
+      images: imageCount,
+      documents: documents.length,
+    },
   };
 
   const zip = new ZipFile();
@@ -82,7 +106,30 @@ export async function writePackage(
     }
   }
 
-  // Added last and read lazily: by then every image has been hashed.
+  const fileHashes = new Map<string, { sha256: string; bytes: number }>();
+  const documentFiles = documents.flatMap((document) => [
+    ...(document.file ? [document.file] : []),
+    ...document.assets,
+  ]);
+  for (const file of documentFiles) {
+    const entry = `documents/${file.fileName}`;
+    const { size } = await stat(file.path);
+    zip.addReadStreamLazy(entry, { size }, (callback) => {
+      const hash = createHash("sha256");
+      const stream = createReadStream(file.path);
+      stream.on("data", (chunk) => hash.update(chunk));
+      stream.on("end", () =>
+        fileHashes.set(entry, { sha256: hash.digest("hex"), bytes: size }),
+      );
+      callback(null, stream);
+    });
+  }
+  const packaged = (file: ExportFile) => {
+    const entry = `documents/${file.fileName}`;
+    return { file: entry, ...fileHashes.get(entry)! };
+  };
+
+  // Added last and read lazily: by then every file has been hashed.
   zip.addReadStreamLazy(DATA_ENTRY, (callback) => {
     const data: PackageData = {
       artworks: artworks.map((artwork) => ({
@@ -94,6 +141,20 @@ export async function writePackage(
         })),
       })),
       exhibitions: [...exhibitions],
+      collections: [...collections],
+      documents: documents.map(({ file, assets, ...document }) => ({
+        ...document,
+        file: file
+          ? {
+              ...packaged(file),
+              originalName: file.originalName,
+              extension: file.extension as NonNullable<
+                PackageDocument["file"]
+              >["extension"],
+            }
+          : null,
+        assets: assets.map(packaged),
+      })),
     };
     callback(null, Readable.from([jsonBuffer(data)]));
   });

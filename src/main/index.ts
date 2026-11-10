@@ -118,6 +118,8 @@ void app.whenReady().then(async () => {
   const backups = new BackupService({
     inventory,
     images: imageStore,
+    collections,
+    documents,
     settings,
     defaultFolder: join(
       app.getPath("documents"),

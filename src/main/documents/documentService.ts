@@ -28,7 +28,9 @@ import { documentFileUrl } from "../../shared/media";
 import { DEFAULT_PAGE_SETUP, pageSetupSchema } from "../../shared/pageSetup";
 import { toDocx, type ResolveImage } from "./docxExport";
 import { docxToHtml } from "./docxImport";
-import type { DocumentRepository } from "./documentRepository";
+import type { PackageDocument } from "../package/packageFormat";
+import type { ExportDocument } from "../package/writePackage";
+import type { DocumentRecord, DocumentRepository } from "./documentRepository";
 import { DocumentFileError, type DocumentStore } from "./documentStore";
 
 /** Images of a Word file that a document can show. */
@@ -260,6 +262,89 @@ export class DocumentService {
         if (asset) return this.store.path(asset);
         return resolveArtworkImage(src);
       },
+    );
+  }
+
+  /** Every document with where its files are, for backups. */
+  listForExport(): ExportDocument[] {
+    return this.documents.listRecords().map((record) => ({
+      id: record.id,
+      title: record.title,
+      notes: record.notes,
+      kind: record.kind,
+      createdAt: record.createdAt,
+      updatedAt: record.updatedAt,
+      content: record.content,
+      pageSetup: record.pageSetup,
+      comments: record.comments,
+      links: record.links,
+      file:
+        record.fileName && record.originalName && record.extension
+          ? {
+              fileName: record.fileName,
+              path: this.store.path(record.fileName),
+              originalName: record.originalName,
+              extension: record.extension,
+            }
+          : null,
+      assets: record.assets.map((fileName) => ({
+        fileName,
+        path: this.store.path(fileName),
+      })),
+    }));
+  }
+
+  /**
+   * Copies the files of a validated package into the store, under the names
+   * they had, and returns the documents ready for `replaceAll`.
+   */
+  async copyFromPackage(
+    documents: readonly PackageDocument[],
+    pathOf: (file: string) => string,
+  ): Promise<DocumentRecord[]> {
+    const records: DocumentRecord[] = [];
+    for (const document of documents) {
+      const files = [
+        ...(document.file ? [document.file.file] : []),
+        ...document.assets.map(({ file }) => file),
+      ];
+      for (const file of files) {
+        await this.store.copyIn(pathOf(file), basename(file));
+      }
+      records.push({
+        id: document.id,
+        title: document.title,
+        notes: document.notes,
+        kind: document.kind,
+        createdAt: document.createdAt,
+        updatedAt: document.updatedAt,
+        fileName: document.file ? basename(document.file.file) : null,
+        originalName: document.file?.originalName ?? null,
+        extension: document.file?.extension ?? null,
+        bytes: document.file?.bytes ?? null,
+        content: document.content,
+        pageSetup: document.pageSetup,
+        assets: document.assets.map(({ file }) => basename(file)),
+        comments: document.comments,
+        links: document.links,
+      });
+    }
+    return records;
+  }
+
+  /** Replaces every document; joins a transaction already open. */
+  replaceAll(records: readonly DocumentRecord[]): void {
+    this.documents.replaceAll(records);
+  }
+
+  /** Removes stored files no document uses any more. */
+  async removeUnusedFiles(): Promise<void> {
+    const used = new Set(this.documents.listFileNames());
+    const files = await this.store.listFiles();
+    await Promise.all(
+      files
+        .filter((file) => !used.has(file))
+        .map((file) => this.store.delete(file)),
     );
   }
 

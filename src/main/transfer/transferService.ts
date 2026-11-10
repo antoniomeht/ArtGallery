@@ -13,6 +13,7 @@ import type { ExhibitionService } from "../exhibitions/exhibitionService";
 import type { ImageStore } from "../images/imageStore";
 import type { InventoryService } from "../inventory/inventoryService";
 import { toExportArtwork } from "../package/exportArtwork";
+import type { PackageCollection } from "../package/packageFormat";
 import { PackageError } from "../package/packageFormat";
 import { readPackage, type ValidatedPackage } from "../package/readPackage";
 import { restoredArtworks } from "../package/restoredArtworks";
@@ -56,6 +57,7 @@ export class TransferService {
       artworks: artworks.map((artwork) =>
         toExportArtwork(artwork, this.options.images),
       ),
+      collections: this.collectionsOf(artworks),
       appVersion: this.options.appVersion,
       now: this.now(),
     });
@@ -76,6 +78,7 @@ export class TransferService {
         toExportArtwork(artwork, this.options.images),
       ),
       exhibitions: [{ ...rest, artworkIds }],
+      collections: this.collectionsOf(this.artworksToExport(artworkIds)),
       appVersion: this.options.appVersion,
       now: this.now(),
     });
@@ -140,7 +143,7 @@ export class TransferService {
     const session = this.sessions.get(sessionId);
     if (!session) throw new Error(`Unknown import session: ${sessionId}`);
     try {
-      const { artworks, exhibitions, ...counts } = resolveImport(
+      const { artworks, exhibitions, collections, ...counts } = resolveImport(
         session.plan,
         policy,
         { newId: randomUUID, now: this.now() },
@@ -149,6 +152,11 @@ export class TransferService {
         restoredArtworks(session.pkg, artworks),
         exhibitions,
       );
+      // A collection with the same name, ignoring case and accents, is reused.
+      for (const { name, artworkIds } of collections) {
+        const collection = this.options.collections.findOrCreate(name);
+        this.options.collections.setMembership(collection.id, artworkIds, true);
+      }
       return { ...counts, exhibitions: exhibitions.length };
     } finally {
       await this.cancelImport(sessionId);
@@ -159,6 +167,18 @@ export class TransferService {
   async cancelImport(sessionId: string): Promise<void> {
     this.sessions.delete(sessionId);
     await rm(this.stagingDir(sessionId), { recursive: true, force: true });
+  }
+
+  /** Collections of the exported artworks, holding only those artworks. */
+  private collectionsOf(artworks: readonly Artwork[]): PackageCollection[] {
+    const exported = new Set(artworks.map(({ id }) => id));
+    return this.options.collections
+      .listRecords()
+      .map((collection) => ({
+        ...collection,
+        artworkIds: collection.artworkIds.filter((id) => exported.has(id)),
+      }))
+      .filter(({ artworkIds }) => artworkIds.length > 0);
   }
 
   private artworksToExport(ids: readonly string[] | null): Artwork[] {

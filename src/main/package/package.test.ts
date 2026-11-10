@@ -76,7 +76,7 @@ describe("artgallery package", () => {
     });
     const read = await readPackage(file, join(dir, "staging"));
 
-    expect(manifest.counts).toEqual({ artworks: 2, images: 2 });
+    expect(manifest.counts).toEqual({ artworks: 2, images: 2, documents: 0 });
     expect(read.manifest).toEqual(manifest);
     const marina = read.data.artworks.find((a) => a.title === "Marina")!;
     expect(marina).toMatchObject({
@@ -187,6 +187,46 @@ describe("artgallery package", () => {
 
     expect(read.manifest.formatVersion).toBe(1);
     expect(read.data.exhibitions).toEqual([]);
+  });
+
+  it("reads packages from format v3, which had no collections or documents", async () => {
+    const dir = await useTempDir();
+    const file = join(dir, "v3.artgallery");
+    await zipWith(file, {
+      "manifest.json": MANIFEST.replace(
+        '"formatVersion":1',
+        '"formatVersion":3',
+      ),
+      "data.json": JSON.stringify({ artworks: [], exhibitions: [] }),
+    });
+
+    const read = await readPackage(file, join(dir, "staging"));
+
+    expect(read.manifest.formatVersion).toBe(3);
+    expect(read.data.collections).toEqual([]);
+    expect(read.data.documents).toEqual([]);
+  });
+
+  it("rejects collections and documents that refer to things outside the package", async () => {
+    const dir = await useTempDir();
+    const missing = "3f2b8a4c-1d2e-4f5a-9b8c-7d6e5f4a3b2c";
+    const collection = {
+      id: "9a8b7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d",
+      name: "Serie",
+      createdAt: "2026-11-02T10:00:00.000Z",
+      updatedAt: "2026-11-02T10:00:00.000Z",
+      artworkIds: [missing],
+    };
+    const file = join(dir, "broken.artgallery");
+    await zipWith(file, {
+      "manifest.json": MANIFEST,
+      "data.json": JSON.stringify({ artworks: [], collections: [collection] }),
+    });
+
+    await expectPackageError(
+      readPackage(file, join(dir, "staging")),
+      "invalid-data",
+    );
   });
 
   it("converts measures from packages before v3, which had a single unit", async () => {
