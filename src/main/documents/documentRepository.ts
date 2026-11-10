@@ -11,6 +11,7 @@ import type {
   DocumentSummary,
 } from "../../shared/document";
 import type { TextContent } from "../../shared/editorSchema";
+import { pageSetupSchema } from "../../shared/pageSetup";
 import { transaction } from "../database/transaction";
 
 interface DocumentRow {
@@ -23,6 +24,7 @@ interface DocumentRow {
   extension: string | null;
   bytes: number | null;
   content: string | null;
+  page_setup: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -242,6 +244,15 @@ export class DocumentRepository {
     return changes > 0;
   }
 
+  savePageSetup(id: string, pageSetup: string, timestamp: string): void {
+    this.db
+      .prepare(
+        `UPDATE documents SET page_setup = ?, updated_at = ?
+         WHERE id = ? AND kind = 'text' AND deleted_at IS NULL`,
+      )
+      .run(pageSetup, timestamp, id);
+  }
+
   setDeletedAt(id: string, deletedAt: string | null): void {
     this.db
       .prepare("UPDATE documents SET deleted_at = ? WHERE id = ?")
@@ -317,6 +328,12 @@ function toDetail(row: DocumentRow): DocumentDetail {
     originalName: row.original_name,
     fileName: row.file_name,
     content: row.content ? (JSON.parse(row.content) as TextContent) : null,
+    pageSetup:
+      row.kind === "text"
+        ? pageSetupSchema.parse(
+            row.page_setup ? JSON.parse(row.page_setup) : {},
+          )
+        : null,
     createdAt: row.created_at,
   };
 }

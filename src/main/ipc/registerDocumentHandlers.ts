@@ -86,6 +86,11 @@ export function registerDocumentHandlers(documents: DocumentService): void {
     },
   );
   ipcMain.handle(
+    IpcChannel.savePageSetup,
+    (_event, documentId: unknown, setup: unknown) =>
+      documents.savePageSetup(id.parse(documentId), setup),
+  );
+  ipcMain.handle(
     IpcChannel.addDocumentComment,
     (_event, documentId: unknown, body: unknown) =>
       documents.addComment(id.parse(documentId), z.string().parse(body)),

@@ -1,8 +1,9 @@
-import { BrowserWindow, ipcMain } from "electron";
+import { BrowserWindow, ipcMain, type WebContents } from "electron";
 import { rename, rm, writeFile } from "node:fs/promises";
 import { IpcChannel } from "../../shared/api";
 import { printJobHash, type PrintJob } from "../../shared/print";
 import { loadRenderer, PRELOAD_PATH } from "../windows";
+import type { HeaderFooterOptions } from "./documentPdfOptions";
 
 const READY_TIMEOUT_MS = 60_000;
 
@@ -17,13 +18,14 @@ export function handlePrintReady(): void {
 }
 
 /**
- * Renders a print job in a hidden window and saves it as PDF. The renderer
- * reports when every image has loaded, so nothing is printed half drawn.
+ * Renders a print job in a hidden window and hands its contents to `use`.
+ * The renderer reports when every image has loaded, so nothing is printed
+ * half drawn.
  */
-export async function printToPdf(
+async function withRenderedJob<T>(
   job: PrintJob,
-  destination: string,
-): Promise<void> {
+  use: (contents: WebContents) => Promise<T>,
+): Promise<T> {
   const window = new BrowserWindow({
     show: false,
     webPreferences: {
@@ -44,18 +46,50 @@ export async function printToPdf(
     });
     await loadRenderer(window, printJobHash(job));
     await ready;
-    const pdf = await window.webContents.printToPDF({
-      preferCSSPageSize: true,
-      printBackground: true,
-    });
-    const temporary = `${destination}.partial`;
-    await writeFile(temporary, pdf);
-    await rename(temporary, destination).catch(async (error: unknown) => {
-      await rm(temporary, { force: true });
-      throw error;
-    });
+    return await use(window.webContents);
   } finally {
     pending.delete(contentsId);
     window.destroy();
   }
+}
+
+/** Renders a print job and saves it as PDF. */
+export async function printToPdf(
+  job: PrintJob,
+  destination: string,
+  headerFooter: HeaderFooterOptions = { displayHeaderFooter: false },
+): Promise<void> {
+  const pdf = await withRenderedJob(job, (contents) =>
+    contents.printToPDF({
+      preferCSSPageSize: true,
+      printBackground: true,
+      ...headerFooter,
+    }),
+  );
+  const temporary = `${destination}.partial`;
+  await writeFile(temporary, pdf);
+  await rename(temporary, destination).catch(async (error: unknown) => {
+    await rm(temporary, { force: true });
+    throw error;
+  });
+}
+
+/**
+ * Renders a print job and opens the system print dialog. Resolves once the
+ * user prints or cancels; false when nothing was printed.
+ */
+export function printWithDialog(
+  job: PrintJob,
+  options: { header?: string; footer?: string } = {},
+): Promise<boolean> {
+  return withRenderedJob(
+    job,
+    (contents) =>
+      new Promise<boolean>((resolve) => {
+        contents.print(
+          { silent: false, printBackground: true, ...options },
+          (success) => resolve(success),
+        );
+      }),
+  );
 }

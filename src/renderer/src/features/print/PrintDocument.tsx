@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import type { PrintJob } from "../../../../shared/print";
 import { CatalogDocument } from "./CatalogDocument";
 import { LabelSheets } from "./LabelSheets";
+import { TextDocumentPrint } from "./TextDocumentPrint";
 import { loadExhibitionArtworks, loadSourceArtworks } from "./printData";
 import "./print.css";
 
@@ -22,6 +23,10 @@ async function renderJob(job: PrintJob): Promise<ReactNode> {
           unit={unit}
         />
       );
+    }
+    case "document": {
+      const document = await window.artGallery.getDocument(job.documentId);
+      return <TextDocumentPrint document={document} />;
     }
     case "labels": {
       const artworks = await loadSourceArtworks(job.source);

@@ -2,9 +2,16 @@ import { ipcMain } from "electron";
 import { z } from "zod";
 import { IpcChannel } from "../../shared/api";
 import { labelOptionsSchema } from "../../shared/labels";
+import { DEFAULT_PAGE_SETUP } from "../../shared/pageSetup";
 import { printSourceSchema } from "../../shared/print";
+import type { DocumentService } from "../documents/documentService";
 import type { ExhibitionService } from "../exhibitions/exhibitionService";
-import { handlePrintReady, printToPdf } from "../print/printToPdf";
+import { documentPdfOptions } from "../print/documentPdfOptions";
+import {
+  handlePrintReady,
+  printToPdf,
+  printWithDialog,
+} from "../print/printToPdf";
 import { showSaveDialog } from "./dialogs";
 
 const catalogOptions = z.object({ includePrices: z.boolean() });
@@ -13,8 +20,46 @@ const catalogOptions = z.object({ includePrices: z.boolean() });
 const safeFileName = (name: string) =>
   name.replace(/[\\/:*?"<>|]+/g, " ").trim() || "ArtGallery";
 
-export function registerPrintHandlers(exhibitions: ExhibitionService): void {
+export function registerPrintHandlers(
+  exhibitions: ExhibitionService,
+  documents: DocumentService,
+): void {
   handlePrintReady();
+
+  const textDocument = (documentId: unknown) => {
+    const document = documents.get(z.string().min(1).parse(documentId));
+    if (document.kind !== "text") throw new Error("Not a text document");
+    return {
+      document,
+      job: { kind: "document" as const, documentId: document.id },
+      setup: document.pageSetup ?? DEFAULT_PAGE_SETUP,
+    };
+  };
+
+  ipcMain.handle(
+    IpcChannel.exportDocumentPdf,
+    async (event, documentId: unknown) => {
+      const { document, job, setup } = textDocument(documentId);
+      const path = await showSaveDialog(event.sender, {
+        title: "Descargar PDF",
+        defaultPath: `${safeFileName(document.title)}.pdf`,
+        filters: [{ name: "PDF", extensions: ["pdf"] }],
+      });
+      if (!path) return null;
+      await printToPdf(job, path, documentPdfOptions(setup));
+      return { path };
+    },
+  );
+
+  // The system dialog prints Electron's plain header and footer, so the
+  // header is the document's own and the footer keeps Chromium's numbers.
+  ipcMain.handle(
+    IpcChannel.printTextDocument,
+    (_event, documentId: unknown) => {
+      const { job, setup } = textDocument(documentId);
+      return printWithDialog(job, { header: setup.header || " ", footer: " " });
+    },
+  );
 
   ipcMain.handle(
     IpcChannel.exportCatalogPdf,

@@ -17,6 +17,10 @@ export const printJobSchema = z.discriminatedUnion("kind", [
     includePrices: z.boolean(),
   }),
   z.object({
+    kind: z.literal("document"),
+    documentId: z.string().min(1),
+  }),
+  z.object({
     kind: z.literal("labels"),
     source: printSourceSchema,
     options: labelOptionsSchema,

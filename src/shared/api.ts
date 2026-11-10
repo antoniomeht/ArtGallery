@@ -25,6 +25,7 @@ import type {
   ExhibitionSummary,
 } from "./exhibition";
 import type { LabelOptions } from "./labels";
+import type { PageSetupInput } from "./pageSetup";
 import type { PrintSource } from "./print";
 import type { Settings } from "./settings";
 import type {
@@ -126,6 +127,11 @@ export interface ArtGalleryApi {
   listLinkedDocuments(target: DocumentLinkRef): Promise<DocumentSummary[]>;
   /** Asks where to save a copy of the file. */
   saveDocumentAs(id: string): Promise<{ path: string } | null>;
+  savePageSetup(id: string, setup: PageSetupInput): Promise<DocumentDetail>;
+  /** Asks where to save and writes a text document as PDF. */
+  exportDocumentPdf(id: string): Promise<{ path: string } | null>;
+  /** Opens the system print dialog; false if nothing was printed. */
+  printTextDocument(id: string): Promise<boolean>;
   /** Asks where to save and writes the exhibition catalogue as PDF. */
   exportCatalogPdf(
     exhibitionId: string,
@@ -214,6 +220,9 @@ export const IpcChannel = {
   linkDocuments: "documents:link",
   unlinkDocument: "documents:unlink",
   listLinkedDocuments: "documents:list-linked",
+  savePageSetup: "documents:save-page-setup",
+  exportDocumentPdf: "print:document-pdf",
+  printTextDocument: "print:document",
   exportCatalogPdf: "print:catalog",
   exportLabelsPdf: "print:labels",
   printReady: "print:ready",
