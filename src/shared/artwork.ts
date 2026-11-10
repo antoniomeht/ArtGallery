@@ -106,6 +106,8 @@ export const artworkFilterSchema = z.object({
   techniques: filterValues,
   tags: filterValues,
   locations: filterValues,
+  /** Collection ids. */
+  collections: z.array(z.string().min(1)).max(500).optional(),
   yearFrom: filterYear,
   yearTo: filterYear,
 });

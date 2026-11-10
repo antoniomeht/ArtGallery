@@ -63,7 +63,8 @@ describe("database migrations", () => {
   it("keeps measures in both units, converting from each artwork's unit", async () => {
     const file = join(await useTempDir(), "artgallery.sqlite");
     const before = new DatabaseSync(file);
-    migrate(before, { targetVersion: LATEST_SCHEMA_VERSION - 1 });
+    // v4 converted the measures to both units.
+    migrate(before, { targetVersion: 3 });
     before.exec(`
       INSERT INTO artworks (id, title, height, width, dimension_unit, created_at, updated_at)
       VALUES ('cm', 'Marina', 46, 55, 'cm', 'now', 'now'),
