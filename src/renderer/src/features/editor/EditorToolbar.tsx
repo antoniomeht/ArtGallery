@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { InsertControls } from "./InsertControls";
+import { StructureControls } from "./StructureControls";
 import {
   EDITOR_FONTS,
   FONT_SIZES,
@@ -93,6 +94,7 @@ interface EditorToolbarProps {
   onFind: () => void;
   isLinking: boolean;
   setIsLinking: (isLinking: boolean) => void;
+  onCommentAdded: () => void;
 }
 
 /** Formatting in two rows, as in Word's Home tab. */
@@ -102,6 +104,7 @@ export function EditorToolbar({
   onFind,
   isLinking,
   setIsLinking,
+  onCommentAdded,
 }: EditorToolbarProps) {
   const state = useEditorState({
     editor,
@@ -360,6 +363,11 @@ export function EditorToolbar({
           onFind={onFind}
           isLinking={isLinking}
           setIsLinking={setIsLinking}
+        />
+        <StructureControls
+          editor={editor}
+          documentId={documentId}
+          onCommentAdded={onCommentAdded}
         />
       </div>
     </div>

@@ -11,6 +11,8 @@ const SAVE_DELAY_MS = 800;
  */
 export function useAutosave<T>(save: (value: T) => Promise<unknown>) {
   const [status, setStatus] = useState<SaveStatus>("saved");
+  /** Counts saves, so views that depend on the saved text can reload. */
+  const [savedVersion, setSavedVersion] = useState(0);
   const pending = useRef<{ value: T } | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const saveRef = useRef(save);
@@ -27,6 +29,7 @@ export function useAutosave<T>(save: (value: T) => Promise<unknown>) {
     try {
       await saveRef.current(next.value);
       setStatus(pending.current ? "saving" : "saved");
+      setSavedVersion((current) => current + 1);
     } catch {
       setStatus("error");
     }
@@ -44,5 +47,5 @@ export function useAutosave<T>(save: (value: T) => Promise<unknown>) {
 
   useEffect(() => () => void flush(), [flush]);
 
-  return { status, schedule, flush };
+  return { status, savedVersion, schedule, flush };
 }

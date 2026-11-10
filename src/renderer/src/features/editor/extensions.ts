@@ -15,6 +15,7 @@ import {
 } from "../../../../shared/editorSchema";
 import { Search } from "./findReplace";
 import { DocumentImage, PageBreak } from "./inserts";
+import { Columns, Comment, Footnote, TableOfContents } from "./structure";
 
 /** Font names stay stable in documents; this is how each one is drawn. */
 export const FONT_STACKS: Record<(typeof EDITOR_FONTS)[number], string> = {
@@ -188,5 +189,9 @@ export function createEditorExtensions() {
     DocumentImage,
     PageBreak,
     Search,
+    TableOfContents,
+    Footnote,
+    Columns,
+    Comment,
   ];
 }

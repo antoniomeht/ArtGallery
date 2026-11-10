@@ -1,5 +1,6 @@
 import type { DatabaseSync, SQLInputValue } from "node:sqlite";
 import type {
+  DocumentComment,
   DocumentDetail,
   DocumentLink,
   DocumentLinkRef,
@@ -245,6 +246,28 @@ export class DocumentRepository {
     this.db
       .prepare("UPDATE documents SET deleted_at = ? WHERE id = ?")
       .run(deletedAt, id);
+  }
+
+  addComment(documentId: string, comment: DocumentComment): void {
+    this.db
+      .prepare(
+        `INSERT INTO document_comments (id, document_id, body, created_at)
+         VALUES (?, ?, ?, ?)`,
+      )
+      .run(comment.id, documentId, comment.body, comment.createdAt);
+  }
+
+  listComments(documentId: string): DocumentComment[] {
+    return this.db
+      .prepare(
+        `SELECT id, body, created_at AS createdAt FROM document_comments
+         WHERE document_id = ? ORDER BY created_at, id`,
+      )
+      .all(documentId) as unknown as DocumentComment[];
+  }
+
+  deleteComment(id: string): void {
+    this.db.prepare("DELETE FROM document_comments WHERE id = ?").run(id);
   }
 
   addAsset(documentId: string, fileName: string): void {
