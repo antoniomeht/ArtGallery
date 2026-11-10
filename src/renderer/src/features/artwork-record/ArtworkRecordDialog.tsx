@@ -1,12 +1,14 @@
 import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import type { Artwork } from "../../../../shared/artwork";
+import type { Artwork, ArtworkSummary } from "../../../../shared/artwork";
 import { useDimensionUnit } from "../../hooks/useDimensionUnit";
 import { ArtworkCollectionsField } from "../collections/ArtworkCollectionsField";
 import { LinkedDocuments } from "../documents/LinkedDocuments";
 import { ArtworkForm } from "./ArtworkForm";
 import { ArtworkLabel } from "./ArtworkLabel";
 import { ImageViewer } from "./ImageViewer";
+import { RecordCarousel } from "./RecordCarousel";
+import { neighbourId } from "./recordNavigation";
 import { Button } from "../../components/Button";
 import { dropTargetValue } from "../drop/dropRouter";
 import "./ArtworkRecordDialog.css";
@@ -19,6 +21,20 @@ interface ArtworkRecordDialogProps {
   /** Called after the artwork is saved, so the gallery can refresh. */
   onChanged: () => void;
   onMoveToTrash: (artwork: Artwork) => void;
+  /** The gallery as shown: arrows and a strip move through it. */
+  gallery?: {
+    artworks: readonly ArtworkSummary[];
+    onNavigate: (artworkId: string) => void;
+  };
+}
+
+/** Arrows typed into a field keep moving the cursor. */
+function isTypingTarget(target: EventTarget): boolean {
+  return (
+    target instanceof HTMLElement &&
+    (target.isContentEditable ||
+      ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName))
+  );
 }
 
 type RecordState =
@@ -32,6 +48,7 @@ export function ArtworkRecordDialog({
   onClose,
   onChanged,
   onMoveToTrash,
+  gallery,
 }: ArtworkRecordDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [state, setState] = useState<RecordState>({ status: "loading" });
@@ -64,6 +81,20 @@ export function ArtworkRecordDialog({
       data-drop-target={dropTargetValue({ type: "artwork", id: artworkId })}
       data-drop-label={state.status === "ready" ? state.artwork.title : ""}
       onClose={onClose}
+      onKeyDown={(event) => {
+        const step =
+          event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
+        // While editing, moving away would lose what was typed.
+        if (!gallery || !step || isEditing || isTypingTarget(event.target))
+          return;
+        if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey)
+          return;
+        const ids = gallery.artworks.map(({ id }) => id);
+        const target = neighbourId(ids, artworkId, step);
+        if (!target) return;
+        event.preventDefault();
+        gallery.onNavigate(target);
+      }}
       onCancel={(event) => {
         // Escape leaves edit mode first instead of closing the record.
         if (isEditing) {
@@ -109,7 +140,7 @@ export function ArtworkRecordDialog({
       )}
 
       {state.status === "ready" && unit && (
-        <div className="record__layout">
+        <div key={state.artwork.id} className="record__layout">
           <ImageViewer
             artwork={state.artwork}
             onArtworkChange={(artwork) => {
@@ -153,6 +184,16 @@ export function ArtworkRecordDialog({
               targetLabel={state.artwork.title}
             />
           </div>
+        </div>
+      )}
+
+      {gallery && gallery.artworks.length > 1 && (
+        <div className="record__carousel" inert={isEditing}>
+          <RecordCarousel
+            artworks={gallery.artworks}
+            currentId={artworkId}
+            onNavigate={gallery.onNavigate}
+          />
         </div>
       )}
     </dialog>

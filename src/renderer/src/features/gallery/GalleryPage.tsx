@@ -249,6 +249,7 @@ export function GalleryPage({ inventoryVersion, onAdd }: GalleryPageProps) {
           artworkId={openArtworkId}
           onClose={() => setOpenArtworkId(null)}
           onChanged={reload}
+          gallery={{ artworks, onNavigate: setOpenArtworkId }}
           onMoveToTrash={(artwork) => {
             setOpenArtworkId(null);
             void moveToTrash(
