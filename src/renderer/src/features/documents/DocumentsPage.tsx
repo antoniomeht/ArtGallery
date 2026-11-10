@@ -23,6 +23,7 @@ import { DocumentBadge } from "./DocumentBadge";
 import { formatBytes, formatDate, uploadSummary } from "./documentText";
 import { setPendingImport } from "../editor/pendingImports";
 import { DocumentView } from "./DocumentView";
+import { DocumentPreview } from "./DocumentPreview";
 import { formatName } from "../../../../shared/documentFormats";
 import "./DocumentsPage.css";
 
@@ -42,6 +43,8 @@ export function DocumentsPage({ route }: DocumentsPageProps) {
   const [documents, setDocuments] = useState<DocumentSummary[] | null>(null);
   const [failed, setFailed] = useState(false);
   const [openId, setOpenId] = useState<string | null>(route.openId ?? null);
+  /** The row shown in the preview; the first one until another is chosen. */
+  const [chosenId, setChosenId] = useState<string | null>(null);
   const [linkedTo, setLinkedTo] = useState<LinkedChoice | null>(
     route.linkedTo ?? null,
   );
@@ -123,6 +126,22 @@ export function DocumentsPage({ route }: DocumentsPageProps) {
   }
 
   const isFiltering = Boolean(appliedText.trim() || kind || linkedTo);
+  const previewId =
+    documents?.find(({ id }) => id === chosenId)?.id ??
+    documents?.[0]?.id ??
+    null;
+
+  /** Up and down arrows move the preview through the list. */
+  function moveChoice(step: 1 | -1) {
+    if (!documents || !previewId) return;
+    const index = documents.findIndex(({ id }) => id === previewId);
+    const next = documents[index + step];
+    if (!next) return;
+    setChosenId(next.id);
+    window.document
+      .querySelector<HTMLButtonElement>(`[data-document-row="${next.id}"]`)
+      ?.focus();
+  }
 
   return (
     <section className="documents" aria-labelledby="documents-title">
@@ -212,60 +231,91 @@ export function DocumentsPage({ route }: DocumentsPageProps) {
       )}
 
       {documents && documents.length > 0 && (
-        <table className="documents__table">
-          <thead>
-            <tr>
-              <th scope="col" className="documents__type-cell">
-                Tipo
-              </th>
-              <th scope="col">Título</th>
-              <th scope="col">Vinculado a</th>
-              <th scope="col">Modificado</th>
-              <th scope="col">
-                <span className="visually-hidden">Acciones</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {documents.map((document) => (
-              <tr key={document.id}>
-                <td>
-                  <DocumentBadge extension={document.extension} />
-                </td>
-                <td>
-                  <button
-                    type="button"
-                    className="documents__title"
-                    onClick={() => setOpenId(document.id)}
-                  >
-                    {document.title}
-                  </button>
-                  <div className="documents__detail">
-                    {formatName(document.extension)}
-                    {document.bytes !== null &&
-                      ` · ${formatBytes(document.bytes)}`}
-                  </div>
-                </td>
-                <td className="documents__links">
-                  {document.links.length === 0
-                    ? "Sin vincular"
-                    : document.links.map(({ label }) => label).join(" · ")}
-                </td>
-                <td className="documents__date">
-                  {formatDate(document.updatedAt)}
-                </td>
-                <td>
-                  <RowMenu
-                    document={document}
-                    onOpen={() => setOpenId(document.id)}
-                    onChanged={reload}
-                    onDelete={() => void remove(document)}
-                  />
-                </td>
+        <div className="documents__workspace">
+          <table className="documents__table">
+            <thead>
+              <tr>
+                <th scope="col" className="documents__type-cell">
+                  Tipo
+                </th>
+                <th scope="col">Título</th>
+                <th scope="col">Vinculado a</th>
+                <th scope="col">Modificado</th>
+                <th scope="col">
+                  <span className="visually-hidden">Acciones</span>
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {documents.map((document) => (
+                <tr
+                  key={document.id}
+                  className={
+                    document.id === previewId
+                      ? "documents__row--chosen"
+                      : undefined
+                  }
+                  onClick={() => setChosenId(document.id)}
+                  onDoubleClick={() => setOpenId(document.id)}
+                >
+                  <td>
+                    <DocumentBadge extension={document.extension} />
+                  </td>
+                  <td>
+                    <button
+                      type="button"
+                      className="documents__title"
+                      data-document-row={document.id}
+                      aria-current={
+                        document.id === previewId ? "true" : undefined
+                      }
+                      title="Doble clic para abrir"
+                      onKeyDown={(event) => {
+                        if (
+                          event.key === "ArrowDown" ||
+                          event.key === "ArrowUp"
+                        ) {
+                          event.preventDefault();
+                          moveChoice(event.key === "ArrowDown" ? 1 : -1);
+                        }
+                      }}
+                      onClick={() => setChosenId(document.id)}
+                    >
+                      {document.title}
+                    </button>
+                    <div className="documents__detail">
+                      {formatName(document.extension)}
+                      {document.bytes !== null &&
+                        ` · ${formatBytes(document.bytes)}`}
+                    </div>
+                  </td>
+                  <td className="documents__links">
+                    {document.links.length === 0
+                      ? "Sin vincular"
+                      : document.links.map(({ label }) => label).join(" · ")}
+                  </td>
+                  <td className="documents__date">
+                    {formatDate(document.updatedAt)}
+                  </td>
+                  <td>
+                    <RowMenu
+                      document={document}
+                      onOpen={() => setOpenId(document.id)}
+                      onChanged={reload}
+                      onDelete={() => void remove(document)}
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {previewId && (
+            <DocumentPreview
+              documentId={previewId}
+              onOpen={() => setOpenId(previewId)}
+            />
+          )}
+        </div>
       )}
 
       <ActionNotice action={notice} onDismiss={() => setNotice(null)} />
