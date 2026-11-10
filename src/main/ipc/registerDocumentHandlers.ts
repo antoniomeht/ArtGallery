@@ -69,6 +69,23 @@ export function registerDocumentHandlers(documents: DocumentService): void {
       documents.saveContent(id.parse(documentId), content),
   );
   ipcMain.handle(
+    IpcChannel.addDocumentImage,
+    async (event, documentId: unknown) => {
+      const target = id.parse(documentId);
+      const [path] = await showOpenDialog(event.sender, {
+        title: "Insertar imagen",
+        properties: ["openFile"],
+        filters: [
+          {
+            name: "Imágenes",
+            extensions: ["jpg", "jpeg", "png", "webp", "gif"],
+          },
+        ],
+      });
+      return path ? { src: await documents.addImageAsset(target, path) } : null;
+    },
+  );
+  ipcMain.handle(
     IpcChannel.linkDocuments,
     (_event, documentIds: unknown, target: unknown) =>
       documents.link(

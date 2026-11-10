@@ -21,6 +21,21 @@ export const TEXT_ALIGNS = ["left", "center", "right", "justify"] as const;
 
 export const MAX_INDENT = 8;
 
+export const IMAGE_ALIGNS = ["left", "center", "right"] as const;
+
+const UUID = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
+
+/** An artwork image shown in a document, by image id. */
+export const ARTWORK_IMAGE_SRC = new RegExp(`^artwork-image:(${UUID})$`);
+/** An image copied into the document store for one document. */
+export const DOCUMENT_ASSET_SRC = new RegExp(
+  `^document-asset:(${UUID}\\.(?:jpg|jpeg|png|webp|gif))$`,
+);
+
+/** Links may only open web pages or write an email. */
+export const isSafeHref = (href: string) =>
+  /^(https?:\/\/|mailto:)/i.test(href);
+
 type Rules = Record<string, z.ZodType>;
 
 const color = z.string().regex(/^#[0-9a-f]{6}$/i);
@@ -38,6 +53,12 @@ const BLOCK_ATTRS: Rules = {
   indent: z.number().int().min(0).max(MAX_INDENT).nullable(),
 };
 
+const CELL_ATTRS: Rules = {
+  colspan: z.number().int().min(1).max(50),
+  rowspan: z.number().int().min(1).max(50),
+  colwidth: z.array(z.number().int().min(1).max(4000)).max(50).nullable(),
+};
+
 /** Every node the editor can make, with the attributes each may carry. */
 export const NODE_RULES: Record<string, Rules> = {
   doc: {},
@@ -53,6 +74,23 @@ export const NODE_RULES: Record<string, Rules> = {
   listItem: {},
   hardBreak: {},
   horizontalRule: {},
+  pageBreak: {},
+  table: {},
+  tableRow: {},
+  tableHeader: CELL_ATTRS,
+  tableCell: CELL_ATTRS,
+  image: {
+    src: z
+      .string()
+      .refine(
+        (src) => ARTWORK_IMAGE_SRC.test(src) || DOCUMENT_ASSET_SRC.test(src),
+      ),
+    alt: z.string().max(300).nullable(),
+    title: z.string().max(300).nullable(),
+    width: z.number().int().min(16).max(4000).nullable(),
+    height: z.number().int().min(16).max(4000).nullable(),
+    align: z.enum(IMAGE_ALIGNS).nullable(),
+  },
 };
 
 export const MARK_RULES: Record<string, Rules> = {
@@ -68,6 +106,7 @@ export const MARK_RULES: Record<string, Rules> = {
     color: color.nullable(),
   },
   highlight: { color: color.nullable() },
+  link: { href: z.string().max(2000).refine(isSafeHref) },
 };
 
 export interface TextMark {

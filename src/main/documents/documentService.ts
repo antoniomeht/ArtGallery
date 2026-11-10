@@ -14,6 +14,10 @@ import {
   EMPTY_TEXT_CONTENT,
   textContentSchema,
 } from "../../shared/editorSchema";
+import {
+  documentExtension,
+  isViewableImage,
+} from "../../shared/documentFormats";
 import type { DocumentRepository } from "./documentRepository";
 import { DocumentFileError, type DocumentStore } from "./documentStore";
 
@@ -90,6 +94,19 @@ export class DocumentService {
     const parsed = textContentSchema.parse(content);
     this.documents.saveContent(id, JSON.stringify(parsed), this.timestamp());
     return this.get(id);
+  }
+
+  /** Copies an image for a text document; returns how the editor refers to it. */
+  async addImageAsset(documentId: string, path: string): Promise<string> {
+    if (this.get(documentId).kind !== "text") {
+      throw new Error(`Document ${documentId} is not a text document`);
+    }
+    if (!isViewableImage(documentExtension(path))) {
+      throw new DocumentFileError("unsupported");
+    }
+    const file = await this.store.importFile(path);
+    this.documents.addAsset(documentId, file.fileName);
+    return `document-asset:${file.fileName}`;
   }
 
   async replaceFile(id: string, path: string): Promise<DocumentDetail> {

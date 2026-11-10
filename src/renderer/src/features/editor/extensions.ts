@@ -4,13 +4,17 @@ import Subscript from "@tiptap/extension-subscript";
 import Superscript from "@tiptap/extension-superscript";
 import TextAlign from "@tiptap/extension-text-align";
 import { Color, FontSize, TextStyle } from "@tiptap/extension-text-style";
+import { TableKit } from "@tiptap/extension-table";
 import { CharacterCount } from "@tiptap/extensions";
 import StarterKit from "@tiptap/starter-kit";
 import {
   EDITOR_FONTS,
+  isSafeHref,
   LINE_HEIGHTS,
   MAX_INDENT,
 } from "../../../../shared/editorSchema";
+import { Search } from "./findReplace";
+import { DocumentImage, PageBreak } from "./inserts";
 
 /** Font names stay stable in documents; this is how each one is drawn. */
 export const FONT_STACKS: Record<(typeof EDITOR_FONTS)[number], string> = {
@@ -162,7 +166,14 @@ export function createEditorExtensions() {
       heading: { levels: [1, 2, 3] },
       code: false,
       codeBlock: false,
-      link: false,
+      // Opening a link while writing would be a surprise: Ctrl+click opens it.
+      link: {
+        openOnClick: false,
+        autolink: true,
+        defaultProtocol: "https",
+        isAllowedUri: (url) => isSafeHref(url),
+        HTMLAttributes: { rel: null, target: null },
+      },
     }),
     TextStyle,
     FontSize,
@@ -173,5 +184,9 @@ export function createEditorExtensions() {
     TextAlign.configure({ types: BLOCKS }),
     CharacterCount,
     EditorFormat,
+    TableKit.configure({ table: { resizable: true } }),
+    DocumentImage,
+    PageBreak,
+    Search,
   ];
 }

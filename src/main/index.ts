@@ -1,4 +1,4 @@
-import { app, BrowserWindow, shell } from "electron";
+import { app, BrowserWindow, Menu, shell } from "electron";
 import { join } from "node:path";
 import { BackupService } from "./backup/backupService";
 import { CollectionRepository } from "./collections/collectionRepository";
@@ -26,6 +26,8 @@ import {
 } from "./media/mediaProtocol";
 import { SettingsStore } from "./settings/settingsStore";
 import { TransferService } from "./transfer/transferService";
+import { isSafeHref } from "../shared/editorSchema";
+import { contextMenuItems } from "./spelling/contextMenu";
 import { loadRenderer, PRELOAD_PATH } from "./windows";
 
 const HOUR_MS = 60 * 60 * 1000;
@@ -52,10 +54,22 @@ function createMainWindow(): BrowserWindow {
   // A file dropped outside a handled area must never replace the app.
   window.webContents.on("will-navigate", (event) => event.preventDefault());
 
-  // External links open in the system browser, never inside the app.
+  // Web and email links open outside the app; nothing else opens at all.
   window.webContents.setWindowOpenHandler(({ url }) => {
-    void shell.openExternal(url);
+    if (isSafeHref(url)) void shell.openExternal(url);
     return { action: "deny" };
+  });
+
+  // Corrections from the system's spell checker, in Spanish, and the usual
+  // editing commands on right click.
+  window.webContents.session.setSpellCheckerLanguages(["es-ES"]);
+  window.webContents.on("context-menu", (_event, params) => {
+    const items = contextMenuItems(params, {
+      replaceMisspelling: (word) => window.webContents.replaceMisspelling(word),
+      addToDictionary: (word) =>
+        window.webContents.session.addWordToSpellCheckerDictionary(word),
+    });
+    if (items.length > 0) Menu.buildFromTemplate(items).popup({ window });
   });
 
   void loadRenderer(window);
