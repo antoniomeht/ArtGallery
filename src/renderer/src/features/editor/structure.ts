@@ -177,7 +177,8 @@ export const Footnote = Node.create({
   },
 
   parseHTML() {
-    return [{ tag: "sup[data-footnote]" }];
+    // Before the superscript mark, which also reads <sup>.
+    return [{ tag: "sup[data-footnote]", priority: 100 }];
   },
 
   renderHTML({ HTMLAttributes }) {

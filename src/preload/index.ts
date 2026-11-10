@@ -97,6 +97,11 @@ const api: ArtGalleryApi = {
     ipcRenderer.invoke(IpcChannel.unlinkDocument, documentId, target),
   listLinkedDocuments: (target) =>
     ipcRenderer.invoke(IpcChannel.listLinkedDocuments, target),
+  importDocxAsText: () => ipcRenderer.invoke(IpcChannel.importDocxAsText),
+  convertDocumentToText: (id) =>
+    ipcRenderer.invoke(IpcChannel.convertDocumentToText, id),
+  exportDocumentDocx: (id) =>
+    ipcRenderer.invoke(IpcChannel.exportDocumentDocx, id),
   savePageSetup: (id, setup) =>
     ipcRenderer.invoke(IpcChannel.savePageSetup, id, setup),
   exportDocumentPdf: (id) =>

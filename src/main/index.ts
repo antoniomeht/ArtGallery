@@ -149,7 +149,7 @@ void app.whenReady().then(async () => {
   registerIpcHandlers(inventory, settings);
   registerExhibitionHandlers(exhibitions);
   registerCollectionHandlers(collections);
-  registerDocumentHandlers(documents);
+  registerDocumentHandlers(documents, imageStore);
   registerPrintHandlers(exhibitions, documents);
   registerBackupHandlers({ backups, settings, dataFolder: dataDir });
   registerTransferHandlers(transfer);

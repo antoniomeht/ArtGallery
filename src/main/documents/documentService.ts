@@ -1,5 +1,7 @@
 import { randomUUID } from "node:crypto";
-import { basename, extname } from "node:path";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { basename, extname, join } from "node:path";
 import {
   commentBodySchema,
   documentFieldsSchema,
@@ -14,6 +16,7 @@ import {
 } from "../../shared/document";
 import {
   commentIdsIn,
+  DOCUMENT_ASSET_SRC,
   EMPTY_TEXT_CONTENT,
   textContentSchema,
 } from "../../shared/editorSchema";
@@ -21,9 +24,20 @@ import {
   documentExtension,
   isViewableImage,
 } from "../../shared/documentFormats";
-import { pageSetupSchema } from "../../shared/pageSetup";
+import { documentFileUrl } from "../../shared/media";
+import { DEFAULT_PAGE_SETUP, pageSetupSchema } from "../../shared/pageSetup";
+import { toDocx, type ResolveImage } from "./docxExport";
+import { docxToHtml } from "./docxImport";
 import type { DocumentRepository } from "./documentRepository";
 import { DocumentFileError, type DocumentStore } from "./documentStore";
+
+/** Images of a Word file that a document can show. */
+const IMAGE_TYPES: Record<string, string> = {
+  "image/png": "png",
+  "image/jpeg": "jpg",
+  "image/gif": "gif",
+  "image/webp": "webp",
+};
 
 export class DocumentService {
   constructor(
@@ -197,6 +211,56 @@ export class DocumentService {
 
   listLinked(target: DocumentLinkRef): DocumentSummary[] {
     return this.list({ linkedTo: target });
+  }
+
+  /**
+   * A new text document made from a Word file. Its images are copied for
+   * the document; the HTML returned is what the editor loads.
+   */
+  async importDocx(
+    path: string,
+    title = basename(path, extname(path)),
+  ): Promise<{ document: DocumentDetail; html: string }> {
+    const document = this.createText(
+      title.slice(0, 300) || "Documento de Word",
+    );
+    const workDir = await mkdtemp(join(tmpdir(), "artgallery-docx-"));
+    try {
+      const html = await docxToHtml(path, async (buffer, contentType) => {
+        const extension = IMAGE_TYPES[contentType];
+        if (!extension) return null;
+        const file = join(workDir, `${randomUUID()}.${extension}`);
+        await writeFile(file, buffer);
+        const src = await this.addImageAsset(document.id, file);
+        return documentFileUrl(src.slice("document-asset:".length));
+      });
+      return { document, html };
+    } catch (error) {
+      this.delete(document.id);
+      throw error;
+    } finally {
+      await rm(workDir, { recursive: true, force: true });
+    }
+  }
+
+  /** A Word file with the text document, its images and its page setup. */
+  async exportDocx(
+    id: string,
+    resolveArtworkImage: ResolveImage,
+  ): Promise<Buffer> {
+    const document = this.get(id);
+    if (document.kind !== "text" || !document.content) {
+      throw new Error(`Document ${id} is not a text document`);
+    }
+    return toDocx(
+      document.content,
+      document.pageSetup ?? DEFAULT_PAGE_SETUP,
+      async (src) => {
+        const asset = DOCUMENT_ASSET_SRC.exec(src)?.[1];
+        if (asset) return this.store.path(asset);
+        return resolveArtworkImage(src);
+      },
+    );
   }
 
   /** Where the file of an uploaded document is stored. */

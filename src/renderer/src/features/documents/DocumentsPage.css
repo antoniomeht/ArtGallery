@@ -79,26 +79,6 @@
   color: var(--text-primary);
 }
 
-.menu {
-  min-width: 240px;
-}
-
-.menu__item {
-  padding: var(--space-2);
-  border: 0;
-  border-radius: var(--radius-control);
-  font: inherit;
-  color: var(--text-primary);
-  text-align: left;
-  background: none;
-  cursor: pointer;
-}
-
-.menu__item:hover,
-.menu__item:focus-visible {
-  background: var(--surface-sunken);
-}
-
 .document-badge {
   display: inline-flex;
   align-items: center;
