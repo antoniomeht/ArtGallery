@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   NavigationContext,
   type DocumentsRoute,
@@ -6,6 +6,11 @@ import {
 import { Sidebar, type Section } from "./components/Sidebar";
 import { BackupsPage } from "./features/backups/BackupsPage";
 import { DocumentsPage } from "./features/documents/DocumentsPage";
+import { DropHint } from "./features/drop/DropHint";
+import { LinkOnDropDialog } from "./features/drop/LinkOnDropDialog";
+import { TopBanner } from "./features/drop/TopBanner";
+import { useDocumentDrop } from "./features/drop/useDocumentDrop";
+import { useTopBanner } from "./features/drop/useTopBanner";
 import { ExhibitionsPage } from "./features/exhibitions/ExhibitionsPage";
 import { GalleryPage } from "./features/gallery/GalleryPage";
 import { NewArtworkLayer } from "./features/new-artwork/NewArtworkLayer";
@@ -16,16 +21,28 @@ import { TrashPage } from "./features/trash/TrashPage";
 export function App() {
   const [section, setSection] = useState<Section>("gallery");
   const [documentsRoute, setDocumentsRoute] = useState<DocumentsRoute>({});
+  const [documentsVersion, setDocumentsVersion] = useState(0);
   const navigation = useMemo(
     () => ({
+      documentsVersion,
       showDocuments: (route: DocumentsRoute) => {
         setDocumentsRoute(route);
         setSection("documents");
       },
     }),
+    [documentsVersion],
+  );
+  const newArtworks = useNewArtworks(() => setSection("gallery"), section);
+  const topBanner = useTopBanner();
+  const documentsChanged = useCallback(
+    () => setDocumentsVersion((current) => current + 1),
     [],
   );
-  const newArtworks = useNewArtworks(() => setSection("gallery"));
+  const documentDrop = useDocumentDrop(
+    section,
+    topBanner.show,
+    documentsChanged,
+  );
 
   return (
     <NavigationContext value={navigation}>
@@ -40,6 +57,7 @@ export function App() {
         {/* Each section loads its data when shown, so after a restore the
           other sections are up to date without extra wiring. */}
         <main className="app-main">
+          <TopBanner topBanner={topBanner} />
           {section === "gallery" && (
             <GalleryPage
               inventoryVersion={newArtworks.inventoryVersion}
@@ -58,6 +76,15 @@ export function App() {
           {section === "trash" && <TrashPage />}
         </main>
         <NewArtworkLayer newArtworks={newArtworks} />
+        {(newArtworks.isDragging || documentDrop.isDragging) && (
+          <DropHint section={section} />
+        )}
+        {documentDrop.pendingLink && (
+          <LinkOnDropDialog
+            pending={documentDrop.pendingLink}
+            onDecide={(link) => void documentDrop.decideLink(link)}
+          />
+        )}
       </div>
     </NavigationContext>
   );

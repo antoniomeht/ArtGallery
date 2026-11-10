@@ -1,8 +1,10 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { CreationProgress } from "../../../../shared/artwork";
 import { isSupportedImage } from "../../../../shared/media";
 import { useActionNotice } from "../../hooks/useActionNotice";
+import type { Section } from "../../components/Sidebar";
 import { useFileDrop } from "../../hooks/useFileDrop";
+import { routeDrop } from "../drop/dropRouter";
 
 const fileNameOf = (path: string) => path.split(/[\\/]/).pop() ?? path;
 
@@ -10,7 +12,11 @@ const fileNameOf = (path: string) => path.split(/[\\/]/).pop() ?? path;
  * Adds artworks from images, chosen or dropped on the window. A single image
  * opens its record for editing; several become artworks without interrupting.
  */
-export function useNewArtworks(onAdded: () => void) {
+export function useNewArtworks(onAdded: () => void, section: Section) {
+  const sectionRef = useRef(section);
+  useEffect(() => {
+    sectionRef.current = section;
+  });
   const [inventoryVersion, setInventoryVersion] = useState(0);
   const [editingId, setEditingId] = useState<string | null>(null);
   const refresh = useCallback(() => setInventoryVersion((v) => v + 1), []);
@@ -68,7 +74,10 @@ export function useNewArtworks(onAdded: () => void) {
   const isDragging = useFileDrop({
     // Any open dialog, such as a record, takes priority over adding artworks.
     isActive: () => !document.querySelector("dialog[open]"),
-    onDrop: (paths) => void addFromPaths(paths),
+    onDrop: (paths) => {
+      const { images } = routeDrop(paths, sectionRef.current);
+      if (images.length > 0) void addFromPaths(images);
+    },
   });
 
   return {

@@ -1,0 +1,156 @@
+/* Laid over the top of the section, so the page does not jump. */
+.top-banner-region {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  height: 0;
+}
+
+.top-banner {
+  position: relative;
+  box-shadow: var(--shadow-popover);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-6);
+  overflow: hidden;
+  font-weight: 500;
+  color: #ffffff;
+}
+
+.top-banner--success {
+  background: #1e7b34;
+}
+
+.top-banner--error {
+  background: #b42318;
+}
+
+.top-banner__message {
+  flex: 1;
+}
+
+.top-banner__action {
+  padding: 0;
+  border: 0;
+  font: inherit;
+  font-weight: 600;
+  color: inherit;
+  text-decoration: underline;
+  background: none;
+  cursor: pointer;
+}
+
+.top-banner__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-control);
+  color: inherit;
+  background: none;
+  cursor: pointer;
+}
+
+.top-banner__close:hover,
+.top-banner__action:focus-visible,
+.top-banner__close:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+/* Time left before the banner hides; stops while it is held. */
+.top-banner__timer {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  width: 100%;
+  background: rgb(255 255 255 / 0.6);
+  transform-origin: left;
+  animation: banner-time var(--banner-ms) linear forwards;
+}
+
+.top-banner:hover .top-banner__timer,
+.top-banner:focus-within .top-banner__timer {
+  animation-play-state: paused;
+}
+
+@keyframes banner-time {
+  to {
+    transform: scaleX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .top-banner__timer {
+    display: none;
+  }
+}
+
+/* While documents are dragged: what they can be linked to, and the one below. */
+body[data-dragging-documents] [data-drop-target] {
+  outline: 2px dashed var(--border-control);
+  outline-offset: -2px;
+}
+
+[data-drop-target].is-drop-hover {
+  outline: 3px solid var(--accent);
+  outline-offset: -3px;
+}
+
+/* A modal dialog is already positioned; changing it would move the dialog. */
+[data-drop-target]:not(dialog).is-drop-hover {
+  position: relative;
+}
+
+[data-drop-target].is-drop-hover::after {
+  content: "Soltar en «" attr(data-drop-label) "»";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3);
+  font-weight: 600;
+  text-align: center;
+  color: #ffffff;
+  background: rgb(31 63 191 / 0.6);
+  pointer-events: none;
+}
+
+.collection-chip.is-drop-hover::after {
+  content: none;
+}
+
+.collection-chip.is-drop-hover {
+  color: var(--on-accent);
+  background: var(--accent);
+}
+
+.drop-hint {
+  position: fixed;
+  left: 50%;
+  bottom: var(--space-6);
+  z-index: 3;
+  max-width: min(640px, calc(100vw - 2 * var(--space-4)));
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-overlay);
+  color: #ffffff;
+  background: #222222;
+  box-shadow: var(--shadow-popover);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.link-drop__target {
+  margin: 0;
+  padding: var(--space-3);
+  border-radius: var(--radius-overlay);
+  font-weight: 600;
+  background: var(--surface-sunken);
+}

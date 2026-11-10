@@ -6,6 +6,7 @@ import { thumbnailUrl } from "../../../../shared/media";
 import { ExhibitionDetailView } from "./ExhibitionDetailView";
 import { ExhibitionFormDialog } from "./ExhibitionFormDialog";
 import { Button } from "../../components/Button";
+import { dropTargetValue } from "../drop/dropRouter";
 import "./ExhibitionsPage.css";
 
 export function ExhibitionsPage() {
@@ -75,6 +76,11 @@ export function ExhibitionsPage() {
               <button
                 type="button"
                 className="exhibition-card"
+                data-drop-target={dropTargetValue({
+                  type: "exhibition",
+                  id: exhibition.id,
+                })}
+                data-drop-label={exhibition.name}
                 onClick={() => setOpenId(exhibition.id)}
               >
                 {exhibition.coverImageId ? (

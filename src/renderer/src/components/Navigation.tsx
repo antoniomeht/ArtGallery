@@ -9,10 +9,13 @@ export interface DocumentsRoute {
 }
 
 export interface Navigation {
+  /** Changes when documents are added from outside a page, e.g. dropped. */
+  documentsVersion: number;
   showDocuments: (route: DocumentsRoute) => void;
 }
 
 export const NavigationContext = createContext<Navigation>({
+  documentsVersion: 0,
   showDocuments: () => undefined,
 });
 

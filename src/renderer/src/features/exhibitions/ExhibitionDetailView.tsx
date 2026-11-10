@@ -18,6 +18,7 @@ import { ActionNotice, type NoticeAction } from "../../components/ActionNotice";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { LabelsDialog } from "../labels/LabelsDialog";
 import { LinkedDocuments } from "../documents/LinkedDocuments";
+import { dropTargetValue } from "../drop/dropRouter";
 import { CatalogDialog } from "./CatalogDialog";
 import { ChooseArtworksDialog } from "./ChooseArtworksDialog";
 import { ExhibitionFormDialog } from "./ExhibitionFormDialog";
@@ -78,7 +79,15 @@ export function ExhibitionDetailView({
   const dates = formatDateRange(exhibition);
 
   return (
-    <section className="exhibition" aria-labelledby="exhibition-title">
+    <section
+      className="exhibition"
+      aria-labelledby="exhibition-title"
+      data-drop-target={dropTargetValue({
+        type: "exhibition",
+        id: exhibition.id,
+      })}
+      data-drop-label={exhibition.name}
+    >
       <header className="page-header exhibition__header">
         <Button onClick={onBack}>
           <ArrowLeft aria-hidden size={16} />

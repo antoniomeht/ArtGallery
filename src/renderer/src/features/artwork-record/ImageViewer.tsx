@@ -4,6 +4,7 @@ import type { Artwork } from "../../../../shared/artwork";
 import { originalUrl, thumbnailUrl } from "../../../../shared/media";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { Button } from "../../components/Button";
+import { isSupportedImage } from "../../../../shared/media";
 import { useFileDrop } from "../../hooks/useFileDrop";
 
 interface ImageViewerProps {
@@ -55,7 +56,11 @@ export function ImageViewer({ artwork, onArtworkChange }: ImageViewerProps) {
   const isDragging = useFileDrop({
     // Only this record's dialog open: a confirmation on top takes priority.
     isActive: () => document.querySelectorAll("dialog[open]").length === 1,
-    onDrop: (paths) => void addImages(paths),
+    // Other files dropped on the record go to Documentación instead.
+    onDrop: (paths) => {
+      const images = paths.filter(isSupportedImage);
+      if (images.length > 0) void addImages(images);
+    },
   });
   const dragClass = isDragging ? " viewer--dragging" : "";
 
