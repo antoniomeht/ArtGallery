@@ -43,10 +43,17 @@ Las capturas son de la aplicación real con los [datos de demostración](#datos-
 - Selección múltiple: mantén pulsada una obra (o Mayús+Intro) y marca las demás con un clic. Acciones en bloque:
   - cambiar el estado;
   - añadir a una exposición;
+  - añadir a una colección o quitar de ella;
   - exportar;
   - imprimir cartelas;
   - mover a la papelera.
-- Búsqueda en la propia Galería, mientras escribes y en todos los campos, combinable con desplegables de estado, categoría, artista, técnica, etiqueta, ubicación y rango de años. Cada valor elegido aparece como una burbuja que se quita con su x.
+- Búsqueda en la propia Galería, mientras escribes y en todos los campos (también el nombre de sus colecciones), combinable con desplegables de estado, colección, categoría, artista, técnica, etiqueta, ubicación y rango de años. Cada valor elegido aparece como una burbuja que se quita con su x.
+
+**Colecciones**
+
+- Grupos de obras con nombre; una obra puede estar en varias.
+- Una fila de chips bajo los filtros de la Galería: un clic filtra por la colección y otro lo quita. Con una colección filtrada se ve cuántos documentos tiene vinculados.
+- Se crean y se llenan desde la selección múltiple o desde la ficha; «Gestionar» permite renombrarlas y eliminarlas sin tocar sus obras, con «Deshacer».
 
 **Exposiciones**
 
@@ -58,12 +65,24 @@ Las capturas son de la aplicación real con los [datos de demostración](#datos-
   - vista previa a tamaño real;
   - reparto automático en hojas A4 con márgenes y líneas de corte.
 
+**Documentación**
+
+- PDF, imágenes, Word, Excel, PowerPoint, OpenDocument, TXT, CSV y RTF, hasta 100 MB por archivo. Los PDF y las imágenes se ven dentro de la app; el resto se abre con la aplicación del sistema sobre una copia, y «Reemplazar archivo» guarda una versión nueva.
+- Documentos de texto escritos en la app, con un editor que cubre lo básico de Word:
+  - estilos, fuentes, tamaños, negrita, cursiva, subrayado, tachado, superíndice, subíndice, color y resaltado;
+  - alineación, listas con niveles, sangría e interlineado;
+  - tablas, imágenes de obras o de archivos, enlaces, salto de página, línea, índice automático, notas al pie, texto en columnas y comentarios internos;
+  - buscar y reemplazar, corrector ortográfico del sistema y recuento de palabras;
+  - diseño de página (A4 o Carta, orientación, márgenes, encabezado y número de página), descarga en PDF, impresión, exportación a Word y creación desde un `.docx`.
+- Cada documento se vincula a obras, exposiciones y colecciones, y aparece en su ficha o detalle.
+- Arrastrar archivos a la app los añade a Documentación; soltados sobre una obra, colección o exposición, la app pregunta si vincularlos. Un banner arriba indica en verde lo que se añadió y en rojo lo que no, y por qué.
+
 **Datos, copias e intercambio**
 
 - Copias de seguridad manuales y automáticas: verificadas al crearlas, con retención configurable y restauración segura ([detalles](#copias-de-seguridad-y-recuperación)).
-- Exportación del inventario, de una selección o de una exposición a un archivo [`.artgallery`](#formato-portátil-artgallery) portátil.
+- Exportación del inventario, de una selección o de una exposición a un archivo [`.artgallery`](#formato-portátil-artgallery) portátil. Las obras llevan el nombre de sus colecciones, que al importar se crean si faltan.
 - Importación con resumen previo y elección de qué hacer con lo que ya existe: mantener, sustituir o duplicar.
-- Exportación de metadatos a CSV para hojas de cálculo. No incluye imágenes y no sustituye a una copia de seguridad.
+- Exportación de metadatos a CSV para hojas de cálculo, con las colecciones de cada obra. No incluye imágenes y no sustituye a una copia de seguridad.
 
 La interfaz está en español y se puede usar con teclado: foco visible, diálogos nativos accesibles, botones con etiqueta y avisos anunciados a lectores de pantalla.
 
@@ -86,7 +105,10 @@ Versión `0.1.0`, en desarrollo y todavía sin publicar como release.
 - La búsqueda usa `LIKE` sin índice de texto completo. Es suficiente para un inventario personal de cientos o pocos miles de obras.
 - Los duplicados al importar se detectan por identificador interno, no por título.
 - No hay importación desde CSV ni orden de imágenes por arrastre.
-- Los documentos PDF son solo A4 vertical.
+- El catálogo y las cartelas en PDF son solo A4 vertical.
+- El editor de texto muestra una hoja continua con los saltos de página marcados, no páginas separadas. No tiene control de cambios ni combinación de correspondencia.
+- En el PDF, las notas al pie salen al final del documento, y el índice no lleva números de página.
+- Al importar un Word se pierden la alineación de los párrafos y el tamaño de las imágenes; el texto en columnas se exporta a Word como texto normal. No se admite el formato `.doc` antiguo.
 - Las copias no están cifradas, y si una copia automática falla solo se registra en la consola.
 
 ## Tecnologías y decisiones
@@ -125,7 +147,8 @@ src/
 
 - Ventanas con `contextIsolation` y `sandbox`, sin `nodeIntegration`, y con una CSP estricta.
 - Las entradas IPC se validan con zod.
-- Las imágenes se sirven por un protocolo propio que solo da acceso a la carpeta de imágenes de la app.
+- Las imágenes y los documentos se sirven por un protocolo propio que solo da acceso a sus carpetas dentro de los datos de la app.
+- El contenido de los documentos de texto se guarda como JSON y se valida antes de escribirlo: solo pasan los elementos que el editor sabe crear, y los enlaces solo pueden ser web o correo.
 
 ## Instalación
 
@@ -186,6 +209,7 @@ Contenido de la carpeta:
 - `artgallery.sqlite`: el inventario;
 - `images/originals`: copias exactas de las fotografías;
 - `images/thumbnails`: miniaturas WebP;
+- `documents`: archivos subidos e imágenes de los documentos de texto;
 - `settings.json`: los ajustes.
 
 Si una actualización cambia la estructura de la base de datos, antes de migrarla se guarda una copia completa junto a ella (`artgallery.before-update-v<N>.sqlite`). Una base de datos creada por una versión más nueva de la app no se abre, para no estropearla.
@@ -194,7 +218,7 @@ Si una actualización cambia la estructura de la base de datos, antes de migrarl
 
 Desde **Copias y ajustes**:
 
-- **Qué incluye una copia**: un archivo `.artgallery` con todo el inventario, papelera y exposiciones incluidas, y los originales de todas las imágenes. Tras escribirla, ArtGallery la vuelve a leer completa y comprueba cada imagen antes de darla por buena.
+- **Qué incluye una copia**: un archivo `.artgallery` con todo el inventario, papelera, exposiciones, colecciones y documentos incluidos (con sus vínculos, comentarios y archivos), y los originales de todas las imágenes. Tras escribirla, ArtGallery la vuelve a leer completa y comprueba cada imagen antes de darla por buena.
 - **Dónde se guarda**: por defecto en `Documentos/ArtGallery/Copias de seguridad`, fuera de la instalación y de la carpeta de datos. Se puede elegir otra carpeta, por ejemplo un disco externo o una carpeta sincronizada.
 - **Copias automáticas**: diarias (por defecto), semanales o desactivadas.
   - Se comprueban al iniciar la aplicación y cada hora mientras está abierta.
@@ -204,7 +228,7 @@ Desde **Copias y ajustes**:
 - **Restaurar**:
   1. ArtGallery valida la copia entera; si algo falla, el inventario no se toca.
   2. Guarda el inventario actual como copia «antes de restaurar».
-  3. Sustituye el inventario en una sola transacción.
+  3. Sustituye obras, exposiciones, colecciones y documentos en una sola transacción.
 
   Se puede restaurar desde la lista o desde cualquier archivo `.artgallery`. Importar, en cambio, solo añade obras y nunca borra nada.
 
@@ -218,17 +242,19 @@ Desde **Copias y ajustes**:
 
 Las copias de seguridad y las exportaciones usan un mismo formato documentado y versionado: un ZIP con extensión `.artgallery`.
 
-| Entrada             | Contenido                                                                                                                                                                                                                         |
-| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `manifest.json`     | `format: "artgallery"`, `formatVersion` (actualmente `2`; se siguen leyendo paquetes `1`), `kind` (`backup` para el inventario completo o `artworks` para obras o exposiciones), fecha, versión de la app y recuentos.            |
-| `data.json`         | Obras con todos sus campos, etiquetas, fechas y la lista ordenada de imágenes (la primera es la principal), cada una con su ruta relativa, tamaño y SHA-256. Desde la versión 2, también las exposiciones con sus obras en orden. |
-| `images/<id>.<ext>` | Copia exacta de cada imagen original. Las miniaturas no se incluyen: se regeneran al importar.                                                                                                                                    |
+| Entrada                | Contenido                                                                                                                                                                                                                                                                                                                                                                  |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `manifest.json`        | `format: "artgallery"`, `formatVersion` (actualmente `4`; se siguen leyendo paquetes `1` a `3`), `kind` (`backup` para el inventario completo o `artworks` para obras o exposiciones), fecha, versión de la app y recuentos.                                                                                                                                               |
+| `data.json`            | Obras con todos sus campos, etiquetas, fechas y la lista ordenada de imágenes (la primera es la principal), cada una con su ruta relativa, tamaño y SHA-256. Desde la versión 2, las exposiciones con sus obras en orden; desde la 3, las medidas en cm y pulgadas; desde la 4, las colecciones y, en las copias, los documentos con su contenido, vínculos y comentarios. |
+| `images/<id>.<ext>`    | Copia exacta de cada imagen original. Las miniaturas no se incluyen: se regeneran al importar.                                                                                                                                                                                                                                                                             |
+| `documents/<id>.<ext>` | Desde la versión 4, los archivos subidos y las imágenes de los documentos de texto, con tamaño y SHA-256.                                                                                                                                                                                                                                                                  |
 
 Al leer un paquete, ArtGallery:
 
 - rechaza versiones de formato más nuevas que las que entiende;
 - solo acepta esas rutas exactas, así que nunca escribe fuera de su carpeta temporal (sin rutas absolutas ni `..`);
-- comprueba el tamaño y el SHA-256 de cada imagen, y que no falte ni sobre ninguna;
+- comprueba el tamaño y el SHA-256 de cada imagen y de cada archivo de documento, y que no falte ni sobre ninguno;
+- comprueba que colecciones y documentos solo se refieran a lo que contiene el paquete;
 - valida todos los datos antes de aplicar nada.
 
 Si algo falla, descarta el paquete completo y no deja una importación a medias.
