@@ -1,0 +1,86 @@
+import { ipcMain, shell } from "electron";
+import { copyFile, mkdir } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { basename, join } from "node:path";
+import { z } from "zod";
+import { IpcChannel } from "../../shared/api";
+import { documentQuerySchema } from "../../shared/document";
+import { DOCUMENT_EXTENSIONS } from "../../shared/documentFormats";
+import type { DocumentService } from "../documents/documentService";
+import { showOpenDialog, showSaveDialog } from "./dialogs";
+
+const id = z.string().min(1);
+const paths = z.array(z.string().min(1)).max(500);
+const DOCUMENT_FILTER = {
+  name: "Documentos",
+  extensions: [...DOCUMENT_EXTENSIONS],
+};
+
+/** Payloads are validated here or by the service before anything is written. */
+export function registerDocumentHandlers(documents: DocumentService): void {
+  ipcMain.handle(IpcChannel.listDocuments, (_event, query: unknown) =>
+    documents.list(documentQuerySchema.parse(query ?? {})),
+  );
+  ipcMain.handle(IpcChannel.getDocument, (_event, documentId: unknown) =>
+    documents.get(id.parse(documentId)),
+  );
+  ipcMain.handle(IpcChannel.uploadDocuments, (_event, files: unknown) =>
+    documents.uploadFiles(paths.parse(files)),
+  );
+  ipcMain.handle(IpcChannel.pickDocumentFiles, (event) =>
+    showOpenDialog(event.sender, {
+      title: "Subir documentos",
+      properties: ["openFile", "multiSelections"],
+      filters: [DOCUMENT_FILTER],
+    }),
+  );
+  ipcMain.handle(
+    IpcChannel.replaceDocumentFile,
+    async (event, documentId: unknown) => {
+      const target = id.parse(documentId);
+      const [path] = await showOpenDialog(event.sender, {
+        title: "Reemplazar archivo",
+        properties: ["openFile"],
+        filters: [DOCUMENT_FILTER],
+      });
+      return path ? documents.replaceFile(target, path) : null;
+    },
+  );
+  ipcMain.handle(
+    IpcChannel.updateDocument,
+    (_event, documentId: unknown, fields) =>
+      documents.update(id.parse(documentId), fields),
+  );
+  ipcMain.handle(IpcChannel.deleteDocument, (_event, documentId: unknown) =>
+    documents.delete(id.parse(documentId)),
+  );
+  ipcMain.handle(IpcChannel.restoreDocument, (_event, documentId: unknown) =>
+    documents.restore(id.parse(documentId)),
+  );
+  ipcMain.handle(
+    IpcChannel.openDocumentExternally,
+    async (_event, documentId: unknown) => {
+      const document = documents.get(id.parse(documentId));
+      // A copy with its real name: the stored file is never edited by mistake.
+      const folder = join(tmpdir(), "ArtGallery", document.id);
+      const copy = join(folder, basename(document.originalName ?? "documento"));
+      await mkdir(folder, { recursive: true });
+      await copyFile(documents.filePath(document.id), copy);
+      const error = await shell.openPath(copy);
+      if (error) throw new Error(error);
+    },
+  );
+  ipcMain.handle(
+    IpcChannel.saveDocumentAs,
+    async (event, documentId: unknown) => {
+      const document = documents.get(id.parse(documentId));
+      const path = await showSaveDialog(event.sender, {
+        title: "Descargar documento",
+        defaultPath: document.originalName ?? document.title,
+      });
+      if (!path) return null;
+      await copyFile(documents.filePath(document.id), path);
+      return { path };
+    },
+  );
+}

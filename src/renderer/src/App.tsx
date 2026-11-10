@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Sidebar, type Section } from "./components/Sidebar";
 import { BackupsPage } from "./features/backups/BackupsPage";
+import { DocumentsPage } from "./features/documents/DocumentsPage";
 import { ExhibitionsPage } from "./features/exhibitions/ExhibitionsPage";
 import { GalleryPage } from "./features/gallery/GalleryPage";
 import { NewArtworkLayer } from "./features/new-artwork/NewArtworkLayer";
@@ -25,6 +26,7 @@ export function App() {
           />
         )}
         {section === "exhibitions" && <ExhibitionsPage />}
+        {section === "documents" && <DocumentsPage />}
         {section === "transfer" && <TransferPage />}
         {section === "backups" && <BackupsPage />}
         {section === "trash" && <TrashPage />}

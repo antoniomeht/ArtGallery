@@ -21,6 +21,10 @@ export function originalUrl(fileName: string): string {
   return `${MEDIA_SCHEME}://originals/${fileName}`;
 }
 
+export function documentFileUrl(fileName: string): string {
+  return `${MEDIA_SCHEME}://documents/${fileName}`;
+}
+
 export function thumbnailUrl(imageId: string): string {
   return `${MEDIA_SCHEME}://thumbnails/${imageId}.webp`;
 }

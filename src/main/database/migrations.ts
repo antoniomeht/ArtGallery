@@ -117,6 +117,25 @@ const migrations: readonly string[] = [
   );
   CREATE INDEX collection_artworks_artwork ON collection_artworks (artwork_id);
   `,
+  `
+  -- Uploaded files and text documents written in the app.
+  CREATE TABLE documents (
+    id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    kind TEXT NOT NULL CHECK (kind IN ('file', 'text')),
+    notes TEXT,
+    file_name TEXT,
+    original_name TEXT,
+    extension TEXT,
+    bytes INTEGER,
+    content TEXT,
+    page_setup TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    -- Set while deleting can still be undone; purged on the next start.
+    deleted_at TEXT
+  );
+  `,
 ];
 
 export const LATEST_SCHEMA_VERSION = migrations.length;

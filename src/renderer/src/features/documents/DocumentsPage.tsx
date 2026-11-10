@@ -1,0 +1,300 @@
+import { MoreHorizontal, Plus, Search, Upload } from "lucide-react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useState,
+  type CSSProperties,
+} from "react";
+import type {
+  DocumentKind,
+  DocumentSummary,
+} from "../../../../shared/document";
+import { ActionNotice } from "../../components/ActionNotice";
+import { Button } from "../../components/Button";
+import { useActionNotice } from "../../hooks/useActionNotice";
+import { useDebouncedValue } from "../../hooks/useDebouncedValue";
+import { DocumentBadge } from "./DocumentBadge";
+import { formatBytes, formatDate, uploadSummary } from "./documentText";
+import { FileDocumentView } from "./FileDocumentView";
+import { formatName } from "../../../../shared/documentFormats";
+import "./DocumentsPage.css";
+
+type Sort = "recent" | "title";
+
+const countLabel = (count: number) =>
+  count === 1 ? "1 documento" : `${count} documentos`;
+
+export function DocumentsPage() {
+  const [text, setText] = useState("");
+  const [kind, setKind] = useState<DocumentKind | "">("");
+  const [sort, setSort] = useState<Sort>("recent");
+  const [documents, setDocuments] = useState<DocumentSummary[] | null>(null);
+  const [failed, setFailed] = useState(false);
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [version, setVersion] = useState(0);
+  const appliedText = useDebouncedValue(text, 250);
+  const reload = useCallback(() => setVersion((current) => current + 1), []);
+  const { notice, setNotice } = useActionNotice(reload);
+
+  useEffect(() => {
+    let isCurrent = true;
+    window.artGallery
+      .listDocuments({ text: appliedText, kind: kind || undefined, sort })
+      .then(
+        (list) => isCurrent && setDocuments(list),
+        () => isCurrent && setFailed(true),
+      );
+    return () => {
+      isCurrent = false;
+    };
+  }, [appliedText, kind, sort, version]);
+
+  async function upload() {
+    const paths = await window.artGallery.pickDocumentFiles();
+    if (paths.length === 0) return;
+    const result = await window.artGallery.uploadDocuments(paths);
+    setNotice({ message: uploadSummary(result).message });
+    reload();
+  }
+
+  async function remove(document: DocumentSummary) {
+    await window.artGallery.deleteDocument(document.id);
+    setOpenId(null);
+    reload();
+    setNotice({
+      message: `«${document.title}» eliminado.`,
+      undo: async () => {
+        await window.artGallery.restoreDocument(document.id);
+        reload();
+      },
+    });
+  }
+
+  if (openId) {
+    return (
+      <>
+        <FileDocumentView
+          documentId={openId}
+          onBack={() => {
+            setOpenId(null);
+            reload();
+          }}
+          onDelete={(document) => void remove(document)}
+        />
+        <ActionNotice action={notice} onDismiss={() => setNotice(null)} />
+      </>
+    );
+  }
+
+  const isFiltering = Boolean(appliedText.trim() || kind);
+
+  return (
+    <section className="documents" aria-labelledby="documents-title">
+      <header className="page-header">
+        <h1 id="documents-title" className="page-header__title">
+          Documentación
+        </h1>
+        {documents && (
+          <p className="page-header__count" aria-live="polite">
+            {countLabel(documents.length)}
+          </p>
+        )}
+        <div className="page-header__action toolbar">
+          <Button onClick={() => void upload()}>
+            <Upload aria-hidden size={16} />
+            Subir archivo
+          </Button>
+          <Button variant="primary" disabled title="Llega con el editor">
+            <Plus aria-hidden size={16} />
+            Nuevo documento
+          </Button>
+        </div>
+      </header>
+
+      <div className="documents__filters">
+        <label className="gallery-search documents__search">
+          <Search aria-hidden size={16} className="gallery-search__icon" />
+          <span className="visually-hidden">Buscar documentos</span>
+          <input
+            type="search"
+            className="field__input gallery-search__input"
+            placeholder="Buscar por título o notas"
+            value={text}
+            onChange={(event) => setText(event.target.value)}
+          />
+        </label>
+        <label>
+          <span className="visually-hidden">Tipo</span>
+          <select
+            className="field__input"
+            value={kind}
+            onChange={(event) => setKind(event.target.value as DocumentKind)}
+          >
+            <option value="">Todos los tipos</option>
+            <option value="file">Archivos subidos</option>
+            <option value="text">Documentos de texto</option>
+          </select>
+        </label>
+        <label className="documents__sort">
+          Ordenar
+          <select
+            className="field__input"
+            value={sort}
+            onChange={(event) => setSort(event.target.value as Sort)}
+          >
+            <option value="recent">Modificados recientemente</option>
+            <option value="title">Título</option>
+          </select>
+        </label>
+      </div>
+
+      {failed && (
+        <p className="documents__status" role="alert">
+          No se pudieron leer los documentos.
+        </p>
+      )}
+
+      {documents?.length === 0 && (
+        <div className="documents__status">
+          <p>
+            {isFiltering
+              ? "Ningún documento coincide con esta búsqueda."
+              : "Aún no hay documentos. Sube PDF, imágenes, Word, Excel u otros archivos."}
+          </p>
+          {!isFiltering && (
+            <Button onClick={() => void upload()}>
+              <Upload aria-hidden size={16} />
+              Subir archivo
+            </Button>
+          )}
+        </div>
+      )}
+
+      {documents && documents.length > 0 && (
+        <table className="documents__table">
+          <thead>
+            <tr>
+              <th scope="col" className="documents__type-cell">
+                Tipo
+              </th>
+              <th scope="col">Título</th>
+              <th scope="col">Vinculado a</th>
+              <th scope="col">Modificado</th>
+              <th scope="col">
+                <span className="visually-hidden">Acciones</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {documents.map((document) => (
+              <tr key={document.id}>
+                <td>
+                  <DocumentBadge extension={document.extension} />
+                </td>
+                <td>
+                  <button
+                    type="button"
+                    className="documents__title"
+                    onClick={() => setOpenId(document.id)}
+                  >
+                    {document.title}
+                  </button>
+                  <div className="documents__detail">
+                    {formatName(document.extension)}
+                    {document.bytes !== null &&
+                      ` · ${formatBytes(document.bytes)}`}
+                  </div>
+                </td>
+                <td className="documents__links">
+                  {document.links.length === 0
+                    ? "Sin vincular"
+                    : document.links.map(({ label }) => label).join(" · ")}
+                </td>
+                <td className="documents__date">
+                  {formatDate(document.updatedAt)}
+                </td>
+                <td>
+                  <RowMenu
+                    document={document}
+                    onOpen={() => setOpenId(document.id)}
+                    onChanged={reload}
+                    onDelete={() => void remove(document)}
+                  />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      <ActionNotice action={notice} onDismiss={() => setNotice(null)} />
+    </section>
+  );
+}
+
+function RowMenu({
+  document,
+  onOpen,
+  onChanged,
+  onDelete,
+}: {
+  document: DocumentSummary;
+  onOpen: () => void;
+  onChanged: () => void;
+  onDelete: () => void;
+}) {
+  const id = useId();
+  const anchor = `--document-${id.replace(/\W/g, "")}`;
+  const close = () => window.document.getElementById(id)?.hidePopover();
+  const item = (label: string, action: () => void | Promise<unknown>) => (
+    <button
+      type="button"
+      className="menu__item"
+      role="menuitem"
+      onClick={() => {
+        close();
+        void action();
+      }}
+    >
+      {label}
+    </button>
+  );
+
+  return (
+    <>
+      <button
+        type="button"
+        className="icon-button"
+        aria-label={`Más acciones de «${document.title}»`}
+        popoverTarget={id}
+        style={{ anchorName: anchor } as CSSProperties}
+      >
+        <MoreHorizontal aria-hidden size={18} />
+      </button>
+      <div
+        id={id}
+        popover="auto"
+        role="menu"
+        className="filter-panel menu"
+        style={{ positionAnchor: anchor } as CSSProperties}
+      >
+        {item("Abrir", onOpen)}
+        {document.kind === "file" &&
+          item("Abrir con la aplicación del sistema", () =>
+            window.artGallery.openDocumentExternally(document.id),
+          )}
+        {document.kind === "file" &&
+          item("Descargar…", () =>
+            window.artGallery.saveDocumentAs(document.id),
+          )}
+        {document.kind === "file" &&
+          item("Reemplazar archivo…", async () => {
+            await window.artGallery.replaceDocumentFile(document.id);
+            onChanged();
+          })}
+        {item("Eliminar", onDelete)}
+      </div>
+    </>
+  );
+}

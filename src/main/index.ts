@@ -4,6 +4,9 @@ import { BackupService } from "./backup/backupService";
 import { CollectionRepository } from "./collections/collectionRepository";
 import { CollectionService } from "./collections/collectionService";
 import { openDatabase } from "./database/openDatabase";
+import { DocumentRepository } from "./documents/documentRepository";
+import { DocumentService } from "./documents/documentService";
+import { DocumentStore } from "./documents/documentStore";
 import { seedDemoInventory } from "./demo/demoInventory";
 import { ExhibitionRepository } from "./exhibitions/exhibitionRepository";
 import { ExhibitionService } from "./exhibitions/exhibitionService";
@@ -12,6 +15,7 @@ import { ArtworkRepository } from "./inventory/artworkRepository";
 import { InventoryService } from "./inventory/inventoryService";
 import { registerBackupHandlers } from "./ipc/registerBackupHandlers";
 import { registerCollectionHandlers } from "./ipc/registerCollectionHandlers";
+import { registerDocumentHandlers } from "./ipc/registerDocumentHandlers";
 import { registerExhibitionHandlers } from "./ipc/registerExhibitionHandlers";
 import { registerIpcHandlers } from "./ipc/registerIpcHandlers";
 import { registerPrintHandlers } from "./ipc/registerPrintHandlers";
@@ -83,6 +87,17 @@ void app.whenReady().then(async () => {
   });
   const exhibitions = new ExhibitionService(exhibitionRepository);
   const collections = new CollectionService(new CollectionRepository(db));
+  const documentStore = new DocumentStore(join(dataDir, "documents"));
+  const documents = new DocumentService(
+    new DocumentRepository(db),
+    documentStore,
+  );
+  // Deleting could be undone until now.
+  await documents
+    .purgeDeleted()
+    .catch((error: unknown) =>
+      console.error("Purging deleted documents failed", error),
+    );
   const settings = new SettingsStore(join(dataDir, "settings.json"));
   // Backups live outside the app data, so they survive an uninstall that
   // removes it, and are easy to find and copy elsewhere.
@@ -116,10 +131,11 @@ void app.whenReady().then(async () => {
     });
   }
 
-  handleMediaRequests(imageStore);
+  handleMediaRequests(imageStore, documentStore);
   registerIpcHandlers(inventory, settings);
   registerExhibitionHandlers(exhibitions);
   registerCollectionHandlers(collections);
+  registerDocumentHandlers(documents);
   registerPrintHandlers(exhibitions);
   registerBackupHandlers({ backups, settings, dataFolder: dataDir });
   registerTransferHandlers(transfer);
