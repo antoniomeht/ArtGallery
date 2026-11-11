@@ -127,6 +127,14 @@
   padding: 0 var(--space-8) var(--space-8);
 }
 
+.exhibition-edit {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-6);
+  max-width: 72ch;
+}
+
 .exhibitions__filters {
   display: flex;
   flex-wrap: wrap;
