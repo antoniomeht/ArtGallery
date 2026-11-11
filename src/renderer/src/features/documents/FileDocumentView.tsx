@@ -23,6 +23,7 @@ import { setPendingImport } from "../editor/pendingImports";
 import { DocumentLinksPanel, DocumentNotesField } from "./DocumentSidePanel";
 import { DocumentBadge } from "./DocumentBadge";
 import { formatBytes, formatDate } from "./documentText";
+import { PdfFrame } from "./PdfFrame";
 import { SlowPdfNotice } from "./SlowPdfNotice";
 import { SpreadsheetPreview } from "./SpreadsheetPreview";
 import { WordPreview } from "./WordPreview";
@@ -142,7 +143,8 @@ export function FileDocumentView({
       <div className="document-view__body">
         <div className="document-view__preview">
           {url && extension === "pdf" && (
-            <iframe
+            <PdfFrame
+              key={url}
               className="document-view__pdf"
               src={url}
               title={`Vista de ${document.title}`}

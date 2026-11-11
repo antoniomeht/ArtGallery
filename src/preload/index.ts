@@ -104,6 +104,7 @@ const api: ArtGalleryApi = {
     ipcRenderer.invoke(IpcChannel.convertDocumentToText, id),
   previewDocx: (id) => ipcRenderer.invoke(IpcChannel.previewDocx, id),
   previewXlsx: (id) => ipcRenderer.invoke(IpcChannel.previewXlsx, id),
+  pdfLoadState: (src) => ipcRenderer.invoke(IpcChannel.pdfLoadState, src),
   exportDocumentDocx: (id) =>
     ipcRenderer.invoke(IpcChannel.exportDocumentDocx, id),
   savePageSetup: (id, setup) =>

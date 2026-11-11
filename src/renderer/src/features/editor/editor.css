@@ -224,22 +224,6 @@
   color: var(--danger);
 }
 
-.spin {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .spin {
-    animation: none;
-  }
-}
-
 /* The editor fills the window and scrolls its page inside. */
 .document-view__body:has(.text-editor) {
   flex-wrap: nowrap;

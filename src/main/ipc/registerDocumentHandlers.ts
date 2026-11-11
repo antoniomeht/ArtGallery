@@ -15,6 +15,8 @@ import {
 import { ARTWORK_IMAGE_SRC } from "../../shared/editorSchema";
 import type { ImageStore } from "../images/imageStore";
 import type { DocumentService } from "../documents/documentService";
+import { readPdfLoadState } from "../media/pdfLoadState";
+import { MEDIA_SCHEME } from "../../shared/media";
 import { showOpenDialog, showSaveDialog } from "./dialogs";
 
 const id = z.string().min(1);
@@ -64,6 +66,12 @@ export function registerDocumentHandlers(
   );
   ipcMain.handle(IpcChannel.previewDocx, (_event, documentId: unknown) =>
     documents.previewDocx(id.parse(documentId)),
+  );
+  ipcMain.handle(IpcChannel.pdfLoadState, (event, src: unknown) =>
+    readPdfLoadState(
+      event.sender.mainFrame.framesInSubtree,
+      z.string().startsWith(`${MEDIA_SCHEME}://documents/`).parse(src),
+    ),
   );
   ipcMain.handle(IpcChannel.previewXlsx, (_event, documentId: unknown) =>
     documents.previewXlsx(id.parse(documentId)),
