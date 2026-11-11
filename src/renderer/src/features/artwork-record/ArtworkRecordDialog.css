@@ -391,3 +391,7 @@
   font-variant-numeric: tabular-nums;
   text-align: right;
 }
+
+.record__favorite[aria-pressed="true"] svg {
+  color: #e0a100;
+}

@@ -241,9 +241,6 @@ export function GalleryPage({ inventoryVersion, onAdd }: GalleryPageProps) {
           onOpen={setOpenArtworkId}
           onToggle={toggle}
           onStartSelection={(id) => setSelectedIds(new Set([id]))}
-          onToggleFavorite={(id, favorite) =>
-            void window.artGallery.setFavorite(id, favorite).then(reload)
-          }
         />
       )}
 

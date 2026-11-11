@@ -13,7 +13,6 @@ interface GalleryGridProps {
   onToggle: (artworkId: string) => void;
   /** Holding a tile, or Shift+Enter on it, starts selecting from that artwork. */
   onStartSelection?: (artworkId: string) => void;
-  onToggleFavorite?: (artworkId: string, favorite: boolean) => void;
 }
 
 export function GalleryGrid({
@@ -22,7 +21,6 @@ export function GalleryGrid({
   onOpen,
   onToggle,
   onStartSelection,
-  onToggleFavorite,
 }: GalleryGridProps) {
   // Holding a tile while selecting simply toggles it, like a click.
   const { pressHandlers, consumeClick } = useLongPress((artworkId: string) =>
@@ -76,6 +74,12 @@ export function GalleryGrid({
                   <span className="gallery-tile__artist">{artwork.artist}</span>
                 )}
               </span>
+              {!selectedIds && artwork.favorite && (
+                <span className="gallery-tile__favorite" title="Favorita">
+                  <Star aria-hidden size={14} fill="currentColor" />
+                  <span className="visually-hidden">, favorita</span>
+                </span>
+              )}
               {selectedIds ? (
                 <span className="gallery-tile__check" aria-hidden>
                   {isSelected && <Check size={16} strokeWidth={3} />}
@@ -89,27 +93,6 @@ export function GalleryGrid({
                 )
               )}
             </button>
-            {!selectedIds && onToggleFavorite && (
-              <button
-                type="button"
-                className="gallery-tile__favorite"
-                aria-pressed={artwork.favorite}
-                aria-label={`Favorita: ${artwork.title}`}
-                title={
-                  artwork.favorite
-                    ? "Quitar de favoritas"
-                    : "Marcar como favorita"
-                }
-                onClick={() => onToggleFavorite(artwork.id, !artwork.favorite)}
-              >
-                <Star
-                  aria-hidden
-                  size={16}
-                  strokeWidth={2}
-                  fill={artwork.favorite ? "currentColor" : "none"}
-                />
-              </button>
-            )}
           </li>
         );
       })}
