@@ -18,7 +18,7 @@
     "test": "vitest run",
     "icon": "node scripts/build-icon.mjs",
     "prepackage": "npm run icon",
-    "package": "npm run build && electron-builder --publish never"
+    "package": "npm run build && node scripts/third-party-notices.mjs && electron-builder --publish never"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
