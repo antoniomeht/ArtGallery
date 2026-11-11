@@ -172,6 +172,7 @@ describe("backups", () => {
     });
 
     app.clock.now += 23 * HOUR_MS;
+    await addArtwork(app, "Bodegón");
     expect(await app.backups.runAutomaticIfDue()).toBeNull();
     app.clock.now += 2 * HOUR_MS;
     expect(await app.backups.runAutomaticIfDue()).not.toBeNull();
@@ -181,6 +182,26 @@ describe("backups", () => {
     });
     app.clock.now += 48 * HOUR_MS;
     expect(await app.backups.runAutomaticIfDue()).toBeNull();
+    app.db.close();
+  });
+
+  it("skips the automatic backup while nothing changed since the last one", async () => {
+    const root = await useTempDir();
+    const app = openApp(root);
+    const marina = await addArtwork(app, "Marina");
+    await app.backups.createBackup("manual");
+
+    app.clock.now += 25 * HOUR_MS;
+    expect(await app.backups.runAutomaticIfDue()).toBeNull();
+
+    app.service.setFavorite(marina.id, true);
+    expect(await app.backups.runAutomaticIfDue()).toMatchObject({
+      origin: "automatic",
+    });
+
+    app.clock.now += 25 * HOUR_MS;
+    expect(await app.backups.runAutomaticIfDue()).toBeNull();
+    expect(await app.backups.listBackups()).toHaveLength(2);
     app.db.close();
   });
 
@@ -195,6 +216,7 @@ describe("backups", () => {
 
     for (let day = 0; day < 4; day++) {
       app.clock.now += 25 * HOUR_MS;
+      await addArtwork(app, `Día ${day}`);
       await app.backups.runAutomaticIfDue();
     }
 

@@ -20,7 +20,7 @@ import { DefaultArtistSection } from "./DefaultArtistSection";
 import { DimensionUnitSection } from "./DimensionUnitSection";
 import "./BackupsPage.css";
 
-const KEEP_OPTIONS = [5, 10, 20, 30];
+const KEEP_OPTIONS = [3, 5, 10, 20, 30];
 
 /** A backup to restore: one from the list, or a file picked by the user. */
 type PendingRestore = { path: string; description: string };
