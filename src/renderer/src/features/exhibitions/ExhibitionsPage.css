@@ -134,3 +134,15 @@
   gap: var(--space-6);
   max-width: 72ch;
 }
+
+.exhibitions__filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-8) var(--space-4);
+}
+
+.exhibitions__filters .exhibitions__search {
+  flex: 0 1 320px;
+}

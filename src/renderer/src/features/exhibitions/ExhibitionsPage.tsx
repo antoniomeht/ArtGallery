@@ -1,4 +1,4 @@
-import { Plus } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import type { ExhibitionSummary } from "../../../../shared/exhibition";
 import { formatDateRange } from "../../../../shared/exhibitionFormat";
@@ -7,6 +7,12 @@ import { ExhibitionDetailView } from "./ExhibitionDetailView";
 import { ExhibitionFormDialog } from "./ExhibitionFormDialog";
 import { Button } from "../../components/Button";
 import { dropTargetValue } from "../drop/dropRouter";
+import {
+  EXHIBITION_SORT_LABELS,
+  EXHIBITION_SORTS,
+  showExhibitions,
+  type ExhibitionSort,
+} from "./exhibitionList";
 import "./ExhibitionsPage.css";
 
 export function ExhibitionsPage() {
@@ -16,6 +22,8 @@ export function ExhibitionsPage() {
   const [failed, setFailed] = useState(false);
   const [openId, setOpenId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [query, setQuery] = useState("");
+  const [sort, setSort] = useState<ExhibitionSort>("date-desc");
 
   const load = useCallback(() => {
     window.artGallery
@@ -35,6 +43,11 @@ export function ExhibitionsPage() {
       />
     );
   }
+
+  const shown =
+    exhibitions && exhibitions.length > 0
+      ? showExhibitions(exhibitions, query, sort)
+      : null;
 
   const createButton = (
     <Button variant="primary" onClick={() => setIsCreating(true)}>
@@ -70,8 +83,45 @@ export function ExhibitionsPage() {
       )}
 
       {exhibitions && exhibitions.length > 0 && (
+        <div className="exhibitions__filters">
+          <label className="gallery-search exhibitions__search">
+            <Search aria-hidden size={16} className="gallery-search__icon" />
+            <span className="visually-hidden">Buscar exposiciones</span>
+            <input
+              type="search"
+              className="field__input gallery-search__input"
+              placeholder="Buscar por nombre o lugar"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+            />
+          </label>
+          <label>
+            <span className="visually-hidden">Ordenar por</span>
+            <select
+              className="field__input"
+              value={sort}
+              onChange={(event) =>
+                setSort(event.target.value as ExhibitionSort)
+              }
+            >
+              {EXHIBITION_SORTS.map((option) => (
+                <option key={option} value={option}>
+                  {EXHIBITION_SORT_LABELS[option]}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      )}
+      {shown && shown.length === 0 && (
+        <p className="exhibitions__status">
+          Ninguna exposición coincide con «{query.trim()}».
+        </p>
+      )}
+
+      {shown && shown.length > 0 && (
         <ul className="exhibition-list">
-          {exhibitions.map((exhibition) => (
+          {shown.map((exhibition) => (
             <li key={exhibition.id}>
               <button
                 type="button"

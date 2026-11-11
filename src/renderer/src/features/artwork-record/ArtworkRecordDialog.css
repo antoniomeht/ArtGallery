@@ -288,6 +288,13 @@
   background: var(--surface-page);
 }
 
+.artwork-form__keys {
+  margin-right: auto;
+  align-self: center;
+  font-size: var(--font-size-caption);
+  color: var(--text-secondary);
+}
+
 .artwork-form__hint {
   margin: calc(-1 * var(--space-2)) 0 0;
   font-size: var(--font-size-caption);
