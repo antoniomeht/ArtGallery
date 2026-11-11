@@ -22,6 +22,7 @@ import { dropTargetValue } from "../drop/dropRouter";
 import { CatalogDialog } from "./CatalogDialog";
 import { AddArtworksPanel } from "./AddArtworksPanel";
 import { ExhibitionForm } from "./ExhibitionForm";
+import { moveItem } from "./reorder";
 import { Button } from "../../components/Button";
 import { IconButton } from "../../components/IconButton";
 
@@ -40,8 +41,12 @@ export function ExhibitionDetailView({
   const [failed, setFailed] = useState(false);
   const [dialog, setDialog] = useState<Dialog>(null);
   const [notice, setNotice] = useState<NoticeAction | null>(null);
+  /** Changes when a document is added here, so the list reloads. */
+  const [documentsVersion, setDocumentsVersion] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
+  /** Positions of the artwork being dragged and of where it would land. */
+  const [drag, setDrag] = useState<{ from: number; to: number } | null>(null);
 
   const load = useCallback(() => {
     window.artGallery
@@ -197,7 +202,39 @@ export function ExhibitionDetailView({
           aria-label="Obras en orden de exposición"
         >
           {exhibition.artworks.map((artwork, index) => (
-            <li key={artwork.id} className="exhibition-artwork">
+            <li
+              key={artwork.id}
+              className="exhibition-artwork"
+              draggable
+              title="Arrastra para cambiar el orden"
+              data-dragging={drag?.from === index || undefined}
+              data-drop-before={
+                (drag && drag.to === index && drag.to < drag.from) || undefined
+              }
+              data-drop-after={
+                (drag && drag.to === index && drag.to > drag.from) || undefined
+              }
+              onDragStart={(event) => {
+                event.dataTransfer.effectAllowed = "move";
+                event.dataTransfer.setData("text/plain", artwork.title);
+                setDrag({ from: index, to: index });
+              }}
+              onDragOver={(event) => {
+                if (!drag) return;
+                event.preventDefault();
+                event.dataTransfer.dropEffect = "move";
+                if (drag.to !== index) setDrag({ ...drag, to: index });
+              }}
+              onDrop={(event) => {
+                if (!drag) return;
+                event.preventDefault();
+                if (drag.from !== drag.to) {
+                  void saveOrder(moveItem(ids, drag.from, drag.to));
+                }
+                setDrag(null);
+              }}
+              onDragEnd={() => setDrag(null)}
+            >
               <span className="exhibition-artwork__number" aria-hidden>
                 {index + 1}
               </span>
@@ -206,6 +243,8 @@ export function ExhibitionDetailView({
                   className="exhibition-artwork__image"
                   src={thumbnailUrl(artwork.primaryImageId)}
                   alt=""
+                  // The row is dragged, not the picture as a file.
+                  draggable={false}
                 />
               ) : (
                 <div className="exhibition-artwork__image" aria-hidden />
@@ -249,6 +288,7 @@ export function ExhibitionDetailView({
 
       <div className="exhibition__documents">
         <LinkedDocuments
+          key={documentsVersion}
           target={{ type: "exhibition", id: exhibition.id }}
           targetLabel={exhibition.name}
         />
@@ -258,9 +298,12 @@ export function ExhibitionDetailView({
         <CatalogDialog
           exhibitionId={exhibition.id}
           onClose={() => setDialog(null)}
-          onSaved={(path) => {
+          onSaved={(document) => {
             setDialog(null);
-            setNotice({ message: `Catálogo guardado en ${path}` });
+            setDocumentsVersion((version) => version + 1);
+            setNotice({
+              message: `«${document.title}» guardado en Documentación`,
+            });
           }}
         />
       )}

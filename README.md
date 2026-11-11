@@ -35,6 +35,7 @@ Las capturas son de la aplicación real con los [datos de demostración](#datos-
   - descripción, notas y etiquetas;
   - ubicación y estado;
   - precio con moneda.
+- Cada categoría puede tener su propio formulario: en Ajustes se eligen los campos que muestra (por defecto, Fotografía no muestra estado ni soporte). Lo escrito en un campo oculto se conserva.
 - Varias imágenes por obra: se pueden añadir más, también arrastrándolas a la ficha abierta, elegir la principal y quitar imágenes.
 - Papelera recuperable, con «Deshacer» al momento y borrado definitivo con confirmación.
 

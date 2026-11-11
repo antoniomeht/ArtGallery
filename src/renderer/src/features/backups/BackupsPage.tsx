@@ -16,6 +16,7 @@ import {
   RESTORE_FAILURE_MESSAGES,
 } from "./backupLabels";
 import { Button } from "../../components/Button";
+import { CategoryFieldsSection } from "./CategoryFieldsSection";
 import { DefaultArtistSection } from "./DefaultArtistSection";
 import { DimensionUnitSection } from "./DimensionUnitSection";
 import "./BackupsPage.css";
@@ -118,6 +119,11 @@ export function BackupsPage() {
           <DimensionUnitSection
             value={overview.settings.dimensionUnit}
             onChange={(dimensionUnit) => void updateSettings({ dimensionUnit })}
+          />
+
+          <CategoryFieldsSection
+            value={overview.settings.hiddenFields}
+            onChange={(hiddenFields) => void updateSettings({ hiddenFields })}
           />
 
           <section className="page-section" aria-labelledby="backup-now">

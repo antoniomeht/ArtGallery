@@ -23,6 +23,29 @@ async function setup() {
 }
 
 describe("document links", () => {
+  it("keeps a file made by the app linked to where it came from", async () => {
+    const { db, documents, exhibition } = await setup();
+    const generated = join(await useTempDir(), "catalog-4f2a.pdf");
+    await writeFile(generated, "%PDF");
+
+    const catalog = await documents.addGeneratedFile(generated, {
+      title: "Catálogo - Mar adentro",
+      linkTo: { type: "exhibition", id: exhibition.id },
+    });
+
+    expect(catalog).toMatchObject({
+      title: "Catálogo - Mar adentro",
+      originalName: "Catálogo - Mar adentro.pdf",
+      extension: "pdf",
+    });
+    expect(
+      documents
+        .listLinked({ type: "exhibition", id: exhibition.id })
+        .map(({ id }) => id),
+    ).toEqual([catalog.id]);
+    db.close();
+  });
+
   it("links documents to artworks, exhibitions and collections by name", async () => {
     const { db, documents, contract, artwork, exhibition, collection } =
       await setup();

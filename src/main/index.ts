@@ -156,7 +156,7 @@ void app.whenReady().then(async () => {
   registerExhibitionHandlers(exhibitions);
   registerCollectionHandlers(collections);
   registerDocumentHandlers(documents, imageStore);
-  registerPrintHandlers(exhibitions, documents);
+  registerPrintHandlers(exhibitions, documents, join(dataDir, "tmp"));
   registerBackupHandlers({ backups, settings, dataFolder: dataDir });
   registerTransferHandlers(transfer);
   createMainWindow();
