@@ -245,6 +245,22 @@ export class DocumentService {
     }
   }
 
+  /**
+   * An uploaded Word file as HTML to look at. Its images travel inside the
+   * HTML, so nothing is stored.
+   */
+  async previewDocx(id: string): Promise<string> {
+    const document = this.get(id);
+    if (document.extension !== "docx") {
+      throw new Error(`Document ${id} is not a Word document`);
+    }
+    return docxToHtml(this.filePath(id), async (buffer, contentType) =>
+      IMAGE_TYPES[contentType]
+        ? `data:${contentType};base64,${buffer.toString("base64")}`
+        : null,
+    );
+  }
+
   /** A Word file with the text document, its images and its page setup. */
   async exportDocx(
     id: string,

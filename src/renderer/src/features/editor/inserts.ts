@@ -34,6 +34,14 @@ export function imageSrcFromUrl(url: string): string | null {
   return src && imageUrl(src) ? src : null;
 }
 
+const INLINE_IMAGE =
+  /^data:image\/(?:png|jpeg|gif|webp);base64,[A-Za-z0-9+/=]+$/;
+
+/** A picture carried inside a previewed file, or null for anything else. */
+export function inlineImageSrc(url: string): string | null {
+  return INLINE_IMAGE.test(url) ? url : null;
+}
+
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
     pageBreak: { setPageBreak: () => ReturnType };
@@ -130,5 +138,32 @@ export const PageBreak = HorizontalRule.extend({
 
   addKeyboardShortcuts() {
     return { "Mod-Enter": () => this.editor.commands.setPageBreak() };
+  },
+});
+
+/**
+ * Only for looking at a file read from outside: its pictures travel inside
+ * the HTML instead of being stored by the app.
+ */
+export const InlineImage = DocumentImage.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      src: {
+        default: null,
+        parseHTML: (element) =>
+          inlineImageSrc(element.getAttribute("src") ?? ""),
+      },
+    };
+  },
+
+  parseHTML() {
+    return [
+      {
+        tag: "img[src]",
+        getAttrs: (element) =>
+          inlineImageSrc(element.getAttribute("src") ?? "") ? null : false,
+      },
+    ];
   },
 });

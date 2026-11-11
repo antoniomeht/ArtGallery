@@ -24,6 +24,7 @@ import { DocumentLinksPanel, DocumentNotesField } from "./DocumentSidePanel";
 import { DocumentBadge } from "./DocumentBadge";
 import { formatBytes, formatDate } from "./documentText";
 import { SlowPdfNotice } from "./SlowPdfNotice";
+import { WordPreview } from "./WordPreview";
 
 interface FileDocumentViewProps {
   documentId: string;
@@ -151,35 +152,54 @@ export function FileDocumentView({
               alt={document.title}
             />
           )}
-          {extension !== "pdf" && !isViewableImage(extension) && (
-            <div className="document-view__outside">
-              <DocumentBadge extension={extension} />
-              <p>
-                <strong>{document.originalName}</strong>
-                <br />
-                {formatName(extension)} · no se puede ver dentro de la app
-              </p>
-              <Button variant="primary" onClick={() => void openOutside()}>
-                <ExternalLink aria-hidden size={16} />
-                Abrir con la aplicación del sistema
-              </Button>
-              {extension === "docx" && (
+          {extension === "docx" && (
+            <div className="document-view__word">
+              <div className="document-view__word-actions">
+                <Button onClick={() => void openOutside()}>
+                  <ExternalLink aria-hidden size={16} />
+                  Abrir con Word
+                </Button>
                 <Button onClick={() => void convertToText()}>
                   <FilePen aria-hidden size={16} />
                   Convertir en documento editable
                 </Button>
-              )}
-              <p className="document-view__hint">
-                Se abre una copia. Si la cambias, usa «Reemplazar archivo» para
-                guardar aquí la nueva versión.
-              </p>
+              </div>
               {openError && (
                 <p className="field__error" role="alert">
                   {openError}
                 </p>
               )}
+              <WordPreview
+                documentId={document.id}
+                className="document-view__word-page"
+              />
             </div>
           )}
+          {extension !== "pdf" &&
+            extension !== "docx" &&
+            !isViewableImage(extension) && (
+              <div className="document-view__outside">
+                <DocumentBadge extension={extension} />
+                <p>
+                  <strong>{document.originalName}</strong>
+                  <br />
+                  {formatName(extension)} · no se puede ver dentro de la app
+                </p>
+                <Button variant="primary" onClick={() => void openOutside()}>
+                  <ExternalLink aria-hidden size={16} />
+                  Abrir con la aplicación del sistema
+                </Button>
+                <p className="document-view__hint">
+                  Se abre una copia. Si la cambias, usa «Reemplazar archivo»
+                  para guardar aquí la nueva versión.
+                </p>
+                {openError && (
+                  <p className="field__error" role="alert">
+                    {openError}
+                  </p>
+                )}
+              </div>
+            )}
         </div>
 
         <aside

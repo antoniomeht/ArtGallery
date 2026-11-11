@@ -62,6 +62,9 @@ export function registerDocumentHandlers(
       );
     },
   );
+  ipcMain.handle(IpcChannel.previewDocx, (_event, documentId: unknown) =>
+    documents.previewDocx(id.parse(documentId)),
+  );
   ipcMain.handle(
     IpcChannel.exportDocumentDocx,
     async (event, documentId: unknown) => {

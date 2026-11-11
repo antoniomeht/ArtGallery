@@ -1,4 +1,3 @@
-import { EditorContent, useEditor } from "@tiptap/react";
 import { ExternalLink, FolderOpen } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { DocumentDetail } from "../../../../shared/document";
@@ -8,11 +7,11 @@ import {
 } from "../../../../shared/documentFormats";
 import { documentFileUrl } from "../../../../shared/media";
 import { Button } from "../../components/Button";
-import { createEditorExtensions } from "../editor/extensions";
-import "../editor/editor.css";
 import { DocumentBadge } from "./DocumentBadge";
 import { formatBytes, formatDate } from "./documentText";
+import { ReadOnlyText } from "./ReadOnlyText";
 import { SlowPdfNotice } from "./SlowPdfNotice";
+import { WordPreview } from "./WordPreview";
 
 interface DocumentPreviewProps {
   documentId: string;
@@ -78,7 +77,14 @@ export function DocumentPreview({ documentId, onOpen }: DocumentPreviewProps) {
 }
 
 function PreviewBody({ document }: { document: DocumentDetail }) {
-  if (document.kind === "text") return <TextPreview document={document} />;
+  if (document.kind === "text") {
+    return (
+      <ReadOnlyText
+        content={document.content}
+        className="document-preview__text"
+      />
+    );
+  }
 
   const { extension, fileName } = document;
   const url = fileName ? documentFileUrl(fileName) : null;
@@ -88,6 +94,14 @@ function PreviewBody({ document }: { document: DocumentDetail }) {
         className="document-preview__pdf"
         src={`${url}#toolbar=0&view=FitH`}
         title={`Vista previa de ${document.title}`}
+      />
+    );
+  }
+  if (extension === "docx") {
+    return (
+      <WordPreview
+        documentId={document.id}
+        className="document-preview__text"
       />
     );
   }
@@ -112,20 +126,4 @@ function PreviewBody({ document }: { document: DocumentDetail }) {
       </Button>
     </div>
   );
-}
-
-/** The text as the editor shows it, read only. */
-function TextPreview({ document }: { document: DocumentDetail }) {
-  const editor = useEditor({
-    extensions: createEditorExtensions(),
-    content: document.content ?? undefined,
-    editable: false,
-    editorProps: {
-      attributes: {
-        class: "document-page__content document-preview__text",
-        lang: "es",
-      },
-    },
-  });
-  return <EditorContent editor={editor} />;
 }
