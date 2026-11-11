@@ -49,7 +49,11 @@ function createMainWindow(): BrowserWindow {
     },
   });
 
-  window.once("ready-to-show", () => window.show());
+  // Opens using the whole screen; un-maximizing returns to the size above.
+  window.once("ready-to-show", () => {
+    window.maximize();
+    window.show();
+  });
 
   // A file dropped outside a handled area must never replace the app.
   window.webContents.on("will-navigate", (event) => event.preventDefault());
