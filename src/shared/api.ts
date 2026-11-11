@@ -138,6 +138,8 @@ export interface ArtGalleryApi {
   importDocxAsText(): Promise<ImportedText | null>;
   /** Makes a new text document from an uploaded Word file. */
   convertDocumentToText(id: string): Promise<ImportedText>;
+  /** An uploaded Word file as HTML, to look at. */
+  previewDocx(id: string): Promise<string>;
   /** Asks where to save and writes a text document as a Word file. */
   exportDocumentDocx(id: string): Promise<{ path: string } | null>;
   /** Asks where to save and writes a text document as PDF. */
@@ -235,6 +237,7 @@ export const IpcChannel = {
   savePageSetup: "documents:save-page-setup",
   importDocxAsText: "documents:import-docx",
   convertDocumentToText: "documents:convert-to-text",
+  previewDocx: "documents:preview-docx",
   exportDocumentDocx: "documents:export-docx",
   exportDocumentPdf: "print:document-pdf",
   printTextDocument: "print:document",

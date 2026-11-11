@@ -100,6 +100,7 @@ const api: ArtGalleryApi = {
   importDocxAsText: () => ipcRenderer.invoke(IpcChannel.importDocxAsText),
   convertDocumentToText: (id) =>
     ipcRenderer.invoke(IpcChannel.convertDocumentToText, id),
+  previewDocx: (id) => ipcRenderer.invoke(IpcChannel.previewDocx, id),
   exportDocumentDocx: (id) =>
     ipcRenderer.invoke(IpcChannel.exportDocumentDocx, id),
   savePageSetup: (id, setup) =>

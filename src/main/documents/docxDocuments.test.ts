@@ -61,4 +61,59 @@ describe("Word files as text documents", () => {
     expect(buffer.subarray(0, 2).toString()).toBe("PK");
     db.close();
   });
+  it("shows an uploaded Word file as HTML without storing anything", async () => {
+    const dataDir = await useTempDir();
+    const { db, documents } = openInventory(dataDir);
+    const image = await createTestImage(join(dataDir, "plano.png"));
+    const file = join(dataDir, "Contrato.docx");
+    await writeFile(
+      file,
+      await toDocx(
+        {
+          type: "doc",
+          content: [
+            {
+              type: "paragraph",
+              content: [{ type: "text", text: "Cláusula 1" }],
+            },
+            {
+              type: "image",
+              attrs: {
+                src: "document-asset:3f2b8a4c-1d2e-4f5a-9b8c-7d6e5f4a3b2c.png",
+              },
+            },
+          ],
+        },
+        pageSetupSchema.parse({}),
+        async () => image,
+      ),
+    );
+    const {
+      added: [uploaded],
+    } = await documents.uploadFiles([file]);
+    const before = await listFiles(join(dataDir, "documents"));
+
+    const html = await documents.previewDocx(uploaded!.id);
+
+    expect(html).toContain("Cláusula 1");
+    expect(html).toMatch(/src="data:image\/png;base64,[A-Za-z0-9+/=]+"/);
+    expect(await listFiles(join(dataDir, "documents"))).toEqual(before);
+    expect(documents.list({})).toHaveLength(1);
+    db.close();
+  });
+
+  it("refuses to show a file that is not a Word document as one", async () => {
+    const dataDir = await useTempDir();
+    const { db, documents } = openInventory(dataDir);
+    const file = join(dataDir, "nota.txt");
+    await writeFile(file, "hola");
+    const {
+      added: [uploaded],
+    } = await documents.uploadFiles([file]);
+
+    await expect(documents.previewDocx(uploaded!.id)).rejects.toThrow(
+      "not a Word document",
+    );
+    db.close();
+  });
 });

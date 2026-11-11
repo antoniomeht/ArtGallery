@@ -14,7 +14,7 @@ import {
   MAX_INDENT,
 } from "../../../../shared/editorSchema";
 import { Search } from "./findReplace";
-import { DocumentImage, PageBreak } from "./inserts";
+import { DocumentImage, InlineImage, PageBreak } from "./inserts";
 import { Columns, Comment, Footnote, TableOfContents } from "./structure";
 
 /** Font names stay stable in documents; this is how each one is drawn. */
@@ -161,7 +161,8 @@ const EditorFormat = Extension.create({
 });
 
 /** The same extensions draw the editor and the printed document. */
-export function createEditorExtensions() {
+/** `inlineImages` is for read-only previews of files from outside the app. */
+export function createEditorExtensions({ inlineImages = false } = {}) {
   return [
     StarterKit.configure({
       heading: { levels: [1, 2, 3] },
@@ -186,7 +187,7 @@ export function createEditorExtensions() {
     CharacterCount,
     EditorFormat,
     TableKit.configure({ table: { resizable: true } }),
-    DocumentImage,
+    inlineImages ? InlineImage : DocumentImage,
     PageBreak,
     Search,
     TableOfContents,
