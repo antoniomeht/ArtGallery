@@ -32,6 +32,15 @@ export function registerIpcHandlers(
       ),
   );
 
+  ipcMain.handle(
+    IpcChannel.setFavorite,
+    (_event, id: unknown, favorite: unknown) =>
+      inventory.setFavorite(
+        z.string().min(1).parse(id),
+        z.boolean().parse(favorite),
+      ),
+  );
+
   ipcMain.handle(IpcChannel.getArtwork, (_event, id: string) =>
     inventory.getArtwork(id),
   );

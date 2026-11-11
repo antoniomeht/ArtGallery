@@ -16,6 +16,7 @@ const artwork = (id: string, deletedAt: string | null = null) =>
     updatedAt: DATE,
     deletedAt,
     needsReview: false,
+    favorite: false,
     images: [],
   }) satisfies PackageArtwork;
 

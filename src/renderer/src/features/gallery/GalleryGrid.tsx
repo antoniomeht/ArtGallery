@@ -1,4 +1,4 @@
-import { Check, Pencil } from "lucide-react";
+import { Check, Pencil, Star } from "lucide-react";
 import type { ArtworkSummary } from "../../../../shared/artwork";
 import { thumbnailUrl } from "../../../../shared/media";
 import { useLongPress } from "../../hooks/useLongPress";
@@ -13,6 +13,7 @@ interface GalleryGridProps {
   onToggle: (artworkId: string) => void;
   /** Holding a tile, or Shift+Enter on it, starts selecting from that artwork. */
   onStartSelection?: (artworkId: string) => void;
+  onToggleFavorite?: (artworkId: string, favorite: boolean) => void;
 }
 
 export function GalleryGrid({
@@ -21,6 +22,7 @@ export function GalleryGrid({
   onOpen,
   onToggle,
   onStartSelection,
+  onToggleFavorite,
 }: GalleryGridProps) {
   // Holding a tile while selecting simply toggles it, like a click.
   const { pressHandlers, consumeClick } = useLongPress((artworkId: string) =>
@@ -87,6 +89,27 @@ export function GalleryGrid({
                 )
               )}
             </button>
+            {!selectedIds && onToggleFavorite && (
+              <button
+                type="button"
+                className="gallery-tile__favorite"
+                aria-pressed={artwork.favorite}
+                aria-label={`Favorita: ${artwork.title}`}
+                title={
+                  artwork.favorite
+                    ? "Quitar de favoritas"
+                    : "Marcar como favorita"
+                }
+                onClick={() => onToggleFavorite(artwork.id, !artwork.favorite)}
+              >
+                <Star
+                  aria-hidden
+                  size={16}
+                  strokeWidth={2}
+                  fill={artwork.favorite ? "currentColor" : "none"}
+                />
+              </button>
+            )}
           </li>
         );
       })}

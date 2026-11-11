@@ -46,6 +46,7 @@ describe("backups", () => {
       tags: ["mar"],
       price: 900,
     });
+    before.service.setFavorite(marina.id, true);
     const retrato = await addArtwork(before, "Retrato");
     before.service.moveToTrash([retrato.id]);
     const original = before.service.getArtwork(marina.id);
@@ -73,6 +74,7 @@ describe("backups", () => {
       artist: "Lucía Ferrer",
       tags: ["mar"],
       price: 900,
+      favorite: true,
       createdAt: original.createdAt,
     });
     expect(

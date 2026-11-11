@@ -106,6 +106,8 @@ const currentArtworkSchema = artworkFieldsSchema.extend({
   deletedAt: z.iso.datetime().nullable(),
   /** Missing in packages written before it existed. */
   needsReview: z.boolean().default(false),
+  /** Missing in packages written before it existed. */
+  favorite: z.boolean().default(false),
   /** Ordered; the first image is the primary one. */
   images: z.array(packageImageSchema),
 });
