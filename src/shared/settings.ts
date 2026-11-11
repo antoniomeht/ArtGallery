@@ -16,6 +16,8 @@ export const settingsSchema = z.object({
   defaultArtist: z.string().trim().max(300).default(""),
   /** How measures are shown and typed; artworks keep both units. */
   dimensionUnit: z.enum(DIMENSION_UNITS).default("cm"),
+  /** Experimental: look for a newer version on GitHub at start. */
+  checkForUpdates: z.boolean().default(true),
   /** Inventory numbers kept for each technique. */
   numberRanges: numberRangesSchema,
   /** Form fields each category leaves out; the data is kept. */

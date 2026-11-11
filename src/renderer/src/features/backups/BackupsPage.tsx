@@ -132,6 +132,30 @@ export function BackupsPage() {
             onChange={(hiddenFields) => void updateSettings({ hiddenFields })}
           />
 
+          <section className="page-section" aria-labelledby="updates">
+            <h2 id="updates" className="page-section__title">
+              Actualizaciones (experimental)
+            </h2>
+            <label className="checkbox">
+              <input
+                type="checkbox"
+                checked={overview.settings.checkForUpdates}
+                onChange={(event) =>
+                  void updateSettings({
+                    checkForUpdates: event.target.checked,
+                  })
+                }
+              />
+              Buscar una versión nueva al abrir ArtGallery
+            </label>
+            <p className="page-section__hint">
+              Consulta la última versión publicada en GitHub y avisa si hay una
+              más nueva. Solo se instala si pulsas «Instalar», y antes se
+              comprueba que el instalador es el publicado. No envía ningún dato
+              de tu inventario.
+            </p>
+          </section>
+
           <section className="page-section" aria-labelledby="backup-now">
             <h2 id="backup-now" className="page-section__title">
               Copias de seguridad

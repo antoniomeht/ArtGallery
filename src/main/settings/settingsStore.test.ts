@@ -14,6 +14,7 @@ describe("SettingsStore", () => {
       keepAutomaticBackups: 10,
       defaultArtist: "",
       dimensionUnit: "cm",
+      checkForUpdates: true,
       numberRanges: [],
       hiddenFields: { Fotografía: ["status", "support"] },
     });
