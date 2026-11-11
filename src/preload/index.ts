@@ -23,6 +23,8 @@ const api: ArtGalleryApi = {
     ipcRenderer.invoke(IpcChannel.updateArtwork, id, fields),
   setStatus: (artworkIds, status) =>
     ipcRenderer.invoke(IpcChannel.setStatus, artworkIds, status),
+  setFavorite: (artworkId, favorite) =>
+    ipcRenderer.invoke(IpcChannel.setFavorite, artworkId, favorite),
   addImages: (artworkId, imagePaths) =>
     ipcRenderer.invoke(IpcChannel.addImages, artworkId, imagePaths),
   removeImage: (artworkId, imageId) =>

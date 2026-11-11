@@ -73,6 +73,8 @@ export interface Artwork extends ArtworkFields {
   images: ArtworkImage[];
   /** Created from an image and not saved from its record since. */
   needsReview: boolean;
+  /** Shown before the other artworks in the gallery. */
+  favorite: boolean;
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
@@ -137,6 +139,7 @@ export interface ArtworkSummary {
   /** First image of the artwork, used as its cover. */
   primaryImageId: string | null;
   needsReview: boolean;
+  favorite: boolean;
   createdAt: string;
   /** When the artwork was moved to the trash, or null if it is not there. */
   deletedAt: string | null;

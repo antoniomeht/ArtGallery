@@ -64,6 +64,10 @@ export class InventoryService {
     this.artworks.setStatus(ids, status, this.timestamp());
   }
 
+  setFavorite(id: string, favorite: boolean): void {
+    this.artworks.setFavorite(id, favorite);
+  }
+
   /** Every artwork with all its data, including those in the trash. */
   listAllArtworks(): Artwork[] {
     return this.artworks.listAllIds().map((id) => this.getArtwork(id));
@@ -188,6 +192,7 @@ export class InventoryService {
       this.artworks.insert(record, stored);
       return {
         ...record,
+        favorite: false,
         primaryImageId: stored[0]?.id ?? null,
         deletedAt: null,
       };
@@ -227,7 +232,12 @@ export class InventoryService {
               createdAt: this.timestamp(),
             };
             this.artworks.insert(record, [image]);
-            return { ...record, primaryImageId: image.id, deletedAt: null };
+            return {
+              ...record,
+              favorite: false,
+              primaryImageId: image.id,
+              deletedAt: null,
+            };
           }),
         ),
       reportImport,

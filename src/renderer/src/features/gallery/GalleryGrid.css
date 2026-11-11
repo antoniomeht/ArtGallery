@@ -8,6 +8,10 @@
   list-style: none;
 }
 
+.gallery-grid__item {
+  position: relative;
+}
+
 .gallery-tile {
   position: relative;
   display: block;
@@ -111,4 +115,39 @@
 .gallery-tile__artist {
   font-size: var(--font-size-caption);
   line-height: var(--line-height-caption);
+}
+
+/* Shown on hover or focus; always shown once the artwork is a favourite. */
+.gallery-tile__favorite {
+  position: absolute;
+  top: var(--space-2);
+  left: var(--space-2);
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  color: var(--on-image);
+  background: rgb(0 0 0 / 0.35);
+  box-shadow: var(--shadow-raised);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--motion-fast) ease-out;
+}
+
+.gallery-grid__item:hover .gallery-tile__favorite,
+.gallery-grid__item:focus-within .gallery-tile__favorite,
+.gallery-tile__favorite[aria-pressed="true"] {
+  opacity: 1;
+}
+
+.gallery-tile__favorite[aria-pressed="true"] {
+  color: #f5b301;
+  background: rgb(0 0 0 / 0.45);
+}
+
+.gallery-tile__favorite:hover {
+  background: rgb(0 0 0 / 0.6);
 }

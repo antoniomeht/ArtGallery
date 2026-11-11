@@ -11,6 +11,7 @@ function artwork(fields: Parameters<typeof artworkFieldsSchema.parse>[0]) {
     updatedAt: "2026-11-02T10:00:00.000Z",
     deletedAt: null,
     needsReview: false,
+    favorite: false,
   } satisfies Artwork;
 }
 

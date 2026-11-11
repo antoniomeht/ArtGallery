@@ -24,14 +24,19 @@ export interface NewArtworkRecord {
 /** Columns of an `ArtworkSummary`, from `artworks a` and its cover `i`. */
 export const SUMMARY_COLUMNS = `a.id, a.title, a.artist, a.created_at AS createdAt,
   a.deleted_at AS deletedAt, a.needs_review AS needsReview,
+  a.favorite AS favorite,
   i.id AS primaryImageId`;
 
 /** Rows selected with `SUMMARY_COLUMNS`, with SQLite's 0/1 as booleans. */
 export function toSummaries(rows: unknown[]): ArtworkSummary[] {
-  type Row = Omit<ArtworkSummary, "needsReview"> & { needsReview: number };
+  type Row = Omit<ArtworkSummary, "needsReview" | "favorite"> & {
+    needsReview: number;
+    favorite: number;
+  };
   return (rows as Row[]).map((row) => ({
     ...row,
     needsReview: row.needsReview === 1,
+    favorite: row.favorite === 1,
   }));
 }
 
@@ -60,14 +65,16 @@ interface ArtworkRow {
   updated_at: string;
   deleted_at: string | null;
   needs_review: number;
+  favorite: number;
 }
 
+/** Every order puts favourites first. */
 const ORDER_BY: Record<ArtworkSort, string> = {
-  recent: "a.created_at DESC",
-  oldest: "a.created_at ASC",
-  title: "sort_key(a.title), a.created_at DESC",
-  "year-asc": "a.year ASC NULLS LAST, sort_key(a.title)",
-  "year-desc": "a.year DESC NULLS LAST, sort_key(a.title)",
+  recent: "a.favorite DESC, a.created_at DESC",
+  oldest: "a.favorite DESC, a.created_at ASC",
+  title: "a.favorite DESC, sort_key(a.title), a.created_at DESC",
+  "year-asc": "a.favorite DESC, a.year ASC NULLS LAST, sort_key(a.title)",
+  "year-desc": "a.favorite DESC, a.year DESC NULLS LAST, sort_key(a.title)",
 };
 
 /** Editable columns, in the order `fieldValues` returns their values. */
@@ -345,6 +352,7 @@ export class ArtworkRepository {
       currency: row.currency,
       images,
       needsReview: row.needs_review === 1,
+      favorite: row.favorite === 1,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
       deletedAt: row.deleted_at,
@@ -418,6 +426,13 @@ export class ArtworkRepository {
       .run(status, updatedAt, ...ids);
   }
 
+  /** Not a change to the record, so its date of change stays. */
+  setFavorite(id: string, favorite: boolean): void {
+    this.db
+      .prepare("UPDATE artworks SET favorite = ? WHERE id = ?")
+      .run(favorite ? 1 : 0, id);
+  }
+
   /** Moves the given artworks into the trash (or out with `null`). */
   setDeletedAt(ids: readonly string[], deletedAt: string | null): number {
     if (ids.length === 0) return 0;
@@ -456,14 +471,15 @@ export class ArtworkRepository {
     this.db
       .prepare(
         `INSERT INTO artworks
-           (id, ${FIELD_COLUMNS.join(", ")}, needs_review,
+           (id, ${FIELD_COLUMNS.join(", ")}, needs_review, favorite,
             created_at, updated_at, deleted_at)
-         VALUES (?, ${placeholders(FIELD_COLUMNS)}, ?, ?, ?, ?)`,
+         VALUES (?, ${placeholders(FIELD_COLUMNS)}, ?, ?, ?, ?, ?)`,
       )
       .run(
         artwork.id,
         ...fieldValues(artwork),
         artwork.needsReview ? 1 : 0,
+        artwork.favorite ? 1 : 0,
         artwork.createdAt,
         artwork.updatedAt,
         artwork.deletedAt,

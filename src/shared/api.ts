@@ -64,6 +64,8 @@ export interface ArtGalleryApi {
   ): () => void;
   updateArtwork(id: string, fields: ArtworkFieldsInput): Promise<Artwork>;
   setStatus(artworkIds: string[], status: ArtworkStatus): Promise<void>;
+  /** Favourites come first in the gallery. */
+  setFavorite(artworkId: string, favorite: boolean): Promise<void>;
   addImages(artworkId: string, imagePaths: string[]): Promise<Artwork>;
   removeImage(artworkId: string, imageId: string): Promise<Artwork>;
   setPrimaryImage(artworkId: string, imageId: string): Promise<Artwork>;
@@ -196,6 +198,7 @@ export const IpcChannel = {
   onCreationProgress: "artworks:creation-progress",
   updateArtwork: "artworks:update",
   setStatus: "artworks:set-status",
+  setFavorite: "artworks:set-favorite",
   addImages: "artworks:add-images",
   removeImage: "artworks:remove-image",
   setPrimaryImage: "artworks:set-primary-image",
