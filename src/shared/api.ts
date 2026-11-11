@@ -28,6 +28,7 @@ import type { LabelOptions } from "./labels";
 import type { PageSetupInput } from "./pageSetup";
 import type { PrintSource } from "./print";
 import type { Settings } from "./settings";
+import type { SpreadsheetPreview } from "./spreadsheet";
 import type {
   DuplicatePolicy,
   ExportResult,
@@ -140,6 +141,8 @@ export interface ArtGalleryApi {
   convertDocumentToText(id: string): Promise<ImportedText>;
   /** An uploaded Word file as HTML, to look at. */
   previewDocx(id: string): Promise<string>;
+  /** The first rows of each sheet of an uploaded Excel file. */
+  previewXlsx(id: string): Promise<SpreadsheetPreview>;
   /** Asks where to save and writes a text document as a Word file. */
   exportDocumentDocx(id: string): Promise<{ path: string } | null>;
   /** Asks where to save and writes a text document as PDF. */
@@ -238,6 +241,7 @@ export const IpcChannel = {
   importDocxAsText: "documents:import-docx",
   convertDocumentToText: "documents:convert-to-text",
   previewDocx: "documents:preview-docx",
+  previewXlsx: "documents:preview-xlsx",
   exportDocumentDocx: "documents:export-docx",
   exportDocumentPdf: "print:document-pdf",
   printTextDocument: "print:document",

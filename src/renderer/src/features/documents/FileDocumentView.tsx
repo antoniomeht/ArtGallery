@@ -24,6 +24,7 @@ import { DocumentLinksPanel, DocumentNotesField } from "./DocumentSidePanel";
 import { DocumentBadge } from "./DocumentBadge";
 import { formatBytes, formatDate } from "./documentText";
 import { SlowPdfNotice } from "./SlowPdfNotice";
+import { SpreadsheetPreview } from "./SpreadsheetPreview";
 import { WordPreview } from "./WordPreview";
 
 interface FileDocumentViewProps {
@@ -97,6 +98,8 @@ export function FileDocumentView({
 
   const { extension, fileName } = document;
   const url = fileName ? documentFileUrl(fileName) : null;
+  /** Converted here to look at; the file itself stays as it is. */
+  const isReadInApp = extension === "docx" || extension === "xlsx";
 
   return (
     <section className="document-view" aria-label={document.title}>
@@ -152,31 +155,37 @@ export function FileDocumentView({
               alt={document.title}
             />
           )}
-          {extension === "docx" && (
-            <div className="document-view__word">
-              <div className="document-view__word-actions">
+          {isReadInApp && (
+            <div className="document-view__rendered">
+              <div className="document-view__rendered-actions">
                 <Button onClick={() => void openOutside()}>
                   <ExternalLink aria-hidden size={16} />
-                  Abrir con Word
+                  Abrir con {formatName(extension)}
                 </Button>
-                <Button onClick={() => void convertToText()}>
-                  <FilePen aria-hidden size={16} />
-                  Convertir en documento editable
-                </Button>
+                {extension === "docx" && (
+                  <Button onClick={() => void convertToText()}>
+                    <FilePen aria-hidden size={16} />
+                    Convertir en documento editable
+                  </Button>
+                )}
               </div>
               {openError && (
                 <p className="field__error" role="alert">
                   {openError}
                 </p>
               )}
-              <WordPreview
-                documentId={document.id}
-                className="document-view__word-page"
-              />
+              {extension === "docx" ? (
+                <WordPreview
+                  documentId={document.id}
+                  className="document-view__word-page"
+                />
+              ) : (
+                <SpreadsheetPreview documentId={document.id} />
+              )}
             </div>
           )}
           {extension !== "pdf" &&
-            extension !== "docx" &&
+            !isReadInApp &&
             !isViewableImage(extension) && (
               <div className="document-view__outside">
                 <DocumentBadge extension={extension} />

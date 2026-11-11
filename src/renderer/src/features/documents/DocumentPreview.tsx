@@ -11,6 +11,7 @@ import { DocumentBadge } from "./DocumentBadge";
 import { formatBytes, formatDate } from "./documentText";
 import { ReadOnlyText } from "./ReadOnlyText";
 import { SlowPdfNotice } from "./SlowPdfNotice";
+import { SpreadsheetPreview } from "./SpreadsheetPreview";
 import { WordPreview } from "./WordPreview";
 
 interface DocumentPreviewProps {
@@ -104,6 +105,9 @@ function PreviewBody({ document }: { document: DocumentDetail }) {
         className="document-preview__text"
       />
     );
+  }
+  if (extension === "xlsx") {
+    return <SpreadsheetPreview documentId={document.id} />;
   }
   if (url && isViewableImage(extension)) {
     return (

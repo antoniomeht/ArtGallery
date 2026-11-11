@@ -456,7 +456,7 @@
   margin: 0;
 }
 
-.document-view__word {
+.document-view__rendered {
   display: flex;
   flex-direction: column;
   align-self: stretch;
@@ -466,7 +466,7 @@
   overflow: auto;
 }
 
-.document-view__word-actions {
+.document-view__rendered-actions {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
@@ -479,4 +479,92 @@
   padding: var(--space-8) var(--space-6);
   background: #ffffff;
   box-shadow: 0 1px 3px rgb(0 0 0 / 12%);
+}
+
+.sheet-preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-height: 0;
+  padding: var(--space-3);
+}
+
+.sheet-preview__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.sheet-preview__tab {
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-control);
+  font: inherit;
+  font-size: var(--font-size-caption);
+  color: var(--text-secondary);
+  background: var(--surface-page);
+  cursor: pointer;
+}
+
+.sheet-preview__tab[aria-pressed="true"] {
+  border-color: var(--accent);
+  color: var(--text-primary);
+  background: var(--accent-subtle);
+}
+
+.sheet-preview__scroll {
+  overflow: auto;
+  max-height: 100%;
+  border: 1px solid var(--border-subtle);
+  background: #ffffff;
+}
+
+.sheet-preview__table {
+  border-collapse: collapse;
+  font-size: var(--font-size-caption);
+  font-variant-numeric: tabular-nums;
+  color: #1a1a1a;
+}
+
+.sheet-preview__table td,
+.sheet-preview__table th {
+  max-width: 240px;
+  padding: 2px var(--space-2);
+  overflow: hidden;
+  border: 1px solid #e2e2e2;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sheet-preview__table thead th,
+.sheet-preview__table tbody th,
+.sheet-preview__corner {
+  position: sticky;
+  font-weight: 500;
+  color: #6b6b6b;
+  background: #f3f3f3;
+}
+
+.sheet-preview__table thead th,
+.sheet-preview__corner {
+  top: 0;
+  z-index: 1;
+  text-align: center;
+}
+
+.sheet-preview__table tbody th {
+  left: 0;
+  text-align: right;
+}
+
+.sheet-preview__corner {
+  left: 0;
+  z-index: 2;
+}
+
+.sheet-preview__note {
+  margin: 0;
+  font-size: var(--font-size-caption);
+  color: var(--text-secondary);
 }
