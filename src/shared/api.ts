@@ -154,11 +154,14 @@ export interface ArtGalleryApi {
   exportDocumentPdf(id: string): Promise<{ path: string } | null>;
   /** Opens the system print dialog; false if nothing was printed. */
   printTextDocument(id: string): Promise<boolean>;
-  /** Asks where to save and writes the exhibition catalogue as PDF. */
-  exportCatalogPdf(
+  /**
+   * Makes the exhibition catalogue as PDF and keeps it in Documentación,
+   * linked to the exhibition.
+   */
+  saveCatalogPdf(
     exhibitionId: string,
     options: { includePrices: boolean },
-  ): Promise<{ path: string } | null>;
+  ): Promise<DocumentDetail>;
   /** Asks where to save and writes the labels as PDF on A4 sheets. */
   exportLabelsPdf(
     source: PrintSource,
@@ -252,7 +255,7 @@ export const IpcChannel = {
   exportDocumentDocx: "documents:export-docx",
   exportDocumentPdf: "print:document-pdf",
   printTextDocument: "print:document",
-  exportCatalogPdf: "print:catalog",
+  saveCatalogPdf: "print:catalog",
   exportLabelsPdf: "print:labels",
   printReady: "print:ready",
   getBackupOverview: "backups:overview",

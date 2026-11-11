@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from "react";
+import type { DocumentDetail } from "../../../../shared/document";
 import { Button } from "../../components/Button";
 
 interface CatalogDialogProps {
   exhibitionId: string;
   onClose: () => void;
-  onSaved: (path: string) => void;
+  onSaved: (document: DocumentDetail) => void;
 }
 
-/** Options for the exhibition catalogue before choosing where to save it. */
+/** Options for the exhibition catalogue, which is kept in Documentación. */
 export function CatalogDialog({
   exhibitionId,
   onClose,
@@ -26,11 +27,11 @@ export function CatalogDialog({
     setIsSaving(true);
     setFailed(false);
     try {
-      const result = await window.artGallery.exportCatalogPdf(exhibitionId, {
-        includePrices,
-      });
-      if (result) onSaved(result.path);
-      else setIsSaving(false);
+      onSaved(
+        await window.artGallery.saveCatalogPdf(exhibitionId, {
+          includePrices,
+        }),
+      );
     } catch {
       setFailed(true);
       setIsSaving(false);
@@ -50,7 +51,8 @@ export function CatalogDialog({
         </h2>
         <p className="dialog__message">
           Una portada con los datos de la exposición y, después, cada obra en
-          orden con su miniatura y su cartela, en hojas A4.
+          orden con su miniatura y su cartela, en hojas A4. Se guarda en
+          Documentación, vinculado a esta exposición.
         </p>
         <label className="checkbox">
           <input
@@ -68,7 +70,7 @@ export function CatalogDialog({
         <div className="dialog__actions">
           <Button onClick={() => dialogRef.current?.close()}>Cancelar</Button>
           <Button variant="primary" disabled={isSaving} onClick={save}>
-            {isSaving ? "Generando PDF…" : "Guardar PDF…"}
+            {isSaving ? "Generando PDF…" : "Guardar en Documentación"}
           </Button>
         </div>
       </div>

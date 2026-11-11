@@ -1,3 +1,6 @@
+import { randomUUID } from "node:crypto";
+import { mkdir, rm } from "node:fs/promises";
+import { join } from "node:path";
 import { ipcMain } from "electron";
 import { z } from "zod";
 import { IpcChannel } from "../../shared/api";
@@ -23,6 +26,8 @@ const safeFileName = (name: string) =>
 export function registerPrintHandlers(
   exhibitions: ExhibitionService,
   documents: DocumentService,
+  /** Scratch space for files on their way into the documents. */
+  workDir: string,
 ): void {
   handlePrintReady();
 
@@ -62,21 +67,24 @@ export function registerPrintHandlers(
   );
 
   ipcMain.handle(
-    IpcChannel.exportCatalogPdf,
-    async (event, exhibitionId: unknown, options: unknown) => {
+    IpcChannel.saveCatalogPdf,
+    async (_event, exhibitionId: unknown, options: unknown) => {
       const id = z.string().min(1).parse(exhibitionId);
       const { includePrices } = catalogOptions.parse(options);
-      const path = await showSaveDialog(event.sender, {
-        title: "Guardar catálogo en PDF",
-        defaultPath: `${safeFileName(exhibitions.get(id).name)}.pdf`,
-        filters: [{ name: "PDF", extensions: ["pdf"] }],
-      });
-      if (!path) return null;
-      await printToPdf(
-        { kind: "catalog", exhibitionId: id, includePrices },
-        path,
-      );
-      return { path };
+      await mkdir(workDir, { recursive: true });
+      const path = join(workDir, `catalog-${randomUUID()}.pdf`);
+      try {
+        await printToPdf(
+          { kind: "catalog", exhibitionId: id, includePrices },
+          path,
+        );
+        return await documents.addGeneratedFile(path, {
+          title: `Catálogo - ${safeFileName(exhibitions.get(id).name)}`,
+          linkTo: { type: "exhibition", id },
+        });
+      } finally {
+        await rm(path, { force: true });
+      }
     },
   );
 
