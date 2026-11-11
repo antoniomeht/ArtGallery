@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { existsSync } from "node:fs";
 import { mkdir, readdir, rm, stat } from "node:fs/promises";
 import { join } from "node:path";
@@ -62,17 +62,13 @@ export class BackupService {
     const folder = await this.folder();
     await mkdir(folder, { recursive: true });
     const path = this.availablePath(folder, origin);
-    const { inventory, images, appVersion } = this.options;
+    const contents = this.contents();
 
     await writePackage(path, {
       kind: "backup",
-      artworks: inventory
-        .listAllArtworks()
-        .map((artwork) => toExportArtwork(artwork, images)),
-      exhibitions: inventory.listAllExhibitions(),
-      collections: this.options.collections.listRecords(),
-      documents: this.options.documents.listForExport(),
-      appVersion,
+      ...contents,
+      dataHash: fingerprint(contents),
+      appVersion: this.options.appVersion,
       now: this.now(),
     });
     try {
@@ -114,6 +110,7 @@ export class BackupService {
     );
     const lastTime = last ? sortTime(last) : 0;
     if (this.now().getTime() - lastTime < INTERVAL_MS[autoBackup]) return null;
+    if (await this.unchangedSinceLastBackup()) return null;
 
     const backup = await this.createBackup("automatic");
     await this.pruneAutomatic();
@@ -179,6 +176,27 @@ export class BackupService {
     });
   }
 
+  /** Everything a backup holds, with where each file lives now. */
+  private contents() {
+    const { inventory, images, collections, documents } = this.options;
+    return {
+      artworks: inventory
+        .listAllArtworks()
+        .map((artwork) => toExportArtwork(artwork, images)),
+      exhibitions: inventory.listAllExhibitions(),
+      collections: collections.listRecords(),
+      documents: documents.listForExport(),
+    };
+  }
+
+  /** True when the newest backup, manual or not, holds the current data. */
+  private async unchangedSinceLastBackup(): Promise<boolean> {
+    const [newest] = await this.listBackups();
+    if (!newest?.readable) return false;
+    const { dataHash } = await readManifest(newest.path);
+    return dataHash === fingerprint(this.contents());
+  }
+
   private async describe(path: string): Promise<BackupInfo | null> {
     const fileName = path.split(/[\\/]/).pop()!;
     const origin = originOf(fileName);
@@ -221,6 +239,9 @@ export class BackupService {
     }
   }
 }
+
+const fingerprint = (contents: unknown) =>
+  createHash("sha256").update(JSON.stringify(contents)).digest("hex");
 
 function originOf(fileName: string): BackupOrigin {
   const match = Object.entries(ORIGIN_SUFFIX).find(([, suffix]) =>

@@ -63,6 +63,8 @@ export const manifestSchema = z.object({
     images: z.number().int().nonnegative(),
     documents: z.number().int().nonnegative().default(0),
   }),
+  /** Fingerprint of the backed-up data, to skip backups that change nothing. */
+  dataHash: z.string().optional(),
 });
 
 export type PackageManifest = z.infer<typeof manifestSchema>;

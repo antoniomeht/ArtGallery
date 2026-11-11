@@ -46,6 +46,7 @@ export interface WritePackageOptions {
   documents?: readonly ExportDocument[];
   appVersion: string;
   now?: Date;
+  dataHash?: string;
 }
 
 /**
@@ -63,6 +64,7 @@ export async function writePackage(
     documents = [],
     appVersion,
     now = new Date(),
+    dataHash,
   }: WritePackageOptions,
 ): Promise<PackageManifest> {
   const imageCount = artworks.reduce(
@@ -80,6 +82,7 @@ export async function writePackage(
       images: imageCount,
       documents: documents.length,
     },
+    ...(dataHash ? { dataHash } : {}),
   };
 
   const zip = new ZipFile();

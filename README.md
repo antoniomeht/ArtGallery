@@ -222,7 +222,7 @@ Desde **Copias y ajustes**:
 - **Dónde se guarda**: por defecto en `Documentos/ArtGallery/Copias de seguridad`, fuera de la instalación y de la carpeta de datos. Se puede elegir otra carpeta, por ejemplo un disco externo o una carpeta sincronizada.
 - **Copias automáticas**: diarias (por defecto), semanales o desactivadas.
   - Se comprueban al iniciar la aplicación y cada hora mientras está abierta.
-  - No se crean si el inventario está vacío.
+  - No se crean si el inventario está vacío ni si nada ha cambiado desde la última copia.
   - Se conservan las más recientes (10 por defecto).
   - Las copias manuales nunca se borran automáticamente.
 - **Restaurar**:
