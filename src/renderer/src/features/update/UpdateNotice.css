@@ -1,0 +1,13 @@
+.update-notice {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-8);
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--accent-subtle);
+}
+
+.update-notice__message {
+  flex: 1;
+  font-weight: 500;
+}

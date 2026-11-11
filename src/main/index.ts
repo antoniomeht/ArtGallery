@@ -20,6 +20,7 @@ import { registerExhibitionHandlers } from "./ipc/registerExhibitionHandlers";
 import { registerIpcHandlers } from "./ipc/registerIpcHandlers";
 import { registerPrintHandlers } from "./ipc/registerPrintHandlers";
 import { registerTransferHandlers } from "./ipc/registerTransferHandlers";
+import { registerUpdateHandlers } from "./ipc/registerUpdateHandlers";
 import {
   handleMediaRequests,
   registerMediaScheme,
@@ -159,6 +160,7 @@ void app.whenReady().then(async () => {
   registerPrintHandlers(exhibitions, documents, join(dataDir, "tmp"));
   registerBackupHandlers({ backups, settings, dataFolder: dataDir });
   registerTransferHandlers(transfer);
+  registerUpdateHandlers(settings, join(dataDir, "tmp", "update"));
   createMainWindow();
 
   const runAutomaticBackup = () =>

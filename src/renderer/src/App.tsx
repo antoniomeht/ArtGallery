@@ -9,6 +9,7 @@ import { DocumentsPage } from "./features/documents/DocumentsPage";
 import { DropHint } from "./features/drop/DropHint";
 import { LinkOnDropDialog } from "./features/drop/LinkOnDropDialog";
 import { TopBanner } from "./features/drop/TopBanner";
+import { UpdateNotice } from "./features/update/UpdateNotice";
 import { useDocumentDrop } from "./features/drop/useDocumentDrop";
 import { useTopBanner } from "./features/drop/useTopBanner";
 import { ExhibitionsPage } from "./features/exhibitions/ExhibitionsPage";
@@ -64,6 +65,7 @@ export function App() {
           other sections are up to date without extra wiring. */}
         <main className="app-main">
           <TopBanner topBanner={topBanner} />
+          <UpdateNotice />
           {section === "gallery" && (
             <GalleryPage
               inventoryVersion={newArtworks.inventoryVersion}

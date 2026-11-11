@@ -122,6 +122,9 @@ const api: ArtGalleryApi = {
   getSettings: () => ipcRenderer.invoke(IpcChannel.getSettings),
   updateSettings: (changes) =>
     ipcRenderer.invoke(IpcChannel.updateSettings, changes),
+  checkForUpdate: () => ipcRenderer.invoke(IpcChannel.checkForUpdate),
+  installUpdate: () => ipcRenderer.invoke(IpcChannel.installUpdate),
+  openReleaseNotes: () => ipcRenderer.invoke(IpcChannel.openReleaseNotes),
   createBackup: () => ipcRenderer.invoke(IpcChannel.createBackup),
   restoreBackup: (path) => ipcRenderer.invoke(IpcChannel.restoreBackup, path),
   chooseBackupFolder: () => ipcRenderer.invoke(IpcChannel.chooseBackupFolder),

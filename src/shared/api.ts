@@ -28,6 +28,7 @@ import type { LabelOptions } from "./labels";
 import type { PageSetupInput } from "./pageSetup";
 import type { PrintSource } from "./print";
 import type { Settings } from "./settings";
+import type { UpdateInfo } from "./update";
 import type { PdfLoadState } from "./pdf";
 import type { SpreadsheetPreview } from "./spreadsheet";
 import type {
@@ -172,6 +173,12 @@ export interface ArtGalleryApi {
   getBackupOverview(): Promise<BackupOverview>;
   getSettings(): Promise<Settings>;
   updateSettings(changes: Partial<Settings>): Promise<Settings>;
+  /** A newer published version, if the settings allow looking for one. */
+  checkForUpdate(): Promise<UpdateInfo | null>;
+  /** Downloads the version found, checks it and opens its installer. */
+  installUpdate(): Promise<void>;
+  /** Opens the page of the version found in the browser. */
+  openReleaseNotes(): Promise<void>;
   createBackup(): Promise<BackupInfo>;
   /** Validates the backup and replaces the inventory with its contents. */
   restoreBackup(path: string): Promise<RestoreResult>;
@@ -261,6 +268,9 @@ export const IpcChannel = {
   getBackupOverview: "backups:overview",
   getSettings: "settings:get",
   updateSettings: "settings:update",
+  checkForUpdate: "update:check",
+  installUpdate: "update:install",
+  openReleaseNotes: "update:notes",
   createBackup: "backups:create",
   restoreBackup: "backups:restore",
   chooseBackupFolder: "backups:choose-folder",

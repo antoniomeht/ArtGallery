@@ -38,6 +38,8 @@ Las capturas son de la aplicación real con los [datos de demostración](#datos-
 - Varias imágenes por obra: se pueden añadir más, también arrastrándolas a la ficha abierta, elegir la principal y quitar imágenes.
 - Papelera recuperable, con «Deshacer» al momento y borrado definitivo con confirmación.
 
+- Actualizaciones (experimental): al abrir, ArtGallery mira si hay una versión más nueva publicada en GitHub y ofrece instalarla; antes comprueba que el instalador descargado es el publicado. Se desactiva en Ajustes.
+
 **Galería y búsqueda**
 
 - Cuadrícula de miniaturas al estilo de la galería de un móvil, ordenable por fecha de incorporación, título o año. El orden por título no distingue tildes ni mayúsculas.
