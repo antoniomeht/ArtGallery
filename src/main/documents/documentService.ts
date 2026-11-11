@@ -25,9 +25,11 @@ import {
   isViewableImage,
 } from "../../shared/documentFormats";
 import { documentFileUrl } from "../../shared/media";
+import type { SpreadsheetPreview } from "../../shared/spreadsheet";
 import { DEFAULT_PAGE_SETUP, pageSetupSchema } from "../../shared/pageSetup";
 import { toDocx, type ResolveImage } from "./docxExport";
 import { docxToHtml } from "./docxImport";
+import { readXlsx } from "./xlsxPreview";
 import type { PackageDocument } from "../package/packageFormat";
 import type { ExportDocument } from "../package/writePackage";
 import type { DocumentRecord, DocumentRepository } from "./documentRepository";
@@ -259,6 +261,14 @@ export class DocumentService {
         ? `data:${contentType};base64,${buffer.toString("base64")}`
         : null,
     );
+  }
+
+  /** The first rows of each sheet of an uploaded Excel file, as text. */
+  async previewXlsx(id: string): Promise<SpreadsheetPreview> {
+    if (this.get(id).extension !== "xlsx") {
+      throw new Error(`Document ${id} is not an Excel workbook`);
+    }
+    return readXlsx(this.filePath(id));
   }
 
   /** A Word file with the text document, its images and its page setup. */
