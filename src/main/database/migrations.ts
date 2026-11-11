@@ -183,6 +183,10 @@ const migrations: readonly string[] = [
   -- Favourites come first in the gallery.
   ALTER TABLE artworks ADD COLUMN favorite INTEGER NOT NULL DEFAULT 0;
   `,
+  `
+  -- The artist's own inventory number, e.g. "007".
+  ALTER TABLE artworks ADD COLUMN inventory_number TEXT;
+  `,
 ];
 
 export const LATEST_SCHEMA_VERSION = migrations.length;

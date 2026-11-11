@@ -18,6 +18,7 @@ import {
  */
 export interface ArtworkFormValues {
   title: string;
+  inventoryNumber: string;
   artist: string;
   category: string;
   technique: string;
@@ -65,6 +66,7 @@ export function toFormValues(
   const measures = artwork.dimensions[unit];
   return {
     title: artwork.title,
+    inventoryNumber: artwork.inventoryNumber ?? "",
     artist: artwork.artist ?? "",
     category: artwork.category ?? "",
     technique: artwork.technique ?? "",

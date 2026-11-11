@@ -18,6 +18,7 @@ type Column = [
 const COLUMNS: Column[] = [
   ["Id", (a) => a.id],
   ["Título", (a) => a.title],
+  ["Nº de inventario", (a) => a.inventoryNumber],
   ["Artista", (a) => a.artist],
   ["Categoría", (a) => a.category],
   ["Técnica", (a) => a.technique],

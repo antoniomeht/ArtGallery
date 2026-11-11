@@ -201,6 +201,11 @@ export function ArtworkForm({
         onFocus={isUnsaved ? (event) => event.target.select() : undefined}
         {...bind("title")}
       />
+      <Field
+        label="Nº de inventario"
+        maxLength={30}
+        {...bind("inventoryNumber")}
+      />
       <SuggestField
         label="Artista"
         suggestions={options?.artists ?? []}

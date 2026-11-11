@@ -50,6 +50,7 @@ export function ArtworkLabel({
     ? null
     : formatDimensions(artwork.dimensions, unit);
   const details: [string, string | null][] = [
+    ["Nº de inventario", artwork.inventoryNumber],
     ["Categoría", artwork.category],
     ["Estado", hidden.has("status") ? null : STATUS_LABELS[artwork.status]],
     ["Ubicación", artwork.location],
