@@ -135,6 +135,30 @@
   max-width: 72ch;
 }
 
+.add-artworks {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: 0 var(--space-8) var(--space-6);
+}
+
+.add-artworks__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.add-artworks .add-artworks__search {
+  flex: 0 1 360px;
+}
+
+.add-artworks__actions {
+  display: flex;
+  gap: var(--space-3);
+  margin-left: auto;
+}
+
 .exhibitions__filters {
   display: flex;
   flex-wrap: wrap;

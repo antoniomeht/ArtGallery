@@ -20,7 +20,7 @@ import { LabelsDialog } from "../labels/LabelsDialog";
 import { LinkedDocuments } from "../documents/LinkedDocuments";
 import { dropTargetValue } from "../drop/dropRouter";
 import { CatalogDialog } from "./CatalogDialog";
-import { ChooseArtworksDialog } from "./ChooseArtworksDialog";
+import { AddArtworksPanel } from "./AddArtworksPanel";
 import { ExhibitionForm } from "./ExhibitionForm";
 import { Button } from "../../components/Button";
 import { IconButton } from "../../components/IconButton";
@@ -30,7 +30,7 @@ interface ExhibitionDetailViewProps {
   onBack: () => void;
 }
 
-type Dialog = "add" | "delete" | "catalog" | "labels" | null;
+type Dialog = "delete" | "catalog" | "labels" | null;
 
 export function ExhibitionDetailView({
   exhibitionId,
@@ -41,6 +41,7 @@ export function ExhibitionDetailView({
   const [dialog, setDialog] = useState<Dialog>(null);
   const [notice, setNotice] = useState<NoticeAction | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
 
   const load = useCallback(() => {
     window.artGallery
@@ -154,7 +155,11 @@ export function ExhibitionDetailView({
                 <Trash2 aria-hidden size={16} />
                 Eliminar
               </Button>
-              <Button variant="primary" onClick={() => setDialog("add")}>
+              <Button
+                variant="primary"
+                disabled={isAdding}
+                onClick={() => setIsAdding(true)}
+              >
                 <Plus aria-hidden size={16} />
                 Añadir obras
               </Button>
@@ -167,7 +172,21 @@ export function ExhibitionDetailView({
         <p className="exhibition__description">{exhibition.description}</p>
       )}
 
-      {exhibition.artworks.length === 0 ? (
+      {isAdding ? (
+        <AddArtworksPanel
+          excludedIds={ids}
+          onCancel={() => setIsAdding(false)}
+          onAdd={async (artworkIds) => {
+            setIsAdding(false);
+            setExhibition(
+              await window.artGallery.addToExhibition(
+                exhibition.id,
+                artworkIds,
+              ),
+            );
+          }}
+        />
+      ) : exhibition.artworks.length === 0 ? (
         <p className="exhibitions__status">
           Esta exposición todavía no tiene obras. Añádelas desde aquí o
           seleccionándolas en la Galería.
@@ -235,21 +254,6 @@ export function ExhibitionDetailView({
         />
       </div>
 
-      {dialog === "add" && (
-        <ChooseArtworksDialog
-          excludedIds={ids}
-          onClose={() => setDialog(null)}
-          onChoose={async (artworkIds) => {
-            setDialog(null);
-            setExhibition(
-              await window.artGallery.addToExhibition(
-                exhibition.id,
-                artworkIds,
-              ),
-            );
-          }}
-        />
-      )}
       {dialog === "catalog" && (
         <CatalogDialog
           exhibitionId={exhibition.id}
