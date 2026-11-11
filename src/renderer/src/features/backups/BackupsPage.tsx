@@ -17,6 +17,7 @@ import {
 } from "./backupLabels";
 import { Button } from "../../components/Button";
 import { DefaultArtistSection } from "./DefaultArtistSection";
+import { NumberRangesSection } from "./NumberRangesSection";
 import { DimensionUnitSection } from "./DimensionUnitSection";
 import "./BackupsPage.css";
 
@@ -118,6 +119,11 @@ export function BackupsPage() {
           <DimensionUnitSection
             value={overview.settings.dimensionUnit}
             onChange={(dimensionUnit) => void updateSettings({ dimensionUnit })}
+          />
+
+          <NumberRangesSection
+            value={overview.settings.numberRanges}
+            onSave={(numberRanges) => updateSettings({ numberRanges })}
           />
 
           <section className="page-section" aria-labelledby="backup-now">

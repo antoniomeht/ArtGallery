@@ -33,6 +33,7 @@ import { SuggestField } from "./SuggestField";
 import { useDefaultArtistOffer } from "./useDefaultArtistOffer";
 import { withDefaults } from "./suggestions";
 import { Button } from "../../components/Button";
+import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 
 /** Offered from the first artwork, when the inventory has no values yet. */
 const COMMON_CATEGORIES = [
@@ -111,6 +112,26 @@ export function ArtworkForm({
       setValues((current) => ({ ...current, [name]: value })),
   });
 
+  // Shows the number a blank field will take, following the technique.
+  const technique = useDebouncedValue(values.technique.trim(), 300);
+  const [suggestion, setSuggestion] = useState<{
+    technique: string;
+    number: string | null;
+  } | null>(null);
+  useEffect(() => {
+    if (!technique) return;
+    let isCurrent = true;
+    window.artGallery.nextInventoryNumber(technique).then(
+      (number) => isCurrent && setSuggestion({ technique, number }),
+      () => {},
+    );
+    return () => {
+      isCurrent = false;
+    };
+  }, [technique]);
+  const suggestedNumber =
+    technique && suggestion?.technique === technique ? suggestion.number : null;
+
   const otherUnit = unit === "cm" ? "in" : "cm";
   const equivalent = formatDimensions(
     withEnteredMeasures(artwork.dimensions, unit, enteredMeasures(values)),
@@ -118,8 +139,23 @@ export function ArtworkForm({
   );
 
   /** The saved artwork, or null when nothing could be saved. */
+  /** A blank number takes the next one of the technique's range. */
+  async function withInventoryNumber(): Promise<ArtworkFormValues> {
+    if (values.inventoryNumber.trim() || !values.technique.trim()) {
+      return values;
+    }
+    const next = await window.artGallery
+      .nextInventoryNumber(values.technique)
+      .catch(() => null);
+    return next ? { ...values, inventoryNumber: next } : values;
+  }
+
   async function save(): Promise<Artwork | null> {
-    const parsed = parseFormValues(values, unit, artwork.dimensions);
+    const parsed = parseFormValues(
+      await withInventoryNumber(),
+      unit,
+      artwork.dimensions,
+    );
     if (!parsed.ok) {
       setErrors(parsed.errors);
       return null;
@@ -201,6 +237,9 @@ export function ArtworkForm({
       <Field
         label="Nº de inventario"
         maxLength={30}
+        placeholder={
+          suggestedNumber ? `${suggestedNumber} (se asigna al guardar)` : ""
+        }
         {...bind("inventoryNumber")}
       />
       <SuggestField

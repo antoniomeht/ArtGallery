@@ -430,6 +430,17 @@ export class ArtworkRepository {
       .run(status, updatedAt, ...ids);
   }
 
+  /** Every inventory number in use, the trash included. */
+  listInventoryNumbers(): string[] {
+    return (
+      this.db
+        .prepare(
+          "SELECT inventory_number FROM artworks WHERE inventory_number IS NOT NULL",
+        )
+        .all() as { inventory_number: string }[]
+    ).map((row) => row.inventory_number);
+  }
+
   /** Not a change to the record, so its date of change stays. */
   setFavorite(id: string, favorite: boolean): void {
     this.db
