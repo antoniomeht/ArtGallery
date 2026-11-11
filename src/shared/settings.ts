@@ -17,3 +17,15 @@ export const settingsSchema = z.object({
 });
 
 export type Settings = z.output<typeof settingsSchema>;
+
+/**
+ * Checks a change to some settings. Settings left out stay out: a plain
+ * `partial()` would fill them with their defaults and overwrite them.
+ */
+export function parseSettingsChanges(changes: unknown): Partial<Settings> {
+  const parsed = settingsSchema.partial().parse(changes);
+  const given = new Set(Object.keys(changes as object));
+  return Object.fromEntries(
+    Object.entries(parsed).filter(([key]) => given.has(key)),
+  ) as Partial<Settings>;
+}

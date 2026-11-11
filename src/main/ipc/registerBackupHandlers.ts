@@ -2,7 +2,7 @@ import { ipcMain, shell } from "electron";
 import { mkdir } from "node:fs/promises";
 import { z } from "zod";
 import { IpcChannel } from "../../shared/api";
-import { settingsSchema } from "../../shared/settings";
+import { parseSettingsChanges } from "../../shared/settings";
 import type { BackupService } from "../backup/backupService";
 import { PACKAGE_EXTENSION } from "../package/packageFormat";
 import type { SettingsStore } from "../settings/settingsStore";
@@ -28,7 +28,7 @@ export function registerBackupHandlers({
 
   ipcMain.handle(IpcChannel.getSettings, () => settings.read());
   ipcMain.handle(IpcChannel.updateSettings, (_event, changes: unknown) =>
-    settings.update(settingsSchema.partial().parse(changes)),
+    settings.update(parseSettingsChanges(changes)),
   );
 
   ipcMain.handle(IpcChannel.createBackup, () => backups.createBackup());
