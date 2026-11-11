@@ -22,7 +22,7 @@ describe("CSV export", () => {
     const csv = toCsv([]);
 
     expect(csv.charCodeAt(0)).toBe(0xfeff);
-    expect(rowsOf(csv.slice(1))[0]).toMatch(/^Id;Título;Artista;/);
+    expect(rowsOf(csv.slice(1))[0]).toMatch(/^Id;Título;Nº de inventario;Artista;/);
   });
 
   it("writes readable values with decimal commas", () => {

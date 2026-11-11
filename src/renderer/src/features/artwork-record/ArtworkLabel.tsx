@@ -38,6 +38,7 @@ export function ArtworkLabel({
   const medium = formatMedium(artwork);
   const dimensions = formatDimensions(artwork.dimensions, unit);
   const details: [string, string | null][] = [
+    ["Nº de inventario", artwork.inventoryNumber],
     ["Categoría", artwork.category],
     ["Estado", STATUS_LABELS[artwork.status]],
     ["Ubicación", artwork.location],

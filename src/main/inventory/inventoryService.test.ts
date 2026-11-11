@@ -157,6 +157,7 @@ describe("InventoryService", () => {
 
     session.service.updateArtwork(id, {
       title: "Marina al atardecer",
+      inventoryNumber: " 007 ",
       artist: "Ana Ruiz",
       category: "Pintura",
       technique: "Óleo",
@@ -177,6 +178,7 @@ describe("InventoryService", () => {
     const reopened = openInventory(dataDir);
     expect(reopened.service.getArtwork(id)).toMatchObject({
       title: "Marina al atardecer",
+      inventoryNumber: "007",
       artist: "Ana Ruiz",
       year: 1998,
       yearApproximate: true,
