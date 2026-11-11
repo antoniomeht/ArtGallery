@@ -23,7 +23,9 @@ const ALLOWED = new Set([
   // Dual licensed: used under MIT.
   "(MIT OR GPL-3.0-or-later)",
   // sharp's libvips binaries: LGPL, dynamically linked and replaceable.
+  // Windows ships them inside sharp's package, macOS in their own.
   "Apache-2.0 AND LGPL-3.0-or-later",
+  "LGPL-3.0-or-later",
 ]);
 
 const LICENSE_FILE = /^(licen[cs]e|copying)(\.(md|txt|markdown))?$/i;
