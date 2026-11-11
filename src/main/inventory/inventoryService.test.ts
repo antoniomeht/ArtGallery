@@ -157,6 +157,7 @@ describe("InventoryService", () => {
 
     session.service.updateArtwork(id, {
       title: "Marina al atardecer",
+      inventoryNumber: " 007 ",
       artist: "Ana Ruiz",
       category: "Pintura",
       technique: "Óleo",
@@ -177,6 +178,7 @@ describe("InventoryService", () => {
     const reopened = openInventory(dataDir);
     expect(reopened.service.getArtwork(id)).toMatchObject({
       title: "Marina al atardecer",
+      inventoryNumber: "007",
       artist: "Ana Ruiz",
       year: 1998,
       yearApproximate: true,
@@ -186,6 +188,23 @@ describe("InventoryService", () => {
       price: 1250.5,
     });
     reopened.db.close();
+  });
+
+  it("offers the next free number of the technique, counting the trash", async () => {
+    const { db, service } = openInventory(await useTempDir());
+    const ranges = [{ technique: "Óleo", from: 1, to: 199 }];
+    for (const inventoryNumber of ["001", "002"]) {
+      const { id } = await service.createArtwork({
+        title: "Marina",
+        imagePaths: [],
+      });
+      service.updateArtwork(id, { title: "Marina", inventoryNumber });
+      if (inventoryNumber === "002") service.moveToTrash([id]);
+    }
+
+    expect(service.nextInventoryNumber(ranges, "óleo")).toBe("003");
+    expect(service.nextInventoryNumber(ranges, "Acuarela")).toBeNull();
+    db.close();
   });
 
   it("stores blank optional fields as empty", async () => {

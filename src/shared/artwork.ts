@@ -27,6 +27,8 @@ const title = z.string().trim().min(1).max(300);
 
 export const artworkFieldsSchema = z.object({
   title,
+  /** The artist's own number for the work, e.g. "007". */
+  inventoryNumber: optionalText(30),
   artist: optionalText(300),
   category: optionalText(100),
   technique: optionalText(200),

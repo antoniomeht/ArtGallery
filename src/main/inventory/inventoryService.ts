@@ -15,6 +15,10 @@ import {
   type NewArtwork,
 } from "../../shared/artwork";
 import type { Exhibition } from "../../shared/exhibition";
+import {
+  nextInventoryNumber,
+  type NumberRanges,
+} from "../../shared/inventoryNumbers";
 import type { ExhibitionRepository } from "../exhibitions/exhibitionRepository";
 import type { ImageStore, StoredImage } from "../images/imageStore";
 import type { ArtworkRepository } from "./artworkRepository";
@@ -62,6 +66,18 @@ export class InventoryService {
 
   setStatus(ids: readonly string[], status: ArtworkStatus): void {
     this.artworks.setStatus(ids, status, this.timestamp());
+  }
+
+  /** The first free number of the technique's range, if it has one. */
+  nextInventoryNumber(
+    ranges: NumberRanges,
+    technique: string | null,
+  ): string | null {
+    return nextInventoryNumber(
+      ranges,
+      technique,
+      this.artworks.listInventoryNumbers(),
+    );
   }
 
   setFavorite(id: string, favorite: boolean): void {

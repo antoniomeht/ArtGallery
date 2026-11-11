@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { hiddenFieldsSchema } from "./categoryFields";
 import { DIMENSION_UNITS } from "./dimensions";
+import { numberRangesSchema } from "./inventoryNumbers";
 
 export const AUTO_BACKUP_FREQUENCIES = ["off", "daily", "weekly"] as const;
 export type AutoBackupFrequency = (typeof AUTO_BACKUP_FREQUENCIES)[number];
@@ -17,6 +18,8 @@ export const settingsSchema = z.object({
   dimensionUnit: z.enum(DIMENSION_UNITS).default("cm"),
   /** Experimental: look for a newer version on GitHub at start. */
   checkForUpdates: z.boolean().default(true),
+  /** Inventory numbers kept for each technique. */
+  numberRanges: numberRangesSchema,
   /** Form fields each category leaves out; the data is kept. */
   hiddenFields: hiddenFieldsSchema,
 });

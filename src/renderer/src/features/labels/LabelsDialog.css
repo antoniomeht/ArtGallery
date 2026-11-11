@@ -33,3 +33,13 @@
   overflow: auto;
   background: var(--surface-sunken);
 }
+
+.labels-dialog__field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.labels-dialog__field .checkbox {
+  flex: 1;
+}

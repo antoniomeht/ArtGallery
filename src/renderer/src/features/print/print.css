@@ -134,6 +134,36 @@
   margin: 0;
 }
 
+.label-card--serif {
+  font-family: var(--font-title);
+}
+
+.label-card--sans {
+  font-family: var(--font-sans);
+}
+
+.label-card__text {
+  display: flex;
+  flex-direction: column;
+  gap: calc(0.8mm * var(--label-scale));
+  min-width: 0;
+}
+
+/* With an image, the text sits beside it. */
+.label-card[data-image] {
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: calc(4mm * var(--label-scale));
+}
+
+.label-card__image {
+  flex: 0 0 auto;
+  max-width: 40%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
 .label-card__artist {
   font-weight: 600;
 }

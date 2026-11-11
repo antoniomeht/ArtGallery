@@ -1,9 +1,12 @@
+import { ArrowDown, ArrowUp } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { Artwork } from "../../../../shared/artwork";
 import {
   DEFAULT_LABEL_OPTIONS,
   LABEL_FIELDS,
   LABEL_PRESETS,
+  type LabelFont,
+  type LabelTextSize,
   labelLayout,
   labelOptionsSchema,
   type LabelField,
@@ -14,6 +17,8 @@ import { useDimensionUnit } from "../../hooks/useDimensionUnit";
 import { LabelCard } from "../print/LabelCard";
 import { loadSourceArtworks } from "../print/printData";
 import { Button } from "../../components/Button";
+import { IconButton } from "../../components/IconButton";
+import { moveItem } from "../exhibitions/reorder";
 import "../print/print.css";
 import "./LabelsDialog.css";
 
@@ -24,6 +29,17 @@ const FIELD_LABELS: Record<LabelField, string> = {
   medium: "Técnica y soporte",
   dimensions: "Dimensiones",
   price: "Precio",
+};
+
+const FONT_LABELS: Record<LabelFont, string> = {
+  sans: "Sin serifa",
+  serif: "Con serifa",
+};
+
+const TEXT_SIZE_LABELS: Record<LabelTextSize, string> = {
+  small: "Pequeño",
+  normal: "Normal",
+  large: "Grande",
 };
 
 const CUSTOM = "custom";
@@ -39,6 +55,11 @@ export function LabelsDialog({ source, onClose, onSaved }: LabelsDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [artworks, setArtworks] = useState<Artwork[] | null>(null);
   const [options, setOptions] = useState<LabelOptions>(DEFAULT_LABEL_OPTIONS);
+  /** Every datum in label order; `options.fields` holds the ticked ones. */
+  const [order, setOrder] = useState<LabelField[]>(() => [
+    ...DEFAULT_LABEL_OPTIONS.fields,
+    ...LABEL_FIELDS.filter((f) => !DEFAULT_LABEL_OPTIONS.fields.includes(f)),
+  ]);
   const [isSaving, setIsSaving] = useState(false);
   const [failed, setFailed] = useState(false);
   const unit = useDimensionUnit();
@@ -63,10 +84,19 @@ export function LabelsDialog({ source, onClose, onSaved }: LabelsDialogProps) {
   const toggleField = (field: LabelField, checked: boolean) =>
     setOptions((current) => ({
       ...current,
-      fields: LABEL_FIELDS.filter((item) =>
+      fields: order.filter((item) =>
         item === field ? checked : current.fields.includes(item),
       ),
     }));
+
+  const moveField = (index: number, offset: -1 | 1) => {
+    const moved = moveItem(order, index, index + offset);
+    setOrder(moved);
+    setOptions((current) => ({
+      ...current,
+      fields: moved.filter((item) => current.fields.includes(item)),
+    }));
+  };
 
   async function save() {
     setIsSaving(true);
@@ -99,20 +129,90 @@ export function LabelsDialog({ source, onClose, onSaved }: LabelsDialogProps) {
         <div className="labels-dialog">
           <div className="labels-dialog__options">
             <fieldset className="choice-list">
-              <legend className="field__label">Datos visibles</legend>
-              {LABEL_FIELDS.map((field) => (
-                <label key={field} className="checkbox">
-                  <input
-                    type="checkbox"
-                    checked={options.fields.includes(field)}
-                    onChange={(event) =>
-                      toggleField(field, event.target.checked)
-                    }
-                  />
-                  {FIELD_LABELS[field]}
-                </label>
+              <legend className="field__label">Datos y su orden</legend>
+              {order.map((field, index) => (
+                <div key={field} className="labels-dialog__field">
+                  <label className="checkbox">
+                    <input
+                      type="checkbox"
+                      checked={options.fields.includes(field)}
+                      onChange={(event) =>
+                        toggleField(field, event.target.checked)
+                      }
+                    />
+                    {FIELD_LABELS[field]}
+                  </label>
+                  <IconButton
+                    aria-label={`Subir ${FIELD_LABELS[field]}`}
+                    disabled={index === 0}
+                    onClick={() => moveField(index, -1)}
+                  >
+                    <ArrowUp aria-hidden size={14} />
+                  </IconButton>
+                  <IconButton
+                    aria-label={`Bajar ${FIELD_LABELS[field]}`}
+                    disabled={index === order.length - 1}
+                    onClick={() => moveField(index, 1)}
+                  >
+                    <ArrowDown aria-hidden size={14} />
+                  </IconButton>
+                </div>
               ))}
+              <label className="checkbox">
+                <input
+                  type="checkbox"
+                  checked={options.showImage}
+                  onChange={(event) =>
+                    setOptions((current) => ({
+                      ...current,
+                      showImage: event.target.checked,
+                    }))
+                  }
+                />
+                Imagen de la obra
+              </label>
             </fieldset>
+
+            <div className="artwork-form__row">
+              <label className="field">
+                <span className="field__label">Fuente</span>
+                <select
+                  className="field__input"
+                  value={options.font}
+                  onChange={(event) =>
+                    setOptions((current) => ({
+                      ...current,
+                      font: event.target.value as LabelFont,
+                    }))
+                  }
+                >
+                  {Object.entries(FONT_LABELS).map(([font, label]) => (
+                    <option key={font} value={font}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="field">
+                <span className="field__label">Tamaño del texto</span>
+                <select
+                  className="field__input"
+                  value={options.textSize}
+                  onChange={(event) =>
+                    setOptions((current) => ({
+                      ...current,
+                      textSize: event.target.value as LabelTextSize,
+                    }))
+                  }
+                >
+                  {Object.entries(TEXT_SIZE_LABELS).map(([size, label]) => (
+                    <option key={size} value={size}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
 
             <label className="field">
               <span className="field__label">Tamaño</span>

@@ -10,6 +10,7 @@ export interface SqlCondition {
 /** Columns of `artworks a` searched by free text, besides the tags. */
 const TEXT_COLUMNS = [
   "title",
+  "inventory_number",
   "artist",
   "category",
   "technique",

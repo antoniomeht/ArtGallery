@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { fromSingleUnit } from "./dimensions";
 import {
   LABEL_PRESETS,
   labelLayout,
+  labelLines,
   labelOptionsSchema,
   paginate,
 } from "./labels";
@@ -51,5 +53,65 @@ describe("label layout on A4", () => {
   it("splits labels into sheets", () => {
     expect(paginate([1, 2, 3, 4, 5], 2)).toEqual([[1, 2], [3, 4], [5]]);
     expect(paginate([], 10)).toEqual([]);
+  });
+});
+
+describe("the lines of a label", () => {
+  const artwork = {
+    title: "Marina",
+    artist: "Lucía Ferrer",
+    year: 1998,
+    yearApproximate: false,
+    technique: "Óleo",
+    support: "lienzo",
+    dimensions: fromSingleUnit({ height: 65, width: 81, depth: null }, "cm"),
+    price: null,
+    currency: "EUR",
+  };
+
+  it("follows the order chosen, one datum per line", () => {
+    expect(labelLines(artwork, ["medium", "artist", "title"], "cm")).toEqual([
+      { field: "medium", text: "Óleo sobre lienzo" },
+      { field: "artist", text: "Lucía Ferrer" },
+      { field: "title", text: "Marina" },
+    ]);
+  });
+
+  it("joins the year to the title when it comes right after it", () => {
+    expect(labelLines(artwork, ["title", "year"], "cm")).toEqual([
+      { field: "title", text: "Marina", year: "1998" },
+    ]);
+    expect(labelLines(artwork, ["year", "title"], "cm")).toEqual([
+      { field: "year", text: "1998" },
+      { field: "title", text: "Marina" },
+    ]);
+  });
+
+  it("leaves out data the artwork does not have", () => {
+    expect(labelLines(artwork, ["price", "title"], "cm")).toEqual([
+      { field: "title", text: "Marina" },
+    ]);
+  });
+});
+
+describe("label options", () => {
+  it("keep the look of labels made before fonts and images existed", () => {
+    expect(
+      labelOptionsSchema.parse({
+        fields: ["title"],
+        widthMm: 90,
+        heightMm: 50,
+      }),
+    ).toMatchObject({ showImage: false, font: "sans", textSize: "normal" });
+  });
+
+  it("refuse the same datum twice", () => {
+    expect(
+      labelOptionsSchema.safeParse({
+        fields: ["title", "title"],
+        widthMm: 90,
+        heightMm: 50,
+      }).success,
+    ).toBe(false);
   });
 });

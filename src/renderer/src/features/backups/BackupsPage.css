@@ -62,6 +62,26 @@
   color: var(--text-secondary);
 }
 
+.number-ranges {
+  border-collapse: collapse;
+}
+
+.number-ranges th {
+  padding: 0 var(--space-2) var(--space-1) 0;
+  text-align: left;
+  font-size: var(--font-size-caption);
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.number-ranges td {
+  padding: 0 var(--space-2) var(--space-2) 0;
+}
+
+.number-ranges__number {
+  width: 9ch;
+}
+
 .category-fields {
   overflow-x: auto;
 }

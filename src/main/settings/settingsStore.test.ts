@@ -15,6 +15,7 @@ describe("SettingsStore", () => {
       defaultArtist: "",
       dimensionUnit: "cm",
       checkForUpdates: true,
+      numberRanges: [],
       hiddenFields: { Fotografía: ["status", "support"] },
     });
   });

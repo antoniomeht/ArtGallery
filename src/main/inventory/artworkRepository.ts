@@ -66,6 +66,7 @@ interface ArtworkRow {
   deleted_at: string | null;
   needs_review: number;
   favorite: number;
+  inventory_number: string | null;
 }
 
 /** Every order puts favourites first. */
@@ -98,6 +99,7 @@ const FIELD_COLUMNS = [
   "status",
   "price_cents",
   "currency",
+  "inventory_number",
 ];
 
 function fieldValues(fields: ArtworkFields): SQLInputValue[] {
@@ -122,6 +124,7 @@ function fieldValues(fields: ArtworkFields): SQLInputValue[] {
     // Prices are stored in cents to avoid floating point rounding.
     fields.price == null ? null : Math.round(fields.price * 100),
     fields.currency,
+    fields.inventoryNumber,
   ];
 }
 
@@ -333,6 +336,7 @@ export class ArtworkRepository {
     return {
       id: row.id,
       title: row.title,
+      inventoryNumber: row.inventory_number,
       artist: row.artist,
       category: row.category,
       technique: row.technique,
@@ -424,6 +428,17 @@ export class ArtworkRepository {
          WHERE id IN (${placeholders(ids)})`,
       )
       .run(status, updatedAt, ...ids);
+  }
+
+  /** Every inventory number in use, the trash included. */
+  listInventoryNumbers(): string[] {
+    return (
+      this.db
+        .prepare(
+          "SELECT inventory_number FROM artworks WHERE inventory_number IS NOT NULL",
+        )
+        .all() as { inventory_number: string }[]
+    ).map((row) => row.inventory_number);
   }
 
   /** Not a change to the record, so its date of change stays. */

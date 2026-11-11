@@ -5,6 +5,7 @@ type InputProps = Pick<
   | "inputMode"
   | "list"
   | "maxLength"
+  | "placeholder"
   | "autoFocus"
   | "required"
   | "type"

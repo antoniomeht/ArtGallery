@@ -22,6 +22,7 @@ async function exportableInventory(dataDir: string) {
   });
   service.updateArtwork(marina.id, {
     title: "Marina",
+    inventoryNumber: "003",
     artist: "Lucía Ferrer",
     tags: ["mar"],
     dimensions: fromSingleUnit({ height: 65, width: 81, depth: null }, "cm"),
@@ -80,6 +81,7 @@ describe("artgallery package", () => {
     expect(read.manifest).toEqual(manifest);
     const marina = read.data.artworks.find((a) => a.title === "Marina")!;
     expect(marina).toMatchObject({
+      inventoryNumber: "003",
       artist: "Lucía Ferrer",
       tags: ["mar"],
       price: 1200.5,

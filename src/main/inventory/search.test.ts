@@ -7,6 +7,7 @@ import type { InventoryService } from "./inventoryService";
 const ARTWORKS: ArtworkFieldsInput[] = [
   {
     title: "Marina al atardecer",
+    inventoryNumber: "014",
     artist: "Lucía Ferrer",
     category: "Pintura",
     technique: "Óleo",
@@ -68,6 +69,7 @@ describe("search and filters", () => {
       "Retrato de Ana",
     ]);
     expect(titles({ text: "salon" })).toEqual(["Marina al atardecer"]);
+    expect(titles({ text: "014" })).toEqual(["Marina al atardecer"]);
     expect(titles({ text: "carbon" })).toEqual(["Retrato de Ana"]);
     expect(titles({ text: "puerto" })).toEqual([
       "Marina al atardecer",
