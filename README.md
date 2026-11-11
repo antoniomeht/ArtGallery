@@ -279,3 +279,5 @@ Las pautas para proponer cambios están en [CONTRIBUTING.md](CONTRIBUTING.md).
 ## Licencia
 
 [MIT](LICENSE)
+
+El instalador incluye `THIRD-PARTY-NOTICES.md` con las licencias de todo lo que lleva además del código propio: librerías, las fuentes Instrument (SIL OFL 1.1) y libvips (LGPL 3.0, como bibliotecas separadas que se pueden sustituir). Lo genera `scripts/third-party-notices.mjs` al empaquetar, que además detiene el empaquetado si una dependencia nueva tiene una licencia que todavía no se ha revisado. Los textos fijos están en [licenses/](licenses).

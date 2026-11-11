@@ -9,6 +9,12 @@ files:
 asarUnpack:
   - node_modules/sharp/**
   - node_modules/@img/**
+# Licences of what the app ships, from scripts/third-party-notices.mjs.
+extraFiles:
+  - from: out/THIRD-PARTY-NOTICES.md
+    to: THIRD-PARTY-NOTICES.md
+  - from: LICENSE
+    to: LICENSE.txt
 artifactName: ${productName}-${version}-${os}-${arch}.${ext}
 
 win:
