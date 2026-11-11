@@ -1,9 +1,4 @@
-const normalize = (text: string) =>
-  text
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .toLowerCase()
-    .trim();
+import { foldText as normalize } from "../../../../shared/text";
 
 /** Lower is closer: same text, then its start, a word's start, anywhere. */
 function matchScore(value: string, term: string): number | null {

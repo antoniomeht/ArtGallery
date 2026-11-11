@@ -1,4 +1,10 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+  type KeyboardEvent,
+} from "react";
 import {
   ARTWORK_STATUSES,
   type Artwork,
@@ -20,6 +26,7 @@ import {
   type ArtworkFormErrors,
   type ArtworkFormValues,
 } from "./artworkFormValues";
+import { nextField } from "./formNavigation";
 import { SuggestField } from "./SuggestField";
 import { useDefaultArtistOffer } from "./useDefaultArtistOffer";
 import { withDefaults } from "./suggestions";
@@ -123,11 +130,38 @@ export function ArtworkForm({
     }
   }
 
+  /** Enter moves to the next field and Ctrl+Enter saves. */
+  function handleKeyDown(event: KeyboardEvent<HTMLFormElement>) {
+    const { target } = event;
+    if (event.key !== "Enter" || event.defaultPrevented) return;
+    if (event.nativeEvent.isComposing) return;
+    if (event.ctrlKey || event.metaKey) {
+      event.preventDefault();
+      formRef.current?.requestSubmit();
+      return;
+    }
+    // Descriptions and notes keep their line breaks.
+    if (!(
+      target instanceof HTMLInputElement || target instanceof HTMLSelectElement
+    ))
+      return;
+    event.preventDefault();
+    const fields = [...(formRef.current?.elements ?? [])].filter(
+      (element): element is HTMLElement =>
+        (element instanceof HTMLInputElement ||
+          element instanceof HTMLSelectElement ||
+          element instanceof HTMLTextAreaElement) &&
+        !element.disabled,
+    );
+    nextField(fields, target)?.focus();
+  }
+
   return (
     <form
       ref={formRef}
       className="artwork-form"
       onSubmit={handleSubmit}
+      onKeyDown={handleKeyDown}
       noValidate
     >
       <h2 className="artwork-form__title">Editar ficha</h2>
@@ -271,6 +305,9 @@ export function ArtworkForm({
       )}
 
       <div className="artwork-form__actions">
+        <span className="artwork-form__keys">
+          Intro pasa al siguiente campo. Ctrl+Intro guarda.
+        </span>
         <Button onClick={onCancel}>
           {isUnsaved ? "Descartar" : "Cancelar"}
         </Button>
