@@ -21,7 +21,7 @@ import { LinkedDocuments } from "../documents/LinkedDocuments";
 import { dropTargetValue } from "../drop/dropRouter";
 import { CatalogDialog } from "./CatalogDialog";
 import { ChooseArtworksDialog } from "./ChooseArtworksDialog";
-import { ExhibitionFormDialog } from "./ExhibitionFormDialog";
+import { ExhibitionForm } from "./ExhibitionForm";
 import { Button } from "../../components/Button";
 import { IconButton } from "../../components/IconButton";
 
@@ -30,7 +30,7 @@ interface ExhibitionDetailViewProps {
   onBack: () => void;
 }
 
-type Dialog = "edit" | "add" | "delete" | "catalog" | "labels" | null;
+type Dialog = "add" | "delete" | "catalog" | "labels" | null;
 
 export function ExhibitionDetailView({
   exhibitionId,
@@ -40,6 +40,7 @@ export function ExhibitionDetailView({
   const [failed, setFailed] = useState(false);
   const [dialog, setDialog] = useState<Dialog>(null);
   const [notice, setNotice] = useState<NoticeAction | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
 
   const load = useCallback(() => {
     window.artGallery
@@ -93,60 +94,76 @@ export function ExhibitionDetailView({
           <ArrowLeft aria-hidden size={16} />
           Exposiciones
         </Button>
-        <div className="exhibition__heading">
-          <h1 id="exhibition-title" className="page-header__title">
-            {exhibition.name}
-          </h1>
-          {(exhibition.venue || dates) && (
-            <p className="exhibition__meta">
-              {[exhibition.venue, dates].filter(Boolean).join(". ")}
-            </p>
-          )}
-        </div>
-        <div className="toolbar page-header__action">
-          <Button onClick={() => setDialog("edit")}>
-            <Pencil aria-hidden size={16} />
-            Editar
-          </Button>
-          <Button
-            onClick={async () => {
-              const result = await window.artGallery.exportExhibition(
-                exhibition.id,
-              );
-              if (result) {
-                setNotice({ message: `Exposición exportada a ${result.path}` });
-              }
+        {isEditing ? (
+          <ExhibitionForm
+            className="exhibition-edit"
+            exhibition={exhibition}
+            onCancel={() => setIsEditing(false)}
+            onSaved={() => {
+              setIsEditing(false);
+              load();
             }}
-          >
-            <FileDown aria-hidden size={16} />
-            Exportar…
-          </Button>
-          <Button
-            disabled={exhibition.artworks.length === 0}
-            onClick={() => setDialog("catalog")}
-          >
-            <FileText aria-hidden size={16} />
-            Catálogo PDF…
-          </Button>
-          <Button
-            disabled={exhibition.artworks.length === 0}
-            onClick={() => setDialog("labels")}
-          >
-            <Tags aria-hidden size={16} />
-            Cartelas…
-          </Button>
-          <Button onClick={() => setDialog("delete")}>
-            <Trash2 aria-hidden size={16} />
-            Eliminar
-          </Button>
-          <Button variant="primary" onClick={() => setDialog("add")}>
-            <Plus aria-hidden size={16} />
-            Añadir obras
-          </Button>
-        </div>
+          />
+        ) : (
+          <>
+            <div className="exhibition__heading">
+              <h1 id="exhibition-title" className="page-header__title">
+                {exhibition.name}
+              </h1>
+              {(exhibition.venue || dates) && (
+                <p className="exhibition__meta">
+                  {[exhibition.venue, dates].filter(Boolean).join(". ")}
+                </p>
+              )}
+            </div>
+            <div className="toolbar page-header__action">
+              <Button onClick={() => setIsEditing(true)}>
+                <Pencil aria-hidden size={16} />
+                Editar
+              </Button>
+              <Button
+                onClick={async () => {
+                  const result = await window.artGallery.exportExhibition(
+                    exhibition.id,
+                  );
+                  if (result) {
+                    setNotice({
+                      message: `Exposición exportada a ${result.path}`,
+                    });
+                  }
+                }}
+              >
+                <FileDown aria-hidden size={16} />
+                Exportar…
+              </Button>
+              <Button
+                disabled={exhibition.artworks.length === 0}
+                onClick={() => setDialog("catalog")}
+              >
+                <FileText aria-hidden size={16} />
+                Catálogo PDF…
+              </Button>
+              <Button
+                disabled={exhibition.artworks.length === 0}
+                onClick={() => setDialog("labels")}
+              >
+                <Tags aria-hidden size={16} />
+                Cartelas…
+              </Button>
+              <Button onClick={() => setDialog("delete")}>
+                <Trash2 aria-hidden size={16} />
+                Eliminar
+              </Button>
+              <Button variant="primary" onClick={() => setDialog("add")}>
+                <Plus aria-hidden size={16} />
+                Añadir obras
+              </Button>
+            </div>
+          </>
+        )}
       </header>
 
-      {exhibition.description && (
+      {!isEditing && exhibition.description && (
         <p className="exhibition__description">{exhibition.description}</p>
       )}
 
@@ -218,16 +235,6 @@ export function ExhibitionDetailView({
         />
       </div>
 
-      {dialog === "edit" && (
-        <ExhibitionFormDialog
-          exhibition={exhibition}
-          onClose={() => setDialog(null)}
-          onSaved={() => {
-            setDialog(null);
-            load();
-          }}
-        />
-      )}
       {dialog === "add" && (
         <ChooseArtworksDialog
           excludedIds={ids}
