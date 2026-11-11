@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { hiddenFieldsSchema } from "./categoryFields";
 import { DIMENSION_UNITS } from "./dimensions";
+import { numberRangesSchema } from "./inventoryNumbers";
 
 export const AUTO_BACKUP_FREQUENCIES = ["off", "daily", "weekly"] as const;
 export type AutoBackupFrequency = (typeof AUTO_BACKUP_FREQUENCIES)[number];
@@ -15,6 +16,8 @@ export const settingsSchema = z.object({
   defaultArtist: z.string().trim().max(300).default(""),
   /** How measures are shown and typed; artworks keep both units. */
   dimensionUnit: z.enum(DIMENSION_UNITS).default("cm"),
+  /** Inventory numbers kept for each technique. */
+  numberRanges: numberRangesSchema,
   /** Form fields each category leaves out; the data is kept. */
   hiddenFields: hiddenFieldsSchema,
 });

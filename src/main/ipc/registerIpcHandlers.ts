@@ -33,6 +33,17 @@ export function registerIpcHandlers(
   );
 
   ipcMain.handle(
+    IpcChannel.nextInventoryNumber,
+    async (_event, technique: unknown) => {
+      const { numberRanges } = await settings.read();
+      return inventory.nextInventoryNumber(
+        numberRanges,
+        z.string().max(200).parse(technique),
+      );
+    },
+  );
+
+  ipcMain.handle(
     IpcChannel.setFavorite,
     (_event, id: unknown, favorite: unknown) =>
       inventory.setFavorite(

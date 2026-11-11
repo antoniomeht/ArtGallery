@@ -67,6 +67,8 @@ export interface ArtGalleryApi {
   setStatus(artworkIds: string[], status: ArtworkStatus): Promise<void>;
   /** Favourites come first in the gallery. */
   setFavorite(artworkId: string, favorite: boolean): Promise<void>;
+  /** The number the technique's range offers next, if it has a range. */
+  nextInventoryNumber(technique: string): Promise<string | null>;
   addImages(artworkId: string, imagePaths: string[]): Promise<Artwork>;
   removeImage(artworkId: string, imageId: string): Promise<Artwork>;
   setPrimaryImage(artworkId: string, imageId: string): Promise<Artwork>;
@@ -205,6 +207,7 @@ export const IpcChannel = {
   updateArtwork: "artworks:update",
   setStatus: "artworks:set-status",
   setFavorite: "artworks:set-favorite",
+  nextInventoryNumber: "artworks:next-inventory-number",
   addImages: "artworks:add-images",
   removeImage: "artworks:remove-image",
   setPrimaryImage: "artworks:set-primary-image",
