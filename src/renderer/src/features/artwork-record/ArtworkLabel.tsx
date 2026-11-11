@@ -9,10 +9,17 @@ import {
   formatYear,
   STATUS_LABELS,
 } from "../../../../shared/artworkFormat";
+import {
+  hiddenFieldsFor,
+  shownFields,
+  type HiddenFields,
+} from "../../../../shared/categoryFields";
 
 interface ArtworkLabelProps {
   artwork: Artwork;
   unit: DimensionUnit;
+  /** Fields the artwork's category leaves out; their values are kept. */
+  hiddenFields: HiddenFields;
   /** Called with the form label of a field the user clicks, e.g. "Técnica". */
   onEditField?: (fieldLabel: string) => void;
 }
@@ -23,8 +30,9 @@ interface ArtworkLabelProps {
  * from the keyboard.
  */
 export function ArtworkLabel({
-  artwork,
+  artwork: stored,
   unit,
+  hiddenFields,
   onEditField,
 }: ArtworkLabelProps) {
   const editable = (fieldLabel: string) =>
@@ -35,12 +43,16 @@ export function ArtworkLabel({
           title: "Haz clic para editar",
         }
       : {};
+  const hidden = hiddenFieldsFor(stored.category, hiddenFields);
+  const artwork = shownFields(stored, hidden);
   const medium = formatMedium(artwork);
-  const dimensions = formatDimensions(artwork.dimensions, unit);
+  const dimensions = hidden.has("dimensions")
+    ? null
+    : formatDimensions(artwork.dimensions, unit);
   const details: [string, string | null][] = [
     ["Nº de inventario", artwork.inventoryNumber],
     ["Categoría", artwork.category],
-    ["Estado", STATUS_LABELS[artwork.status]],
+    ["Estado", hidden.has("status") ? null : STATUS_LABELS[artwork.status]],
     ["Ubicación", artwork.location],
     ["Precio", formatPrice(artwork)],
   ];

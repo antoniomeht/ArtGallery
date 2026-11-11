@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { hiddenFieldsSchema } from "./categoryFields";
 import { DIMENSION_UNITS } from "./dimensions";
 import { numberRangesSchema } from "./inventoryNumbers";
 
@@ -17,6 +18,20 @@ export const settingsSchema = z.object({
   dimensionUnit: z.enum(DIMENSION_UNITS).default("cm"),
   /** Inventory numbers kept for each technique. */
   numberRanges: numberRangesSchema,
+  /** Form fields each category leaves out; the data is kept. */
+  hiddenFields: hiddenFieldsSchema,
 });
 
 export type Settings = z.output<typeof settingsSchema>;
+
+/**
+ * Checks a change to some settings. Settings left out stay out: a plain
+ * `partial()` would fill them with their defaults and overwrite them.
+ */
+export function parseSettingsChanges(changes: unknown): Partial<Settings> {
+  const parsed = settingsSchema.partial().parse(changes);
+  const given = new Set(Object.keys(changes as object));
+  return Object.fromEntries(
+    Object.entries(parsed).filter(([key]) => given.has(key)),
+  ) as Partial<Settings>;
+}

@@ -16,6 +16,7 @@ import {
   RESTORE_FAILURE_MESSAGES,
 } from "./backupLabels";
 import { Button } from "../../components/Button";
+import { CategoryFieldsSection } from "./CategoryFieldsSection";
 import { DefaultArtistSection } from "./DefaultArtistSection";
 import { NumberRangesSection } from "./NumberRangesSection";
 import { DimensionUnitSection } from "./DimensionUnitSection";
@@ -124,6 +125,11 @@ export function BackupsPage() {
           <NumberRangesSection
             value={overview.settings.numberRanges}
             onSave={(numberRanges) => updateSettings({ numberRanges })}
+          />
+
+          <CategoryFieldsSection
+            value={overview.settings.hiddenFields}
+            onChange={(hiddenFields) => void updateSettings({ hiddenFields })}
           />
 
           <section className="page-section" aria-labelledby="backup-now">

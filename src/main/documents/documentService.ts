@@ -69,26 +69,53 @@ export class DocumentService {
     for (const path of paths) {
       const name = basename(path);
       try {
-        const file = await this.store.importFile(path, maxBytes);
-        const id = randomUUID();
-        this.documents.insert({
-          id,
-          title: basename(name, extname(name)) || name,
-          kind: "file",
-          fileName: file.fileName,
-          originalName: name,
-          extension: file.extension,
-          bytes: file.bytes,
-          content: null,
-          timestamp: this.timestamp(),
-        });
-        result.added.push(this.get(id));
+        const title = basename(name, extname(name)) || name;
+        result.added.push(await this.insertFile(path, title, name, maxBytes));
       } catch (error) {
         if (!(error instanceof DocumentFileError)) throw error;
         result.failed.push({ name, reason: error.reason });
       }
     }
     return result;
+  }
+
+  /**
+   * Keeps a file the app made, such as a catalogue, linked to what it was
+   * made for. The file at `path` is copied; the caller removes it.
+   */
+  async addGeneratedFile(
+    path: string,
+    { title, linkTo }: { title: string; linkTo: DocumentLinkRef },
+  ): Promise<DocumentDetail> {
+    const document = await this.insertFile(
+      path,
+      title,
+      `${title}${extname(path)}`,
+    );
+    this.link([document.id], linkTo);
+    return this.get(document.id);
+  }
+
+  private async insertFile(
+    path: string,
+    title: string,
+    originalName: string,
+    maxBytes?: number,
+  ): Promise<DocumentDetail> {
+    const file = await this.store.importFile(path, maxBytes);
+    const id = randomUUID();
+    this.documents.insert({
+      id,
+      title,
+      kind: "file",
+      fileName: file.fileName,
+      originalName,
+      extension: file.extension,
+      bytes: file.bytes,
+      content: null,
+      timestamp: this.timestamp(),
+    });
+    return this.get(id);
   }
 
   /** A new, empty text document. */

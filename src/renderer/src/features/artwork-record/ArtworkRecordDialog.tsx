@@ -2,6 +2,7 @@ import { ArrowLeft, Pencil, Star, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { Artwork, ArtworkSummary } from "../../../../shared/artwork";
 import { useDimensionUnit } from "../../hooks/useDimensionUnit";
+import { useHiddenFields } from "../../hooks/useHiddenFields";
 import { ArtworkCollectionsField } from "../collections/ArtworkCollectionsField";
 import { LinkedDocuments } from "../documents/LinkedDocuments";
 import { ArtworkForm, type ArtworkFormHandle } from "./ArtworkForm";
@@ -57,6 +58,7 @@ export function ArtworkRecordDialog({
   /** The field clicked in the label, focused when the form opens. */
   const [focusField, setFocusField] = useState<string | undefined>();
   const unit = useDimensionUnit();
+  const hiddenFields = useHiddenFields();
   const formHandle = useRef<ArtworkFormHandle>(null);
 
   /** Moves to another artwork, saving the open form first. */
@@ -189,6 +191,7 @@ export function ArtworkRecordDialog({
                 handle={formHandle}
                 artwork={state.artwork}
                 unit={unit}
+                hiddenFields={hiddenFields}
                 isUnsaved={isUnsaved}
                 focusField={focusField}
                 onCancel={() =>
@@ -205,6 +208,7 @@ export function ArtworkRecordDialog({
               <ArtworkLabel
                 artwork={state.artwork}
                 unit={unit}
+                hiddenFields={hiddenFields}
                 onEditField={(fieldLabel) => {
                   setFocusField(fieldLabel);
                   setIsEditing(true);
