@@ -40,6 +40,8 @@ export function ExhibitionDetailView({
   const [failed, setFailed] = useState(false);
   const [dialog, setDialog] = useState<Dialog>(null);
   const [notice, setNotice] = useState<NoticeAction | null>(null);
+  /** Changes when a document is added here, so the list reloads. */
+  const [documentsVersion, setDocumentsVersion] = useState(0);
 
   const load = useCallback(() => {
     window.artGallery
@@ -213,6 +215,7 @@ export function ExhibitionDetailView({
 
       <div className="exhibition__documents">
         <LinkedDocuments
+          key={documentsVersion}
           target={{ type: "exhibition", id: exhibition.id }}
           targetLabel={exhibition.name}
         />
@@ -247,9 +250,12 @@ export function ExhibitionDetailView({
         <CatalogDialog
           exhibitionId={exhibition.id}
           onClose={() => setDialog(null)}
-          onSaved={(path) => {
+          onSaved={(document) => {
             setDialog(null);
-            setNotice({ message: `Catálogo guardado en ${path}` });
+            setDocumentsVersion((version) => version + 1);
+            setNotice({
+              message: `«${document.title}» guardado en Documentación`,
+            });
           }}
         />
       )}
