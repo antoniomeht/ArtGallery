@@ -61,3 +61,30 @@
   line-height: var(--line-height-caption);
   color: var(--text-secondary);
 }
+
+.category-fields {
+  overflow-x: auto;
+}
+
+.category-fields__table {
+  border-collapse: collapse;
+  font-size: var(--font-size-caption);
+}
+
+.category-fields__table th,
+.category-fields__table td {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--border-subtle);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.category-fields__table th[scope="row"],
+.category-fields__table thead th:first-child {
+  text-align: left;
+}
+
+.category-fields__table thead th {
+  font-weight: 600;
+  color: var(--text-secondary);
+}

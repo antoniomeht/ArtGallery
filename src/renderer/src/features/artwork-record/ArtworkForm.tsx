@@ -18,6 +18,12 @@ import {
   type DimensionUnit,
 } from "../../../../shared/dimensions";
 import { STATUS_LABELS } from "../../../../shared/artworkFormat";
+import {
+  COMMON_CATEGORIES,
+  hiddenFieldsFor,
+  type HiddenFields,
+  type OptionalField,
+} from "../../../../shared/categoryFields";
 import { Field } from "../../components/Field";
 import {
   enteredMeasures,
@@ -32,19 +38,12 @@ import { useDefaultArtistOffer } from "./useDefaultArtistOffer";
 import { withDefaults } from "./suggestions";
 import { Button } from "../../components/Button";
 
-/** Offered from the first artwork, when the inventory has no values yet. */
-const COMMON_CATEGORIES = [
-  "Pintura",
-  "Dibujo",
-  "Grabado",
-  "Fotografía",
-  "Técnica mixta",
-];
-
 interface ArtworkFormProps {
   artwork: Artwork;
   /** The unit measures are shown and typed in. */
   unit: DimensionUnit;
+  /** Fields each category leaves out; they follow the category typed. */
+  hiddenFields: HiddenFields;
   /** A new artwork: its title is ready to be typed over, and it can be discarded. */
   isUnsaved: boolean;
   /** Label of the field to start on, e.g. "Técnica"; the title otherwise. */
@@ -56,6 +55,7 @@ interface ArtworkFormProps {
 export function ArtworkForm({
   artwork,
   unit,
+  hiddenFields,
   isUnsaved,
   focusField,
   onCancel,
@@ -99,6 +99,9 @@ export function ArtworkForm({
     onChange: (value: string) =>
       setValues((current) => ({ ...current, [name]: value })),
   });
+
+  const hidden = hiddenFieldsFor(values.category, hiddenFields);
+  const shows = (field: OptionalField) => !hidden.has(field);
 
   const otherUnit = unit === "cm" ? "in" : "cm";
   const equivalent = formatDimensions(
@@ -200,98 +203,123 @@ export function ArtworkForm({
           )}
           {...bind("category")}
         />
-        <label className="field">
-          <span className="field__label">Estado</span>
-          <select
-            className="field__input"
-            value={values.status}
-            onChange={(event) =>
-              setValues((current) => ({
-                ...current,
-                status: event.target.value as Artwork["status"],
-              }))
-            }
-          >
-            {ARTWORK_STATUSES.map((status) => (
-              <option key={status} value={status}>
-                {STATUS_LABELS[status]}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
-
-      <div className="artwork-form__row">
-        <SuggestField
-          label="Técnica"
-          suggestions={options?.techniques ?? []}
-          {...bind("technique")}
-        />
-        <SuggestField
-          label="Soporte"
-          suggestions={options?.supports ?? []}
-          {...bind("support")}
-        />
-      </div>
-
-      <fieldset className="artwork-form__group">
-        <legend className="field__label">Año</legend>
-        <div className="artwork-form__row">
-          <Field label="Año" hideLabel inputMode="numeric" {...bind("year")} />
-          <label className="checkbox">
-            <input
-              type="checkbox"
-              checked={values.yearApproximate}
+        {shows("status") && (
+          <label className="field">
+            <span className="field__label">Estado</span>
+            <select
+              className="field__input"
+              value={values.status}
               onChange={(event) =>
                 setValues((current) => ({
                   ...current,
-                  yearApproximate: event.target.checked,
+                  status: event.target.value as Artwork["status"],
                 }))
               }
-            />
-            Fecha aproximada
+            >
+              {ARTWORK_STATUSES.map((status) => (
+                <option key={status} value={status}>
+                  {STATUS_LABELS[status]}
+                </option>
+              ))}
+            </select>
           </label>
-        </div>
-      </fieldset>
-
-      <fieldset className="artwork-form__group">
-        <legend className="field__label">Dimensiones ({unit})</legend>
-        <div className="artwork-form__row artwork-form__row--dimensions">
-          {MEASURE_AXES.map((axis) => (
-            <Field
-              key={axis}
-              label={AXIS_LABELS[axis]}
-              inputMode="decimal"
-              {...bind(axis)}
-            />
-          ))}
-        </div>
-        <p className="artwork-form__hint">
-          {equivalent && `Equivale a ${equivalent}. `}La unidad se cambia en
-          Ajustes.
-        </p>
-      </fieldset>
-
-      <SuggestField
-        label="Ubicación"
-        suggestions={options?.locations ?? []}
-        {...bind("location")}
-      />
-      <SuggestField
-        label="Etiquetas"
-        hint="separadas por comas"
-        isList
-        suggestions={options?.tags ?? []}
-        {...bind("tags")}
-      />
-
-      <div className="artwork-form__row">
-        <Field label="Precio" inputMode="decimal" {...bind("price")} />
-        <Field label="Moneda" maxLength={3} {...bind("currency")} />
+        )}
       </div>
 
-      <Field label="Descripción" multiline {...bind("description")} />
-      <Field label="Notas" multiline {...bind("notes")} />
+      {(shows("technique") || shows("support")) && (
+        <div className="artwork-form__row">
+          {shows("technique") && (
+            <SuggestField
+              label="Técnica"
+              suggestions={options?.techniques ?? []}
+              {...bind("technique")}
+            />
+          )}
+          {shows("support") && (
+            <SuggestField
+              label="Soporte"
+              suggestions={options?.supports ?? []}
+              {...bind("support")}
+            />
+          )}
+        </div>
+      )}
+
+      {shows("year") && (
+        <fieldset className="artwork-form__group">
+          <legend className="field__label">Año</legend>
+          <div className="artwork-form__row">
+            <Field
+              label="Año"
+              hideLabel
+              inputMode="numeric"
+              {...bind("year")}
+            />
+            <label className="checkbox">
+              <input
+                type="checkbox"
+                checked={values.yearApproximate}
+                onChange={(event) =>
+                  setValues((current) => ({
+                    ...current,
+                    yearApproximate: event.target.checked,
+                  }))
+                }
+              />
+              Fecha aproximada
+            </label>
+          </div>
+        </fieldset>
+      )}
+
+      {shows("dimensions") && (
+        <fieldset className="artwork-form__group">
+          <legend className="field__label">Dimensiones ({unit})</legend>
+          <div className="artwork-form__row artwork-form__row--dimensions">
+            {MEASURE_AXES.map((axis) => (
+              <Field
+                key={axis}
+                label={AXIS_LABELS[axis]}
+                inputMode="decimal"
+                {...bind(axis)}
+              />
+            ))}
+          </div>
+          <p className="artwork-form__hint">
+            {equivalent && `Equivale a ${equivalent}. `}La unidad se cambia en
+            Ajustes.
+          </p>
+        </fieldset>
+      )}
+
+      {shows("location") && (
+        <SuggestField
+          label="Ubicación"
+          suggestions={options?.locations ?? []}
+          {...bind("location")}
+        />
+      )}
+      {shows("tags") && (
+        <SuggestField
+          label="Etiquetas"
+          hint="separadas por comas"
+          isList
+          suggestions={options?.tags ?? []}
+          {...bind("tags")}
+        />
+      )}
+
+      {shows("price") && (
+        <div className="artwork-form__row">
+          <Field label="Precio" inputMode="decimal" {...bind("price")} />
+          <Field label="Moneda" maxLength={3} {...bind("currency")} />
+        </div>
+      )}
+
+      {shows("description") && (
+        <Field label="Descripción" multiline {...bind("description")} />
+      )}
+      {shows("notes") && <Field label="Notas" multiline {...bind("notes")} />}
 
       {Object.keys(errors).length > 0 && (
         <p className="artwork-form__error" role="alert">
