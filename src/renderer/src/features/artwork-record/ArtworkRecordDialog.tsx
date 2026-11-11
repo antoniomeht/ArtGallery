@@ -1,4 +1,4 @@
-import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, Pencil, Star, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { Artwork, ArtworkSummary } from "../../../../shared/artwork";
 import { useDimensionUnit } from "../../hooks/useDimensionUnit";
@@ -110,6 +110,30 @@ export function ArtworkRecordDialog({
         </Button>
         {state.status === "ready" && !isEditing && (
           <div className="record__actions">
+            <Button
+              className="record__favorite"
+              aria-pressed={state.artwork.favorite}
+              title="Las favoritas van primero en la galería"
+              onClick={() => {
+                const artwork = {
+                  ...state.artwork,
+                  favorite: !state.artwork.favorite,
+                };
+                void window.artGallery
+                  .setFavorite(artwork.id, artwork.favorite)
+                  .then(() => {
+                    setState({ status: "ready", artwork });
+                    onChanged();
+                  });
+              }}
+            >
+              <Star
+                aria-hidden
+                size={16}
+                fill={state.artwork.favorite ? "currentColor" : "none"}
+              />
+              {state.artwork.favorite ? "Favorita" : "Marcar como favorita"}
+            </Button>
             <Button onClick={() => onMoveToTrash(state.artwork)}>
               <Trash2 aria-hidden size={16} />
               Mover a la papelera
