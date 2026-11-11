@@ -9,6 +9,7 @@ import { documentFileUrl } from "../../../../shared/media";
 import { Button } from "../../components/Button";
 import { DocumentBadge } from "./DocumentBadge";
 import { formatBytes, formatDate } from "./documentText";
+import { PdfFrame } from "./PdfFrame";
 import { ReadOnlyText } from "./ReadOnlyText";
 import { SlowPdfNotice } from "./SlowPdfNotice";
 import { SpreadsheetPreview } from "./SpreadsheetPreview";
@@ -91,7 +92,7 @@ function PreviewBody({ document }: { document: DocumentDetail }) {
   const url = fileName ? documentFileUrl(fileName) : null;
   if (url && extension === "pdf") {
     return (
-      <iframe
+      <PdfFrame
         className="document-preview__pdf"
         src={`${url}#toolbar=0&view=FitH`}
         title={`Vista previa de ${document.title}`}

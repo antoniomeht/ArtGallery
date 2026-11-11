@@ -34,6 +34,22 @@ body {
   }
 }
 
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spin {
+    animation: none;
+  }
+}
+
 .app-layout {
   display: grid;
   grid-template-columns: var(--sidebar-width) 1fr;
