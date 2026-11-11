@@ -4,11 +4,11 @@ import type { Artwork, ArtworkSummary } from "../../../../shared/artwork";
 import { useDimensionUnit } from "../../hooks/useDimensionUnit";
 import { ArtworkCollectionsField } from "../collections/ArtworkCollectionsField";
 import { LinkedDocuments } from "../documents/LinkedDocuments";
-import { ArtworkForm } from "./ArtworkForm";
+import { ArtworkForm, type ArtworkFormHandle } from "./ArtworkForm";
 import { ArtworkLabel } from "./ArtworkLabel";
 import { ImageViewer } from "./ImageViewer";
 import { RecordCarousel } from "./RecordCarousel";
-import { neighbourId } from "./recordNavigation";
+import { navigationStep, neighbourId } from "./recordNavigation";
 import { Button } from "../../components/Button";
 import { dropTargetValue } from "../drop/dropRouter";
 import "./ArtworkRecordDialog.css";
@@ -57,6 +57,18 @@ export function ArtworkRecordDialog({
   /** The field clicked in the label, focused when the form opens. */
   const [focusField, setFocusField] = useState<string | undefined>();
   const unit = useDimensionUnit();
+  const formHandle = useRef<ArtworkFormHandle>(null);
+
+  /** Moves to another artwork, saving the open form first. */
+  async function navigate(targetId: string) {
+    if (!gallery) return;
+    if (isEditing) {
+      if (!(await formHandle.current?.saveChanges())) return;
+      setIsUnsaved(false);
+      onChanged();
+    }
+    gallery.onNavigate(targetId);
+  }
 
   useEffect(() => {
     dialogRef.current?.showModal();
@@ -82,18 +94,17 @@ export function ArtworkRecordDialog({
       data-drop-label={state.status === "ready" ? state.artwork.title : ""}
       onClose={onClose}
       onKeyDown={(event) => {
-        const step =
-          event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
-        // While editing, moving away would lose what was typed.
-        if (!gallery || !step || isEditing || isTypingTarget(event.target))
-          return;
-        if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey)
-          return;
+        const step = navigationStep(event.key, {
+          inField: isTypingTarget(event.target),
+          alt: event.altKey,
+          other: event.ctrlKey || event.metaKey || event.shiftKey,
+        });
+        if (!gallery || !step) return;
         const ids = gallery.artworks.map(({ id }) => id);
         const target = neighbourId(ids, artworkId, step);
         if (!target) return;
         event.preventDefault();
-        gallery.onNavigate(target);
+        void navigate(target);
       }}
       onCancel={(event) => {
         // Escape leaves edit mode first instead of closing the record.
@@ -175,6 +186,7 @@ export function ArtworkRecordDialog({
           <div className="record__panel">
             {isEditing ? (
               <ArtworkForm
+                handle={formHandle}
                 artwork={state.artwork}
                 unit={unit}
                 isUnsaved={isUnsaved}
@@ -212,11 +224,11 @@ export function ArtworkRecordDialog({
       )}
 
       {gallery && gallery.artworks.length > 1 && (
-        <div className="record__carousel" inert={isEditing}>
+        <div className="record__carousel">
           <RecordCarousel
             artworks={gallery.artworks}
             currentId={artworkId}
-            onNavigate={gallery.onNavigate}
+            onNavigate={(id) => void navigate(id)}
           />
         </div>
       )}

@@ -1,9 +1,11 @@
 import {
   useEffect,
+  useImperativeHandle,
   useRef,
   useState,
   type FormEvent,
   type KeyboardEvent,
+  type Ref,
 } from "react";
 import {
   ARTWORK_STATUSES,
@@ -41,7 +43,14 @@ const COMMON_CATEGORIES = [
   "Técnica mixta",
 ];
 
+/** Lets the record save the form before moving to another artwork. */
+export interface ArtworkFormHandle {
+  /** Saves what changed; false when a field needs fixing or saving failed. */
+  saveChanges: () => Promise<boolean>;
+}
+
 interface ArtworkFormProps {
+  handle?: Ref<ArtworkFormHandle>;
   artwork: Artwork;
   /** The unit measures are shown and typed in. */
   unit: DimensionUnit;
@@ -54,6 +63,7 @@ interface ArtworkFormProps {
 }
 
 export function ArtworkForm({
+  handle,
   artwork,
   unit,
   isUnsaved,
@@ -80,7 +90,8 @@ export function ArtworkForm({
       control.setSelectionRange(end, end);
     }
   }, [focusField]);
-  const [values, setValues] = useState(() => toFormValues(artwork, unit));
+  const [initialValues] = useState(() => toFormValues(artwork, unit));
+  const [values, setValues] = useState(initialValues);
   const [errors, setErrors] = useState<ArtworkFormErrors>({});
   const [saveError, setSaveError] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -106,12 +117,12 @@ export function ArtworkForm({
     otherUnit,
   );
 
-  async function handleSubmit(event: FormEvent) {
-    event.preventDefault();
+  /** The saved artwork, or null when nothing could be saved. */
+  async function save(): Promise<Artwork | null> {
     const parsed = parseFormValues(values, unit, artwork.dimensions);
     if (!parsed.ok) {
       setErrors(parsed.errors);
-      return;
+      return null;
     }
     setErrors({});
     setSaveError(false);
@@ -123,11 +134,25 @@ export function ArtworkForm({
       );
       // The artwork is already saved; a missing default is only an extra.
       await defaultArtist.apply(saved.artist).catch(() => {});
-      onSaved(saved);
+      return saved;
     } catch {
       setSaveError(true);
       setIsSaving(false);
+      return null;
     }
+  }
+
+  useImperativeHandle(handle, () => ({
+    saveChanges: async () =>
+      (JSON.stringify(values) === JSON.stringify(initialValues) &&
+        !isUnsaved) ||
+      (await save()) !== null,
+  }));
+
+  async function handleSubmit(event: FormEvent) {
+    event.preventDefault();
+    const saved = await save();
+    if (saved) onSaved(saved);
   }
 
   /** Enter moves to the next field and Ctrl+Enter saves. */
@@ -306,7 +331,8 @@ export function ArtworkForm({
 
       <div className="artwork-form__actions">
         <span className="artwork-form__keys">
-          Intro pasa al siguiente campo. Ctrl+Intro guarda.
+          Intro pasa al siguiente campo. Ctrl+Intro guarda. Alt+← y Alt+→
+          guardan y pasan a otra obra.
         </span>
         <Button onClick={onCancel}>
           {isUnsaved ? "Descartar" : "Cancelar"}
