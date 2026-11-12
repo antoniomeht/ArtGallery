@@ -24,6 +24,7 @@ const exhibition = (id: string, artworkIds: string[]): PackageExhibition => ({
   id,
   name: id,
   venue: null,
+  labelTemplate: null,
   startDate: null,
   endDate: null,
   description: null,

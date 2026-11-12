@@ -80,6 +80,11 @@ export interface ArtGalleryApi {
   deleteFromTrash(artworkIds: string[]): Promise<void>;
   emptyTrash(): Promise<void>;
   listExhibitions(): Promise<ExhibitionSummary[]>;
+  /** Keeps the label design of an exhibition. */
+  saveLabelTemplate(
+    exhibitionId: string,
+    template: LabelTemplate,
+  ): Promise<Exhibition>;
   getExhibition(id: string): Promise<ExhibitionDetail>;
   createExhibition(fields: ExhibitionFieldsInput): Promise<Exhibition>;
   updateExhibition(
@@ -228,6 +233,7 @@ export const IpcChannel = {
   createExhibition: "exhibitions:create",
   updateExhibition: "exhibitions:update",
   deleteExhibition: "exhibitions:delete",
+  saveLabelTemplate: "exhibitions:save-label-template",
   setExhibitionArtworks: "exhibitions:set-artworks",
   addToExhibition: "exhibitions:add-artworks",
   listCollections: "collections:list",

@@ -58,15 +58,38 @@ export function LabelsDialog({ source, onClose, onSaved }: LabelsDialogProps) {
     heightMm: String(template.heightMm),
   });
   const [isSaving, setIsSaving] = useState(false);
+  /** The design last saved here; the notice shows while nothing changed. */
+  const [savedTemplate, setSavedTemplate] = useState<LabelTemplate | null>(
+    null,
+  );
+  const designSaved = savedTemplate === template;
   const [failed, setFailed] = useState(false);
   const unit = useDimensionUnit();
   // Fixed when the dialog opens; parents may pass a new object on render.
   const [fixedSource] = useState(source);
 
+  const exhibitionId =
+    "exhibitionId" in fixedSource ? fixedSource.exhibitionId : null;
+
   useEffect(() => {
     dialogRef.current?.showModal();
     void loadSourceArtworks(fixedSource).then(setArtworks);
   }, [fixedSource]);
+
+  // An exhibition opens with the design saved for it.
+  useEffect(() => {
+    if (!exhibitionId) return;
+    void window.artGallery
+      .getExhibition(exhibitionId)
+      .then(({ labelTemplate }) => {
+        if (!labelTemplate) return;
+        setTemplate(labelTemplate);
+        setSizeDraft({
+          widthMm: String(labelTemplate.widthMm),
+          heightMm: String(labelTemplate.heightMm),
+        });
+      });
+  }, [exhibitionId]);
 
   const preset =
     LABEL_PRESETS.find(
@@ -126,10 +149,24 @@ export function LabelsDialog({ source, onClose, onSaved }: LabelsDialogProps) {
   const style = (change: Parameters<typeof styleElements>[2]) =>
     setTemplate((current) => styleElements(current, textKinds, change));
 
+  async function saveDesign() {
+    if (!exhibitionId) return;
+    setFailed(false);
+    try {
+      await window.artGallery.saveLabelTemplate(exhibitionId, template);
+      setSavedTemplate(template);
+    } catch {
+      setFailed(true);
+    }
+  }
+
   async function save() {
     setIsSaving(true);
     setFailed(false);
     try {
+      if (exhibitionId) {
+        await window.artGallery.saveLabelTemplate(exhibitionId, template);
+      }
       const result = await window.artGallery.exportLabelsPdf(
         fixedSource,
         template,
@@ -372,7 +409,17 @@ export function LabelsDialog({ source, onClose, onSaved }: LabelsDialogProps) {
           </p>
         )}
         <div className="dialog__actions">
+          {designSaved && (
+            <span className="labels-dialog__saved" role="status">
+              Diseño guardado en la exposición.
+            </span>
+          )}
           <Button onClick={() => dialogRef.current?.close()}>Cancelar</Button>
+          {exhibitionId && (
+            <Button disabled={!valid || isSaving} onClick={saveDesign}>
+              Guardar diseño
+            </Button>
+          )}
           <Button
             variant="primary"
             disabled={!valid || count === 0 || isSaving}

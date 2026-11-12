@@ -1,4 +1,5 @@
 import { readdir, readFile, rm, writeFile } from "node:fs/promises";
+import { defaultLabelTemplate } from "../../shared/labels";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { writePackage } from "../package/writePackage";
@@ -91,6 +92,8 @@ describe("backups", () => {
     const retrato = await addArtwork(app, "Retrato");
     const { id } = app.exhibitions.create({ name: "Colección", venue: "Sala" });
     app.exhibitions.addArtworks(id, [retrato.id, marina.id]);
+    const template = defaultLabelTemplate({ widthMm: 120, heightMm: 70 });
+    app.exhibitions.saveLabelTemplate(id, template);
     const backup = await app.backups.createBackup();
     app.exhibitions.delete(id);
 
@@ -100,6 +103,7 @@ describe("backups", () => {
       name: "Colección",
       venue: "Sala",
       artworkIds: [retrato.id, marina.id],
+      labelTemplate: template,
     });
     app.db.close();
   });

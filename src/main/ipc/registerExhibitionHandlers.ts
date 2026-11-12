@@ -20,6 +20,11 @@ export function registerExhibitionHandlers(exhibitions: ExhibitionService) {
     (_event, exhibitionId: unknown, fields) =>
       exhibitions.update(id.parse(exhibitionId), fields),
   );
+  ipcMain.handle(
+    IpcChannel.saveLabelTemplate,
+    (_event, exhibitionId: unknown, template: unknown) =>
+      exhibitions.saveLabelTemplate(id.parse(exhibitionId), template),
+  );
   ipcMain.handle(IpcChannel.deleteExhibition, (_event, exhibitionId: unknown) =>
     exhibitions.delete(id.parse(exhibitionId)),
   );

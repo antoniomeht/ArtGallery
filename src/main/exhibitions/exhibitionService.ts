@@ -6,6 +6,7 @@ import {
   type ExhibitionFieldsInput,
   type ExhibitionSummary,
 } from "../../shared/exhibition";
+import { labelTemplateSchema } from "../../shared/labels";
 import type { ExhibitionRepository } from "./exhibitionRepository";
 
 export class ExhibitionService {
@@ -28,6 +29,7 @@ export class ExhibitionService {
       ...exhibitionFieldsSchema.parse(input),
       id: randomUUID(),
       artworkIds: [],
+      labelTemplate: null,
       createdAt: timestamp,
       updatedAt: timestamp,
     };
@@ -38,6 +40,15 @@ export class ExhibitionService {
   update(id: string, input: ExhibitionFieldsInput): Exhibition {
     const fields = exhibitionFieldsSchema.parse(input);
     if (!this.exhibitions.update(id, fields, this.timestamp())) {
+      throw new Error(`Exhibition not found: ${id}`);
+    }
+    return this.find(id);
+  }
+
+  /** Keeps the label design for the next time its labels are printed. */
+  saveLabelTemplate(id: string, input: unknown): Exhibition {
+    const template = labelTemplateSchema.parse(input);
+    if (!this.exhibitions.setLabelTemplate(id, template, this.timestamp())) {
       throw new Error(`Exhibition not found: ${id}`);
     }
     return this.find(id);
