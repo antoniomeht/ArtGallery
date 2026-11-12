@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { ipcMain } from "electron";
 import { z } from "zod";
 import { IpcChannel } from "../../shared/api";
-import { labelOptionsSchema } from "../../shared/labels";
+import { labelTemplateSchema } from "../../shared/labels";
 import { DEFAULT_PAGE_SETUP } from "../../shared/pageSetup";
 import { printSourceSchema } from "../../shared/print";
 import type { DocumentService } from "../documents/documentService";
@@ -90,11 +90,11 @@ export function registerPrintHandlers(
 
   ipcMain.handle(
     IpcChannel.exportLabelsPdf,
-    async (event, source: unknown, options: unknown) => {
+    async (event, source: unknown, template: unknown) => {
       const job = {
         kind: "labels" as const,
         source: printSourceSchema.parse(source),
-        options: labelOptionsSchema.parse(options),
+        template: labelTemplateSchema.parse(template),
       };
       const name =
         "exhibitionId" in job.source

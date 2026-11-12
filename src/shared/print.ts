@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { labelOptionsSchema } from "./labels";
+import { labelTemplateSchema } from "./labels";
 
 /** Artworks to print: an exhibition in its order, or a chosen list. */
 export const printSourceSchema = z.union([
@@ -23,7 +23,7 @@ export const printJobSchema = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("labels"),
     source: printSourceSchema,
-    options: labelOptionsSchema,
+    template: labelTemplateSchema,
   }),
 ]);
 

@@ -114,24 +114,13 @@
 }
 
 .label-card {
-  --label-scale: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: calc(0.8mm * var(--label-scale));
+  position: relative;
   box-sizing: border-box;
-  padding: calc(5mm * var(--label-scale));
   overflow: hidden;
   /* Dashed edge to cut along; light enough not to show if cut slightly in. */
   border: 0.2mm dashed #b5b5b5;
   color: #000000;
   background: #ffffff;
-  font-size: calc(3.4mm * var(--label-scale));
-  line-height: 1.3;
-}
-
-.label-card p {
-  margin: 0;
 }
 
 .label-card--serif {
@@ -142,37 +131,14 @@
   font-family: var(--font-sans);
 }
 
-.label-card__text {
-  display: flex;
-  flex-direction: column;
-  gap: calc(0.8mm * var(--label-scale));
-  min-width: 0;
-}
-
-/* With an image, the text sits beside it. */
-.label-card[data-image] {
-  flex-direction: row;
-  align-items: center;
-  justify-content: flex-start;
-  gap: calc(4mm * var(--label-scale));
+/* Each box sits where the template puts it, in millimetres from the corner. */
+.label-card__box {
+  position: absolute;
+  box-sizing: border-box;
+  margin: 0;
+  overflow-wrap: anywhere;
 }
 
 .label-card__image {
-  flex: 0 0 auto;
-  max-width: 40%;
-  max-height: 100%;
   object-fit: contain;
-}
-
-.label-card__artist {
-  font-weight: 600;
-}
-
-.label-card__title {
-  font-size: 1.15em;
-}
-
-.label-card__detail {
-  font-size: 0.85em;
-  color: #333333;
 }

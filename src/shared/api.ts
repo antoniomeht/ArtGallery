@@ -24,7 +24,7 @@ import type {
   ExhibitionFieldsInput,
   ExhibitionSummary,
 } from "./exhibition";
-import type { LabelOptions } from "./labels";
+import type { LabelTemplate } from "./labels";
 import type { PageSetupInput } from "./pageSetup";
 import type { PrintSource } from "./print";
 import type { Settings } from "./settings";
@@ -168,7 +168,7 @@ export interface ArtGalleryApi {
   /** Asks where to save and writes the labels as PDF on A4 sheets. */
   exportLabelsPdf(
     source: PrintSource,
-    options: LabelOptions,
+    template: LabelTemplate,
   ): Promise<{ path: string } | null>;
   /** Called by the print window once its document is fully drawn. */
   printReady(): void;

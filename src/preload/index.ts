@@ -117,8 +117,8 @@ const api: ArtGalleryApi = {
     ipcRenderer.invoke(IpcChannel.printTextDocument, id),
   saveCatalogPdf: (exhibitionId, options) =>
     ipcRenderer.invoke(IpcChannel.saveCatalogPdf, exhibitionId, options),
-  exportLabelsPdf: (source, options) =>
-    ipcRenderer.invoke(IpcChannel.exportLabelsPdf, source, options),
+  exportLabelsPdf: (source, template) =>
+    ipcRenderer.invoke(IpcChannel.exportLabelsPdf, source, template),
   printReady: () => ipcRenderer.send(IpcChannel.printReady),
   getBackupOverview: () => ipcRenderer.invoke(IpcChannel.getBackupOverview),
   getSettings: () => ipcRenderer.invoke(IpcChannel.getSettings),

@@ -5,24 +5,24 @@ import {
   labelLayout,
   paginate,
   SHEET,
-  type LabelOptions,
+  type LabelTemplate,
 } from "../../../../shared/labels";
 import { LabelCard } from "./LabelCard";
 
 interface LabelSheetsProps {
   artworks: Artwork[];
-  options: LabelOptions;
+  template: LabelTemplate;
   unit: DimensionUnit;
 }
 
 /** A4 sheets with labels in a grid and dashed lines to cut along. */
-export function LabelSheets({ artworks, options, unit }: LabelSheetsProps) {
-  const { columns, perSheet } = labelLayout(options);
+export function LabelSheets({ artworks, template, unit }: LabelSheetsProps) {
+  const { columns, perSheet } = labelLayout(template);
   const style = {
     padding: `${SHEET.marginMm}mm`,
     gap: `${SHEET.gapMm}mm`,
-    gridTemplateColumns: `repeat(${columns}, ${options.widthMm}mm)`,
-    gridAutoRows: `${options.heightMm}mm`,
+    gridTemplateColumns: `repeat(${columns}, ${template.widthMm}mm)`,
+    gridAutoRows: `${template.heightMm}mm`,
   } as CSSProperties;
 
   return (
@@ -33,7 +33,7 @@ export function LabelSheets({ artworks, options, unit }: LabelSheetsProps) {
             <LabelCard
               key={artwork.id}
               artwork={artwork}
-              options={options}
+              template={template}
               unit={unit}
             />
           ))}

@@ -3,7 +3,7 @@ import type { Artwork } from "./artwork";
 import { formatMedium, formatPrice, formatYear } from "./artworkFormat";
 import { formatDimensions, type DimensionUnit } from "./dimensions";
 
-/** Information a label can show; the user picks which and in what order. */
+/** Data a label can show, each in its own box. */
 export const LABEL_FIELDS = [
   "artist",
   "title",
@@ -24,28 +24,35 @@ export const LABEL_PRESETS = [
 export const SHEET = { widthMm: 210, heightMm: 297, marginMm: 10, gapMm: 4 };
 
 export const LABEL_FONTS = ["sans", "serif"] as const;
-export const LABEL_TEXT_SIZES = ["small", "normal", "large"] as const;
 export type LabelFont = (typeof LABEL_FONTS)[number];
-export type LabelTextSize = (typeof LABEL_TEXT_SIZES)[number];
 
-/** How much each text size scales the label's text. */
-export const TEXT_SIZE_SCALE: Record<
-  (typeof LABEL_TEXT_SIZES)[number],
-  number
-> = { small: 0.85, normal: 1, large: 1.2 };
+/** Boxes a label can hold: the artwork's primary image and its data. */
+export const LABEL_ELEMENT_KINDS = ["image", ...LABEL_FIELDS] as const;
+export type LabelElementKind = (typeof LABEL_ELEMENT_KINDS)[number];
 
-export const labelOptionsSchema = z.object({
-  /** In printing order, each at most once. */
-  fields: z
-    .array(z.enum(LABEL_FIELDS))
-    .min(1)
-    .refine((fields) => new Set(fields).size === fields.length, {
-      message: "A datum appears twice",
-    }),
-  /** The primary image beside the text. */
-  showImage: z.boolean().default(false),
-  font: z.enum(LABEL_FONTS).default("sans"),
-  textSize: z.enum(LABEL_TEXT_SIZES).default("normal"),
+/** Millimetres in a typographic point. */
+export const MM_PER_PT = 25.4 / 72;
+/** Line height of label text, relative to its font size. */
+export const LINE_HEIGHT = 1.25;
+
+const position = z.number().min(0).max(1000);
+
+export const labelElementSchema = z.object({
+  kind: z.enum(LABEL_ELEMENT_KINDS),
+  /** Top left corner, from the label's top left corner. */
+  xMm: position,
+  yMm: position,
+  widthMm: z.number().min(2).max(1000),
+  /** The image's box; texts take the height of their lines. */
+  heightMm: z.number().min(2).max(1000).nullable(),
+  fontSizePt: z.number().min(4).max(96),
+  bold: z.boolean().default(false),
+  italic: z.boolean().default(false),
+});
+
+export type LabelElement = z.output<typeof labelElementSchema>;
+
+export const labelTemplateSchema = z.object({
   widthMm: z
     .number()
     .min(40)
@@ -54,18 +61,187 @@ export const labelOptionsSchema = z.object({
     .number()
     .min(25)
     .max(SHEET.heightMm - 2 * SHEET.marginMm),
+  font: z.enum(LABEL_FONTS).default("sans"),
+  /** Inner margin shown as a guide while editing. */
+  marginMm: z.number().min(0).max(30).default(5),
+  elements: z
+    .array(labelElementSchema)
+    .min(1)
+    .max(LABEL_ELEMENT_KINDS.length)
+    .refine(
+      (elements) =>
+        new Set(elements.map(({ kind }) => kind)).size === elements.length,
+      { message: "A box appears twice" },
+    ),
 });
 
-export type LabelOptions = z.output<typeof labelOptionsSchema>;
+export type LabelTemplate = z.output<typeof labelTemplateSchema>;
+export type LabelSize = Pick<LabelTemplate, "widthMm" | "heightMm">;
 
-export const DEFAULT_LABEL_OPTIONS: LabelOptions = {
-  fields: ["artist", "title", "year", "medium", "dimensions"],
-  showImage: false,
-  font: "sans",
-  textSize: "normal",
-  widthMm: LABEL_PRESETS[0].widthMm,
-  heightMm: LABEL_PRESETS[0].heightMm,
-};
+export const DEFAULT_LABEL_KINDS: readonly LabelElementKind[] = [
+  "artist",
+  "title",
+  "year",
+  "medium",
+  "dimensions",
+];
+
+const DEFAULT_MARGIN_MM = 5;
+/** Space between stacked lines and between the image and the text. */
+const LINE_GAP_MM = 0.8;
+const IMAGE_GAP_MM = 4;
+/** Share of the inner width the image takes. */
+const IMAGE_SHARE = 0.4;
+
+const round1 = (mm: number) => Math.round(mm * 10) / 10;
+const roundHalf = (pt: number) => Math.round(pt * 2) / 2;
+
+/** Text grows with the label, from the small preset's height. */
+const typeScale = ({ heightMm }: LabelSize) =>
+  Math.min(2, Math.max(0.8, heightMm / 50));
+
+function baseStyle(
+  kind: LabelElementKind,
+  size: LabelSize,
+): Pick<LabelElement, "fontSizePt" | "bold" | "italic"> {
+  const pt = kind === "artist" ? 10 : kind === "title" ? 11 : 8;
+  return {
+    fontSizePt: roundHalf(pt * typeScale(size)),
+    bold: kind === "artist",
+    italic: kind === "title",
+  };
+}
+
+/** Height a text box takes with one line. */
+export const textHeightMm = (fontSizePt: number) =>
+  fontSizePt * MM_PER_PT * LINE_HEIGHT;
+
+/** Height of a box, counting texts as one line. */
+export const elementHeightMm = (element: LabelElement) =>
+  element.heightMm ?? textHeightMm(element.fontSizePt);
+
+function imageElement(size: LabelSize, xMm: number): LabelElement {
+  return {
+    kind: "image",
+    xMm,
+    yMm: DEFAULT_MARGIN_MM,
+    widthMm: round1((size.widthMm - 2 * DEFAULT_MARGIN_MM) * IMAGE_SHARE),
+    heightMm: round1(size.heightMm - 2 * DEFAULT_MARGIN_MM),
+    fontSizePt: 8,
+    bold: false,
+    italic: false,
+  };
+}
+
+/**
+ * The usual label: texts stacked and centred vertically inside the margins,
+ * with the image, if any, on their left.
+ */
+export function defaultLabelTemplate(
+  size: LabelSize,
+  kinds: readonly LabelElementKind[] = DEFAULT_LABEL_KINDS,
+): LabelTemplate {
+  const margin = DEFAULT_MARGIN_MM;
+  const image = kinds.includes("image") ? imageElement(size, margin) : null;
+  const textX = image ? round1(margin + image.widthMm + IMAGE_GAP_MM) : margin;
+  const texts = kinds
+    .filter((kind) => kind !== "image")
+    .map((kind) => ({ kind, ...baseStyle(kind, size) }));
+  const heights = texts.map(({ fontSizePt }) => textHeightMm(fontSizePt));
+  const total =
+    heights.reduce((sum, height) => sum + height, 0) +
+    LINE_GAP_MM * Math.max(0, texts.length - 1);
+  let y = Math.max(margin, (size.heightMm - total) / 2);
+  const elements: LabelElement[] = texts.map((text, index) => {
+    const element = {
+      ...text,
+      xMm: textX,
+      yMm: round1(y),
+      widthMm: round1(size.widthMm - margin - textX),
+      heightMm: null,
+    };
+    y += (heights[index] ?? 0) + LINE_GAP_MM;
+    return element;
+  });
+  return {
+    ...size,
+    font: "sans",
+    marginMm: margin,
+    elements: image ? [image, ...elements] : elements,
+  };
+}
+
+/**
+ * Adds a box in a free place: a datum goes below the lowest text, or at the
+ * top margin when it would not fit; the image goes on the right.
+ */
+export function addElement(
+  template: LabelTemplate,
+  kind: LabelElementKind,
+): LabelTemplate {
+  if (template.elements.some((element) => element.kind === kind)) {
+    return template;
+  }
+  const { marginMm } = template;
+  if (kind === "image") {
+    const image = imageElement(template, 0);
+    image.xMm = round1(
+      Math.max(0, template.widthMm - marginMm - image.widthMm),
+    );
+    return { ...template, elements: [...template.elements, image] };
+  }
+  const texts = template.elements.filter(({ heightMm }) => heightMm === null);
+  const style = baseStyle(kind, template);
+  const xMm = texts[0]?.xMm ?? marginMm;
+  const below =
+    texts.length > 0
+      ? Math.max(...texts.map((text) => text.yMm + elementHeightMm(text))) +
+        LINE_GAP_MM
+      : marginMm;
+  const fits =
+    below + textHeightMm(style.fontSizePt) <= template.heightMm - marginMm;
+  const element: LabelElement = {
+    kind,
+    ...style,
+    xMm,
+    yMm: round1(fits ? below : marginMm),
+    widthMm: round1(texts[0]?.widthMm ?? template.widthMm - xMm - marginMm),
+    heightMm: null,
+  };
+  return { ...template, elements: [...template.elements, element] };
+}
+
+export function removeElements(
+  template: LabelTemplate,
+  kinds: readonly LabelElementKind[],
+): LabelTemplate {
+  return {
+    ...template,
+    elements: template.elements.filter(({ kind }) => !kinds.includes(kind)),
+  };
+}
+
+/** A new label size, with every box scaled in proportion. */
+export function resizeTemplate(
+  template: LabelTemplate,
+  size: LabelSize,
+): LabelTemplate {
+  const fx = size.widthMm / template.widthMm;
+  const fy = size.heightMm / template.heightMm;
+  return {
+    ...template,
+    ...size,
+    elements: template.elements.map((element) => ({
+      ...element,
+      xMm: round1(element.xMm * fx),
+      yMm: round1(element.yMm * fy),
+      widthMm: round1(element.widthMm * fx),
+      heightMm:
+        element.heightMm === null ? null : round1(element.heightMm * fy),
+      fontSizePt: roundHalf(element.fontSizePt * Math.min(fx, fy)),
+    })),
+  };
+}
 
 export interface LabelLayout {
   columns: number;
@@ -74,10 +250,7 @@ export interface LabelLayout {
 }
 
 /** How many labels of this size fit on one sheet, in a regular grid. */
-export function labelLayout({
-  widthMm,
-  heightMm,
-}: Pick<LabelOptions, "widthMm" | "heightMm">): LabelLayout {
+export function labelLayout({ widthMm, heightMm }: LabelSize): LabelLayout {
   const fit = (available: number, size: number) =>
     Math.max(0, Math.floor((available + SHEET.gapMm) / (size + SHEET.gapMm)));
   const columns = fit(SHEET.widthMm - 2 * SHEET.marginMm, widthMm);
@@ -94,13 +267,6 @@ export function paginate<T>(items: readonly T[], perSheet: number): T[][] {
   return sheets;
 }
 
-export interface LabelLine {
-  field: LabelField;
-  text: string;
-  /** On the title line, the year that follows it. */
-  year?: string;
-}
-
 type LabelArtwork = Pick<
   Artwork,
   | "title"
@@ -114,16 +280,12 @@ type LabelArtwork = Pick<
   | "currency"
 >;
 
-/**
- * The label's lines in the chosen order. A year right after the title
- * joins its line, as in "Marina, 1998"; data the artwork lacks are left out.
- */
-export function labelLines(
+/** What each datum reads on the label; null when the artwork lacks it. */
+export function labelTexts(
   artwork: LabelArtwork,
-  fields: readonly LabelField[],
   unit: DimensionUnit,
-): LabelLine[] {
-  const text: Record<LabelField, string | null> = {
+): Record<LabelField, string | null> {
+  return {
     artist: artwork.artist,
     title: artwork.title,
     year: formatYear(artwork),
@@ -131,17 +293,4 @@ export function labelLines(
     dimensions: formatDimensions(artwork.dimensions, unit),
     price: formatPrice(artwork),
   };
-  const lines: LabelLine[] = [];
-  fields.forEach((field, index) => {
-    const value = text[field];
-    if (field === "year" && fields[index - 1] === "title") return;
-    if (!value) return;
-    const year = fields[index + 1] === "year" ? text.year : null;
-    lines.push(
-      field === "title" && year
-        ? { field, text: value, year }
-        : { field, text: value },
-    );
-  });
-  return lines;
 }

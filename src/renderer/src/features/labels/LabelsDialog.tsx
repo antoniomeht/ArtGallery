@@ -1,28 +1,29 @@
-import { ArrowDown, ArrowUp } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { Artwork } from "../../../../shared/artwork";
 import {
-  DEFAULT_LABEL_OPTIONS,
-  LABEL_FIELDS,
+  addElement,
+  defaultLabelTemplate,
+  LABEL_ELEMENT_KINDS,
   LABEL_PRESETS,
-  type LabelFont,
-  type LabelTextSize,
   labelLayout,
-  labelOptionsSchema,
-  type LabelField,
-  type LabelOptions,
+  labelTemplateSchema,
+  removeElements,
+  resizeTemplate,
+  type LabelElementKind,
+  type LabelFont,
+  type LabelSize,
+  type LabelTemplate,
 } from "../../../../shared/labels";
 import type { PrintSource } from "../../../../shared/print";
 import { useDimensionUnit } from "../../hooks/useDimensionUnit";
 import { LabelCard } from "../print/LabelCard";
 import { loadSourceArtworks } from "../print/printData";
 import { Button } from "../../components/Button";
-import { IconButton } from "../../components/IconButton";
-import { moveItem } from "../exhibitions/reorder";
 import "../print/print.css";
 import "./LabelsDialog.css";
 
-const FIELD_LABELS: Record<LabelField, string> = {
+export const KIND_LABELS: Record<LabelElementKind, string> = {
+  image: "Imagen de la obra",
   artist: "Artista",
   title: "Título",
   year: "Año",
@@ -36,13 +37,8 @@ const FONT_LABELS: Record<LabelFont, string> = {
   serif: "Con serifa",
 };
 
-const TEXT_SIZE_LABELS: Record<LabelTextSize, string> = {
-  small: "Pequeño",
-  normal: "Normal",
-  large: "Grande",
-};
-
 const CUSTOM = "custom";
+const MIN_SIZE: LabelSize = { widthMm: 40, heightMm: 25 };
 
 interface LabelsDialogProps {
   source: PrintSource;
@@ -50,16 +46,18 @@ interface LabelsDialogProps {
   onSaved: (path: string) => void;
 }
 
-/** Label options with a live preview of the first label. */
+/** Label design with a live preview of the first label. */
 export function LabelsDialog({ source, onClose, onSaved }: LabelsDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [artworks, setArtworks] = useState<Artwork[] | null>(null);
-  const [options, setOptions] = useState<LabelOptions>(DEFAULT_LABEL_OPTIONS);
-  /** Every datum in label order; `options.fields` holds the ticked ones. */
-  const [order, setOrder] = useState<LabelField[]>(() => [
-    ...DEFAULT_LABEL_OPTIONS.fields,
-    ...LABEL_FIELDS.filter((f) => !DEFAULT_LABEL_OPTIONS.fields.includes(f)),
-  ]);
+  const [template, setTemplate] = useState<LabelTemplate>(() =>
+    defaultLabelTemplate(LABEL_PRESETS[0]),
+  );
+  /** The size inputs as typed; the template follows once they are valid. */
+  const [sizeDraft, setSizeDraft] = useState({
+    widthMm: String(template.widthMm),
+    heightMm: String(template.heightMm),
+  });
   const [isSaving, setIsSaving] = useState(false);
   const [failed, setFailed] = useState(false);
   const unit = useDimensionUnit();
@@ -74,28 +72,38 @@ export function LabelsDialog({ source, onClose, onSaved }: LabelsDialogProps) {
   const preset =
     LABEL_PRESETS.find(
       ({ widthMm, heightMm }) =>
-        widthMm === options.widthMm && heightMm === options.heightMm,
+        widthMm === template.widthMm && heightMm === template.heightMm,
     )?.id ?? CUSTOM;
-  const valid = labelOptionsSchema.safeParse(options).success;
-  const layout = labelLayout(options);
+  const valid = labelTemplateSchema.safeParse(template).success;
+  const layout = labelLayout(template);
   const count = artworks?.length ?? 0;
   const sheets = layout.perSheet > 0 ? Math.ceil(count / layout.perSheet) : 0;
+  const shown = new Set(template.elements.map(({ kind }) => kind));
 
-  const toggleField = (field: LabelField, checked: boolean) =>
-    setOptions((current) => ({
-      ...current,
-      fields: order.filter((item) =>
-        item === field ? checked : current.fields.includes(item),
-      ),
-    }));
+  const toggle = (kind: LabelElementKind, checked: boolean) =>
+    setTemplate((current) =>
+      checked ? addElement(current, kind) : removeElements(current, [kind]),
+    );
 
-  const moveField = (index: number, offset: -1 | 1) => {
-    const moved = moveItem(order, index, index + offset);
-    setOrder(moved);
-    setOptions((current) => ({
-      ...current,
-      fields: moved.filter((item) => current.fields.includes(item)),
-    }));
+  const resize = (size: LabelSize) => {
+    setSizeDraft({
+      widthMm: String(size.widthMm),
+      heightMm: String(size.heightMm),
+    });
+    setTemplate((current) => resizeTemplate(current, size));
+  };
+
+  const typeSize = (dimension: keyof LabelSize, text: string) => {
+    const draft = { ...sizeDraft, [dimension]: text };
+    setSizeDraft(draft);
+    const size = {
+      widthMm: Number(draft.widthMm),
+      heightMm: Number(draft.heightMm),
+    };
+    const fits = labelTemplateSchema
+      .pick({ widthMm: true, heightMm: true })
+      .safeParse(size).success;
+    if (fits) setTemplate((current) => resizeTemplate(current, size));
   };
 
   async function save() {
@@ -104,7 +112,7 @@ export function LabelsDialog({ source, onClose, onSaved }: LabelsDialogProps) {
     try {
       const result = await window.artGallery.exportLabelsPdf(
         fixedSource,
-        options,
+        template,
       );
       if (result) onSaved(result.path);
       else setIsSaving(false);
@@ -129,90 +137,38 @@ export function LabelsDialog({ source, onClose, onSaved }: LabelsDialogProps) {
         <div className="labels-dialog">
           <div className="labels-dialog__options">
             <fieldset className="choice-list">
-              <legend className="field__label">Datos y su orden</legend>
-              {order.map((field, index) => (
-                <div key={field} className="labels-dialog__field">
-                  <label className="checkbox">
-                    <input
-                      type="checkbox"
-                      checked={options.fields.includes(field)}
-                      onChange={(event) =>
-                        toggleField(field, event.target.checked)
-                      }
-                    />
-                    {FIELD_LABELS[field]}
-                  </label>
-                  <IconButton
-                    aria-label={`Subir ${FIELD_LABELS[field]}`}
-                    disabled={index === 0}
-                    onClick={() => moveField(index, -1)}
-                  >
-                    <ArrowUp aria-hidden size={14} />
-                  </IconButton>
-                  <IconButton
-                    aria-label={`Bajar ${FIELD_LABELS[field]}`}
-                    disabled={index === order.length - 1}
-                    onClick={() => moveField(index, 1)}
-                  >
-                    <ArrowDown aria-hidden size={14} />
-                  </IconButton>
-                </div>
+              <legend className="field__label">Datos</legend>
+              {LABEL_ELEMENT_KINDS.map((kind) => (
+                <label key={kind} className="checkbox">
+                  <input
+                    type="checkbox"
+                    checked={shown.has(kind)}
+                    onChange={(event) => toggle(kind, event.target.checked)}
+                  />
+                  {KIND_LABELS[kind]}
+                </label>
               ))}
-              <label className="checkbox">
-                <input
-                  type="checkbox"
-                  checked={options.showImage}
-                  onChange={(event) =>
-                    setOptions((current) => ({
-                      ...current,
-                      showImage: event.target.checked,
-                    }))
-                  }
-                />
-                Imagen de la obra
-              </label>
             </fieldset>
 
-            <div className="artwork-form__row">
-              <label className="field">
-                <span className="field__label">Fuente</span>
-                <select
-                  className="field__input"
-                  value={options.font}
-                  onChange={(event) =>
-                    setOptions((current) => ({
-                      ...current,
-                      font: event.target.value as LabelFont,
-                    }))
-                  }
-                >
-                  {Object.entries(FONT_LABELS).map(([font, label]) => (
-                    <option key={font} value={font}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="field">
-                <span className="field__label">Tamaño del texto</span>
-                <select
-                  className="field__input"
-                  value={options.textSize}
-                  onChange={(event) =>
-                    setOptions((current) => ({
-                      ...current,
-                      textSize: event.target.value as LabelTextSize,
-                    }))
-                  }
-                >
-                  {Object.entries(TEXT_SIZE_LABELS).map(([size, label]) => (
-                    <option key={size} value={size}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
+            <label className="field">
+              <span className="field__label">Fuente</span>
+              <select
+                className="field__input"
+                value={template.font}
+                onChange={(event) =>
+                  setTemplate((current) => ({
+                    ...current,
+                    font: event.target.value as LabelFont,
+                  }))
+                }
+              >
+                {Object.entries(FONT_LABELS).map(([font, label]) => (
+                  <option key={font} value={font}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </label>
 
             <label className="field">
               <span className="field__label">Tamaño</span>
@@ -223,13 +179,7 @@ export function LabelsDialog({ source, onClose, onSaved }: LabelsDialogProps) {
                   const chosen = LABEL_PRESETS.find(
                     ({ id }) => id === event.target.value,
                   );
-                  if (chosen) {
-                    setOptions((current) => ({
-                      ...current,
-                      widthMm: chosen.widthMm,
-                      heightMm: chosen.heightMm,
-                    }));
-                  }
+                  if (chosen) resize(chosen);
                 }}
               >
                 {LABEL_PRESETS.map(({ id, name, widthMm, heightMm }) => (
@@ -252,13 +202,10 @@ export function LabelsDialog({ source, onClose, onSaved }: LabelsDialogProps) {
                   <input
                     className="field__input"
                     type="number"
-                    min={dimension === "widthMm" ? 40 : 25}
-                    value={options[dimension]}
+                    min={MIN_SIZE[dimension]}
+                    value={sizeDraft[dimension]}
                     onChange={(event) =>
-                      setOptions((current) => ({
-                        ...current,
-                        [dimension]: Number(event.target.value),
-                      }))
+                      typeSize(dimension, event.target.value)
                     }
                   />
                 </label>
@@ -274,7 +221,11 @@ export function LabelsDialog({ source, onClose, onSaved }: LabelsDialogProps) {
 
           <div className="labels-dialog__preview" aria-label="Vista previa">
             {artworks?.[0] && valid && unit && (
-              <LabelCard artwork={artworks[0]} options={options} unit={unit} />
+              <LabelCard
+                artwork={artworks[0]}
+                template={template}
+                unit={unit}
+              />
             )}
           </div>
         </div>
