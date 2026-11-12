@@ -23,7 +23,7 @@ Las capturas son de la aplicación real con los [datos de demostración](#datos-
 **Inventario**
 
 - Alta directa: arrastra una imagen a la ventana o pulsa «Añadir obra». La ficha se abre en edición con la foto como principal, el nombre del archivo como título y el artista predeterminado de los ajustes. Si añades varias imágenes a la vez, se crea una obra por imagen, con una barra de progreso mientras se preparan.
-- Las obras creadas desde imágenes llevan un lápiz en la Galería hasta que guardas su ficha por primera vez.
+- Las obras creadas desde imágenes llegan marcadas «Por revisar» (un lápiz en la Galería). La casilla «Por revisar» de la ficha pone o quita la marca a mano.
 - Mientras no haya artista predeterminado en los ajustes, la ficha ofrece guardar como predeterminado el artista que escribas.
 - Las fotografías se copian al almacenamiento de ArtGallery, así que la obra sigue funcionando aunque se mueva o borre el archivo original.
 - Los campos de texto sugieren los valores ya usados en el inventario, e Intro toma el que más se parece a lo escrito.

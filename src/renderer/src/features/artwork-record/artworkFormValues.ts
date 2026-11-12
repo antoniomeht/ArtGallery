@@ -35,6 +35,7 @@ export interface ArtworkFormValues {
   status: ArtworkStatus;
   price: string;
   currency: string;
+  needsReview: boolean;
 }
 
 export type ArtworkFormErrors = Partial<
@@ -83,6 +84,7 @@ export function toFormValues(
     status: artwork.status,
     price: textOf(artwork.price),
     currency: artwork.currency,
+    needsReview: artwork.needsReview,
   };
 }
 

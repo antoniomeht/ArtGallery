@@ -65,7 +65,7 @@ describe("InventoryService", () => {
     db.close();
   });
 
-  it("marks artworks created from images as pending until saved", async () => {
+  it("marks artworks created from images for review", async () => {
     const dataDir = await useTempDir();
     const { db, service } = openInventory(dataDir);
     const photo = await createTestImage(join(dataDir, "photo.jpg"));
@@ -82,6 +82,21 @@ describe("InventoryService", () => {
 
     expect(service.listArtworks()[0]?.needsReview).toBe(false);
     expect(service.getArtwork(created.id).needsReview).toBe(false);
+    db.close();
+  });
+
+  it("keeps the review mark the user sets when saving", async () => {
+    const dataDir = await useTempDir();
+    const { db, service } = openInventory(dataDir);
+    const { id } = await service.createArtwork({
+      title: "Marina",
+      imagePaths: [],
+    });
+
+    service.updateArtwork(id, { title: "Marina", needsReview: true });
+
+    expect(service.getArtwork(id).needsReview).toBe(true);
+    expect(service.listArtworks()[0]?.needsReview).toBe(true);
     db.close();
   });
 

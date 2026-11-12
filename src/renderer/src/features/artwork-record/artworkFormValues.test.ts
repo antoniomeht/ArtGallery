@@ -61,6 +61,18 @@ describe("artwork form values", () => {
     });
   });
 
+  it("keeps the review mark", () => {
+    const record: Artwork = { ...artwork, needsReview: true };
+
+    const result = parseFormValues(
+      toFormValues(record, "cm"),
+      "cm",
+      record.dimensions,
+    );
+
+    expect(result).toMatchObject({ ok: true, fields: { needsReview: true } });
+  });
+
   it("explains which fields are invalid", () => {
     const result = parseFormValues(
       {
