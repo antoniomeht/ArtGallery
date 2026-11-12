@@ -282,15 +282,21 @@
   position: sticky;
   bottom: calc(-1 * var(--space-8));
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
-  gap: var(--space-3);
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
   padding: var(--space-4) 0;
   background: var(--surface-page);
 }
 
+/* The review mark and the key hints each take a line above the buttons. */
+.artwork-form__review {
+  flex-basis: 100%;
+}
+
 .artwork-form__keys {
-  margin-right: auto;
-  align-self: center;
+  flex-basis: 100%;
   font-size: var(--font-size-caption);
   color: var(--text-secondary);
 }

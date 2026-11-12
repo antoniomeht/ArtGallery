@@ -50,6 +50,8 @@ export const artworkFieldsSchema = z.object({
     .string()
     .regex(/^[A-Z]{3}$/)
     .default("EUR"),
+  /** Marked "Por revisar"; artworks created from images start marked. */
+  needsReview: z.boolean().default(false),
 });
 
 export type ArtworkFieldsInput = z.input<typeof artworkFieldsSchema>;
@@ -73,8 +75,6 @@ export interface Artwork extends ArtworkFields {
   id: string;
   /** Ordered images; the first one is the primary image. */
   images: ArtworkImage[];
-  /** Created from an image and not saved from its record since. */
-  needsReview: boolean;
   /** Shown before the other artworks in the gallery. */
   favorite: boolean;
   createdAt: string;

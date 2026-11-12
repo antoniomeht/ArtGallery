@@ -403,9 +403,22 @@ export function ArtworkForm({
 
       <div className="artwork-form__actions">
         <span className="artwork-form__keys">
-          Intro pasa al siguiente campo. Ctrl+Intro guarda. Alt+← y Alt+→
-          guardan y pasan a otra obra.
+          Intro: siguiente campo · Ctrl+Intro: guardar · Alt+← / Alt+→: guardar
+          y cambiar de obra
         </span>
+        <label className="checkbox artwork-form__review">
+          <input
+            type="checkbox"
+            checked={values.needsReview}
+            onChange={(event) =>
+              setValues((current) => ({
+                ...current,
+                needsReview: event.target.checked,
+              }))
+            }
+          />
+          Por revisar
+        </label>
         <Button onClick={onCancel}>
           {isUnsaved ? "Descartar" : "Cancelar"}
         </Button>

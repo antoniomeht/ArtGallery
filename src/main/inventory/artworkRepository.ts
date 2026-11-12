@@ -229,7 +229,7 @@ export class ArtworkRepository {
   }
 
   /**
-   * Saves the record, which also clears `needsReview`. Returns false when no
+   * Saves the record, including its review mark. Returns false when no
    * artwork has the given id.
    */
   update(id: string, fields: ArtworkFields, updatedAt: string): boolean {
@@ -238,10 +238,15 @@ export class ArtworkRepository {
       const { changes } = this.db
         .prepare(
           `UPDATE artworks
-           SET ${assignments.join(", ")}, needs_review = 0, updated_at = ?
+           SET ${assignments.join(", ")}, needs_review = ?, updated_at = ?
            WHERE id = ?`,
         )
-        .run(...fieldValues(fields), updatedAt, id);
+        .run(
+          ...fieldValues(fields),
+          fields.needsReview ? 1 : 0,
+          updatedAt,
+          id,
+        );
       if (changes === 0) return false;
 
       this.writeTags(id, fields.tags);

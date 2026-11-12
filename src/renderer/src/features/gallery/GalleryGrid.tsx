@@ -86,9 +86,9 @@ export function GalleryGrid({
                 </span>
               ) : (
                 artwork.needsReview && (
-                  <span className="gallery-tile__pending" title="Faltan datos">
+                  <span className="gallery-tile__pending" title="Por revisar">
                     <Pencil aria-hidden size={14} strokeWidth={2.25} />
-                    <span className="visually-hidden">, faltan datos</span>
+                    <span className="visually-hidden">, por revisar</span>
                   </span>
                 )
               )}
