@@ -1,0 +1,100 @@
+/* The label enlarged on a grey table, centred in the free space. */
+.label-editor {
+  display: grid;
+  place-items: center;
+  height: min(60vh, 520px);
+  overflow: hidden;
+  background: var(--surface-sunken);
+}
+
+.label-editor__scaler {
+  position: relative;
+}
+
+.label-editor__stage {
+  --zoom: 1;
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  cursor: default;
+  touch-action: none;
+  user-select: none;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.12);
+}
+
+.label-editor__stage:focus-visible {
+  outline: calc(2px / var(--zoom)) solid var(--accent);
+  outline-offset: calc(2px / var(--zoom));
+}
+
+.label-editor__stage .label-card__box {
+  cursor: move;
+}
+
+/* Lines and handles keep their screen size whatever the zoom. */
+.label-editor__overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.label-editor__overlay > * {
+  position: absolute;
+  box-sizing: border-box;
+}
+
+.label-editor__margin {
+  border: calc(1px / var(--zoom)) dashed rgb(0 0 0 / 0.15);
+}
+
+.label-editor__placeholder {
+  display: flex;
+  align-items: center;
+  padding: 0 0.5mm;
+  border: calc(1px / var(--zoom)) dashed rgb(0 0 0 / 0.35);
+  color: rgb(0 0 0 / 0.45);
+  font-family: var(--font-sans);
+  font-size: calc(11px / var(--zoom));
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.label-editor__selection {
+  outline: calc(1.5px / var(--zoom)) solid var(--accent);
+}
+
+.label-editor__handle {
+  width: calc(10px / var(--zoom));
+  height: calc(10px / var(--zoom));
+  margin: calc(-5px / var(--zoom)) 0 0 calc(-5px / var(--zoom));
+  border: calc(1.5px / var(--zoom)) solid var(--accent);
+  background: #ffffff;
+  cursor: nwse-resize;
+  pointer-events: auto;
+}
+
+.label-editor__guide {
+  background: #e5326b;
+}
+
+.label-editor__guide--x {
+  top: 0;
+  bottom: 0;
+  width: calc(1px / var(--zoom));
+}
+
+.label-editor__guide--y {
+  left: 0;
+  right: 0;
+  height: calc(1px / var(--zoom));
+}
+
+.label-editor__marquee {
+  border: calc(1px / var(--zoom)) solid var(--accent);
+  background: rgb(37 74 214 / 0.08);
+}
+
+.label-editor__stage img {
+  -webkit-user-drag: none;
+}

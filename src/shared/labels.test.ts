@@ -7,9 +7,12 @@ import {
   labelLayout,
   labelTemplateSchema,
   labelTexts,
+  moveElements,
   paginate,
   removeElements,
+  resizeElement,
   resizeTemplate,
+  styleElements,
   type LabelTemplate,
 } from "./labels";
 
@@ -196,5 +199,47 @@ describe("label template validation", () => {
         elements: [valid.elements[0], valid.elements[0]],
       }).success,
     ).toBe(false);
+  });
+});
+
+describe("moving and styling boxes", () => {
+  const template = defaultLabelTemplate(small, ["image", "title", "year"]);
+
+  it("moves only the chosen boxes", () => {
+    const moved = moveElements(template, ["title"], 2, -1);
+
+    expect(moved.elements[1]).toMatchObject({
+      xMm: (template.elements[1]?.xMm ?? 0) + 2,
+      yMm: (template.elements[1]?.yMm ?? 0) - 1,
+    });
+    expect(moved.elements[0]).toEqual(template.elements[0]);
+    expect(moved.elements[2]).toEqual(template.elements[2]);
+  });
+
+  it("keeps boxes inside the label", () => {
+    const moved = moveElements(template, ["image"], -50, 500);
+
+    expect(moved.elements[0]).toMatchObject({ xMm: 0, yMm: 10 });
+  });
+
+  it("resizes a box without going past the edge", () => {
+    const resized = resizeElement(template, "image", 500, 1);
+
+    expect(resized.elements[0]).toMatchObject({ widthMm: 85, heightMm: 2 });
+    expect(resizeElement(template, "title", 10, 50).elements[1]).toMatchObject({
+      widthMm: 10,
+      heightMm: null,
+    });
+  });
+
+  it("sets the size in points and the style of several texts", () => {
+    const styled = styleElements(template, ["title", "year"], {
+      fontSizePt: 14,
+      bold: true,
+    });
+
+    expect(styled.elements[1]).toMatchObject({ fontSizePt: 14, bold: true });
+    expect(styled.elements[2]).toMatchObject({ fontSizePt: 14, bold: true });
+    expect(styled.elements[0]).toEqual(template.elements[0]);
   });
 });

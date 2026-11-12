@@ -1,3 +1,4 @@
+import { Bold, ChevronLeft, ChevronRight, Italic } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { Artwork } from "../../../../shared/artwork";
 import {
@@ -9,6 +10,7 @@ import {
   labelTemplateSchema,
   removeElements,
   resizeTemplate,
+  styleElements,
   type LabelElementKind,
   type LabelFont,
   type LabelSize,
@@ -16,21 +18,14 @@ import {
 } from "../../../../shared/labels";
 import type { PrintSource } from "../../../../shared/print";
 import { useDimensionUnit } from "../../hooks/useDimensionUnit";
-import { LabelCard } from "../print/LabelCard";
 import { loadSourceArtworks } from "../print/printData";
 import { Button } from "../../components/Button";
+import { IconButton } from "../../components/IconButton";
+import { KIND_LABELS } from "./labelBoxes";
+import { LabelEditor } from "./LabelEditor";
+import { OverflowProbe } from "./OverflowProbe";
 import "../print/print.css";
 import "./LabelsDialog.css";
-
-export const KIND_LABELS: Record<LabelElementKind, string> = {
-  image: "Imagen de la obra",
-  artist: "Artista",
-  title: "Título",
-  year: "Año",
-  medium: "Técnica y soporte",
-  dimensions: "Dimensiones",
-  price: "Precio",
-};
 
 const FONT_LABELS: Record<LabelFont, string> = {
   sans: "Sin serifa",
@@ -46,13 +41,17 @@ interface LabelsDialogProps {
   onSaved: (path: string) => void;
 }
 
-/** Label design with a live preview of the first label. */
+/** Label design on a canvas, shared by every label printed. */
 export function LabelsDialog({ source, onClose, onSaved }: LabelsDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [artworks, setArtworks] = useState<Artwork[] | null>(null);
   const [template, setTemplate] = useState<LabelTemplate>(() =>
     defaultLabelTemplate(LABEL_PRESETS[0]),
   );
+  const [selected, setSelected] = useState<LabelElementKind[]>([]);
+  /** The artwork shown on the canvas. */
+  const [shownIndex, setShownIndex] = useState(0);
+  const [overflowing, setOverflowing] = useState<number[]>([]);
   /** The size inputs as typed; the template follows once they are valid. */
   const [sizeDraft, setSizeDraft] = useState({
     widthMm: String(template.widthMm),
@@ -79,11 +78,29 @@ export function LabelsDialog({ source, onClose, onSaved }: LabelsDialogProps) {
   const count = artworks?.length ?? 0;
   const sheets = layout.perSheet > 0 ? Math.ceil(count / layout.perSheet) : 0;
   const shown = new Set(template.elements.map(({ kind }) => kind));
+  const artwork = artworks?.[Math.min(shownIndex, count - 1)];
 
-  const toggle = (kind: LabelElementKind, checked: boolean) =>
-    setTemplate((current) =>
-      checked ? addElement(current, kind) : removeElements(current, [kind]),
-    );
+  const selectedTexts = template.elements.filter(
+    ({ kind }) => selected.includes(kind) && kind !== "image",
+  );
+  const textKinds = selectedTexts.map(({ kind }) => kind);
+  const sizes = new Set(selectedTexts.map(({ fontSizePt }) => fontSizePt));
+  const commonSize = sizes.size === 1 ? [...sizes][0] : undefined;
+  const allBold =
+    selectedTexts.length > 0 && selectedTexts.every((e) => e.bold);
+  const allItalic =
+    selectedTexts.length > 0 && selectedTexts.every((e) => e.italic);
+
+  const remove = (kinds: readonly LabelElementKind[]) => {
+    setTemplate((current) => removeElements(current, kinds));
+    setSelected((current) => current.filter((kind) => !kinds.includes(kind)));
+  };
+
+  const toggle = (kind: LabelElementKind, checked: boolean) => {
+    if (!checked) return remove([kind]);
+    setTemplate((current) => addElement(current, kind));
+    setSelected([kind]);
+  };
 
   const resize = (size: LabelSize) => {
     setSizeDraft({
@@ -106,6 +123,9 @@ export function LabelsDialog({ source, onClose, onSaved }: LabelsDialogProps) {
     if (fits) setTemplate((current) => resizeTemplate(current, size));
   };
 
+  const style = (change: Parameters<typeof styleElements>[2]) =>
+    setTemplate((current) => styleElements(current, textKinds, change));
+
   async function save() {
     setIsSaving(true);
     setFailed(false);
@@ -122,10 +142,15 @@ export function LabelsDialog({ source, onClose, onSaved }: LabelsDialogProps) {
     }
   }
 
+  const overflowTitles = overflowing
+    .slice(0, 3)
+    .map((index) => artworks?.[index]?.title)
+    .join(", ");
+
   return (
     <dialog
       ref={dialogRef}
-      className="dialog dialog--wide"
+      className="dialog dialog--wide labels-dialog__window"
       aria-labelledby="labels-title"
       onClose={onClose}
     >
@@ -212,6 +237,24 @@ export function LabelsDialog({ source, onClose, onSaved }: LabelsDialogProps) {
               ))}
             </div>
 
+            <label className="field">
+              <span className="field__label">Margen (mm)</span>
+              <input
+                className="field__input"
+                type="number"
+                min={0}
+                max={30}
+                step={0.5}
+                value={template.marginMm}
+                onChange={(event) => {
+                  const marginMm = Number(event.target.value);
+                  if (marginMm >= 0 && marginMm <= 30) {
+                    setTemplate((current) => ({ ...current, marginMm }));
+                  }
+                }}
+              />
+            </label>
+
             <p className="labels-dialog__summary" aria-live="polite">
               {valid
                 ? `${layout.perSheet} por hoja A4. ${count} ${count === 1 ? "cartela" : "cartelas"} en ${sheets} ${sheets === 1 ? "hoja" : "hojas"}.`
@@ -219,16 +262,109 @@ export function LabelsDialog({ source, onClose, onSaved }: LabelsDialogProps) {
             </p>
           </div>
 
-          <div className="labels-dialog__preview" aria-label="Vista previa">
-            {artworks?.[0] && valid && unit && (
-              <LabelCard
-                artwork={artworks[0]}
+          <div className="labels-dialog__canvas">
+            <div className="labels-dialog__toolbar">
+              <IconButton
+                aria-label="Obra anterior"
+                disabled={shownIndex === 0}
+                onClick={() => setShownIndex((index) => index - 1)}
+              >
+                <ChevronLeft aria-hidden size={16} />
+              </IconButton>
+              <span className="labels-dialog__position">
+                Obra {Math.min(shownIndex + 1, count)} de {count}
+              </span>
+              <IconButton
+                aria-label="Obra siguiente"
+                disabled={shownIndex >= count - 1}
+                onClick={() => setShownIndex((index) => index + 1)}
+              >
+                <ChevronRight aria-hidden size={16} />
+              </IconButton>
+
+              <div className="labels-dialog__style">
+                <label className="labels-dialog__points">
+                  <span>Tamaño (pt)</span>
+                  <input
+                    key={`${textKinds.join()}-${commonSize ?? ""}`}
+                    className="field__input"
+                    type="number"
+                    min={4}
+                    max={96}
+                    step={0.5}
+                    disabled={textKinds.length === 0}
+                    defaultValue={commonSize}
+                    onChange={(event) => {
+                      const fontSizePt = Number(event.target.value);
+                      if (fontSizePt >= 4 && fontSizePt <= 96) {
+                        style({ fontSizePt });
+                      }
+                    }}
+                  />
+                </label>
+                <IconButton
+                  aria-label="Negrita"
+                  aria-pressed={allBold}
+                  disabled={textKinds.length === 0}
+                  onClick={() => style({ bold: !allBold })}
+                >
+                  <Bold aria-hidden size={16} />
+                </IconButton>
+                <IconButton
+                  aria-label="Cursiva"
+                  aria-pressed={allItalic}
+                  disabled={textKinds.length === 0}
+                  onClick={() => style({ italic: !allItalic })}
+                >
+                  <Italic aria-hidden size={16} />
+                </IconButton>
+              </div>
+            </div>
+
+            {artwork && valid && unit ? (
+              <LabelEditor
+                artwork={artwork}
                 template={template}
                 unit={unit}
+                selected={selected}
+                onSelect={setSelected}
+                onChange={setTemplate}
+                onRemove={remove}
               />
+            ) : (
+              <div className="label-editor" />
+            )}
+
+            <p className="labels-dialog__hint">
+              Arrastra los datos para moverlos y la esquina para cambiar su
+              tamaño. Mayús+clic o un recuadro eligen varios; Supr los quita;
+              las flechas los mueven 0,5 mm (con Mayús, 5 mm).
+            </p>
+            {overflowing.length > 0 && (
+              <p className="labels-dialog__warning" role="status">
+                El texto se sale de la cartela en {overflowing.length}{" "}
+                {overflowing.length === 1 ? "obra" : "obras"}: {overflowTitles}
+                {overflowing.length > 3 && "…"}.{" "}
+                <button
+                  type="button"
+                  className="labels-dialog__see"
+                  onClick={() => setShownIndex(overflowing[0] ?? 0)}
+                >
+                  Ver
+                </button>
+              </p>
             )}
           </div>
         </div>
+
+        {artworks && unit && valid && (
+          <OverflowProbe
+            artworks={artworks}
+            template={template}
+            unit={unit}
+            onResult={setOverflowing}
+          />
+        )}
 
         {failed && (
           <p className="dialog__error" role="alert">

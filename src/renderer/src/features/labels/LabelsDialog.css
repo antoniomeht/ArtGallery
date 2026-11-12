@@ -23,13 +23,77 @@
   color: var(--text-secondary);
 }
 
-/* The label is drawn at real size on a grey table, scrolling if large. */
-.labels-dialog__preview {
-  display: grid;
-  place-items: center;
-  min-height: 240px;
-  max-height: 60vh;
-  padding: var(--space-6);
-  overflow: auto;
-  background: var(--surface-sunken);
+.labels-dialog__window {
+  width: min(1160px, calc(100vw - 2 * var(--space-4)));
+}
+
+.labels-dialog__canvas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.labels-dialog__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.labels-dialog__position {
+  min-width: 7em;
+  text-align: center;
+  font-size: var(--font-size-caption);
+  color: var(--text-secondary);
+}
+
+.labels-dialog__style {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-left: auto;
+}
+
+.labels-dialog__points {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-caption);
+}
+
+.labels-dialog__points .field__input {
+  width: 5.5em;
+}
+
+.labels-dialog__hint,
+.labels-dialog__warning {
+  margin: 0;
+  font-size: var(--font-size-caption);
+  line-height: var(--line-height-caption);
+  color: var(--text-secondary);
+}
+
+.labels-dialog__warning {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.labels-dialog__see {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Labels measured out of sight to find texts that do not fit. */
+.labels-dialog__probe {
+  position: fixed;
+  top: 0;
+  left: -10000px;
+  visibility: hidden;
+  pointer-events: none;
 }
