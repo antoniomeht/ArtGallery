@@ -69,6 +69,7 @@ Las capturas son de la aplicación real con los [datos de demostración](#datos-
   - Supr quita las cajas elegidas y desmarca su casilla; las flechas las mueven 0,5 mm (con Mayús, 5 mm);
   - al arrastrar aparecen guías y las cajas se ajustan a los bordes, el centro, el margen y las demás cajas;
   - se puede pasar de una obra a otra en el lienzo y avisa si un texto no cabe en la cartela de alguna obra;
+  - cada exposición guarda su diseño («Guardar diseño» o al generar el PDF), común a todas sus cartelas y incluido en las copias de seguridad; desde la Galería se parte del diseño por defecto;
   - tamaños predefinidos o personalizados, y reparto automático en hojas A4 con márgenes y líneas de corte.
 
 **Documentación**

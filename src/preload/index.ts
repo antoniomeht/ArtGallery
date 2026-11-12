@@ -48,6 +48,8 @@ const api: ArtGalleryApi = {
   updateExhibition: (id, fields) =>
     ipcRenderer.invoke(IpcChannel.updateExhibition, id, fields),
   deleteExhibition: (id) => ipcRenderer.invoke(IpcChannel.deleteExhibition, id),
+  saveLabelTemplate: (id, template) =>
+    ipcRenderer.invoke(IpcChannel.saveLabelTemplate, id, template),
   setExhibitionArtworks: (id, artworkIds) =>
     ipcRenderer.invoke(IpcChannel.setExhibitionArtworks, id, artworkIds),
   addToExhibition: (id, artworkIds) =>

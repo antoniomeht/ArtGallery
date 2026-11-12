@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { ArtworkSummary } from "./artwork";
 import { optionalDate, optionalText } from "./fields";
+import type { LabelTemplate } from "./labels";
 
 export const exhibitionBaseSchema = z.object({
   name: z.string().trim().min(1).max(200),
@@ -22,6 +23,8 @@ export interface Exhibition extends ExhibitionFields {
   id: string;
   /** Artworks in the order chosen for the exhibition. */
   artworkIds: string[];
+  /** The design of its labels; null until one is saved. */
+  labelTemplate: LabelTemplate | null;
   createdAt: string;
   updatedAt: string;
 }

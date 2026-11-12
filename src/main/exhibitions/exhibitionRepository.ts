@@ -5,6 +5,7 @@ import type {
   ExhibitionFields,
   ExhibitionSummary,
 } from "../../shared/exhibition";
+import { labelTemplateSchema, type LabelTemplate } from "../../shared/labels";
 import { transaction } from "../database/transaction";
 import { SUMMARY_COLUMNS, toSummaries } from "../inventory/artworkRepository";
 
@@ -15,8 +16,20 @@ interface ExhibitionRow {
   start_date: string | null;
   end_date: string | null;
   description: string | null;
+  label_template: string | null;
   created_at: string;
   updated_at: string;
+}
+
+/** A design saved by an older or damaged copy falls back to the default. */
+function readTemplate(json: string | null): LabelTemplate | null {
+  if (!json) return null;
+  try {
+    const result = labelTemplateSchema.safeParse(JSON.parse(json));
+    return result.success ? result.data : null;
+  } catch {
+    return null;
+  }
 }
 
 export class ExhibitionRepository {
@@ -63,6 +76,7 @@ export class ExhibitionRepository {
       endDate: row.end_date,
       description: row.description,
       artworkIds,
+      labelTemplate: readTemplate(row.label_template),
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     };
@@ -90,8 +104,8 @@ export class ExhibitionRepository {
         .prepare(
           `INSERT INTO exhibitions
              (id, name, venue, start_date, end_date, description,
-              created_at, updated_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+              label_template, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         )
         .run(
           exhibition.id,
@@ -100,6 +114,7 @@ export class ExhibitionRepository {
           exhibition.startDate,
           exhibition.endDate,
           exhibition.description,
+          exhibition.labelTemplate && JSON.stringify(exhibition.labelTemplate),
           exhibition.createdAt,
           exhibition.updatedAt,
         );
@@ -135,6 +150,20 @@ export class ExhibitionRepository {
         .prepare("UPDATE exhibitions SET updated_at = ? WHERE id = ?")
         .run(updatedAt, id);
     });
+  }
+
+  /** Returns false when no exhibition has the given id. */
+  setLabelTemplate(
+    id: string,
+    template: LabelTemplate,
+    updatedAt: string,
+  ): boolean {
+    const { changes } = this.db
+      .prepare(
+        "UPDATE exhibitions SET label_template = ?, updated_at = ? WHERE id = ?",
+      )
+      .run(JSON.stringify(template), updatedAt, id);
+    return changes > 0;
   }
 
   delete(id: string): void {

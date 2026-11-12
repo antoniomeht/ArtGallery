@@ -187,6 +187,10 @@ const migrations: readonly string[] = [
   -- The artist's own inventory number, e.g. "007".
   ALTER TABLE artworks ADD COLUMN inventory_number TEXT;
   `,
+  `
+  -- The label design of an exhibition, as JSON; null uses the default.
+  ALTER TABLE exhibitions ADD COLUMN label_template TEXT;
+  `,
 ];
 
 export const LATEST_SCHEMA_VERSION = migrations.length;

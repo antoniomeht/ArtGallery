@@ -97,3 +97,10 @@
   visibility: hidden;
   pointer-events: none;
 }
+
+.labels-dialog__saved {
+  margin-right: auto;
+  align-self: center;
+  font-size: var(--font-size-caption);
+  color: var(--text-secondary);
+}

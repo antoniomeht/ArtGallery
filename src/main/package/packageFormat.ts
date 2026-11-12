@@ -2,6 +2,7 @@ import { z } from "zod";
 import { artworkFieldsSchema } from "../../shared/artwork";
 import { DIMENSION_UNITS, fromSingleUnit } from "../../shared/dimensions";
 import { exhibitionBaseSchema } from "../../shared/exhibition";
+import { labelTemplateSchema } from "../../shared/labels";
 import { collectionNameSchema } from "../../shared/collection";
 import { commentBodySchema, documentFieldsSchema } from "../../shared/document";
 import {
@@ -125,6 +126,8 @@ export const packageExhibitionSchema = exhibitionBaseSchema.extend({
   id: z.string().regex(UUID),
   /** Ids of artworks in this package, in exhibition order. */
   artworkIds: z.array(z.string().regex(UUID)),
+  /** Missing before label designs were saved; a damaged one is dropped. */
+  labelTemplate: labelTemplateSchema.nullable().catch(null),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
 });

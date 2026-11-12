@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { defaultLabelTemplate } from "../../shared/labels";
 import { useTempDir } from "../testing/fixtures";
 import { openInventory } from "../testing/inventory";
 
@@ -95,6 +96,22 @@ describe("exhibitions", () => {
     expect(
       exhibitions.create({ name: "Sin fechas", startDate: "", endDate: "" }),
     ).toMatchObject({ startDate: null, endDate: null });
+    db.close();
+  });
+
+  it("keeps the label design of each exhibition", async () => {
+    const { db, exhibitions } = await inventoryWith([]);
+    const { id } = exhibitions.create({ name: "Mareas" });
+    expect(exhibitions.get(id).labelTemplate).toBeNull();
+
+    const template = defaultLabelTemplate({ widthMm: 90, heightMm: 50 });
+    exhibitions.saveLabelTemplate(id, template);
+
+    expect(exhibitions.get(id).labelTemplate).toEqual(template);
+    expect(() =>
+      exhibitions.saveLabelTemplate(id, { ...template, elements: [] }),
+    ).toThrow();
+    expect(() => exhibitions.saveLabelTemplate("missing", template)).toThrow();
     db.close();
   });
 });
