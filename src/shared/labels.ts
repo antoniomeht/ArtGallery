@@ -294,3 +294,67 @@ export function labelTexts(
     price: formatPrice(artwork),
   };
 }
+
+const clamp = (value: number, min: number, max: number) =>
+  Math.min(Math.max(value, min), Math.max(min, max));
+
+const updateElements = (
+  template: LabelTemplate,
+  kinds: readonly LabelElementKind[],
+  update: (element: LabelElement) => LabelElement,
+): LabelTemplate => ({
+  ...template,
+  elements: template.elements.map((element) =>
+    kinds.includes(element.kind) ? update(element) : element,
+  ),
+});
+
+/** Shifts the chosen boxes, keeping each one inside the label. */
+export function moveElements(
+  template: LabelTemplate,
+  kinds: readonly LabelElementKind[],
+  dxMm: number,
+  dyMm: number,
+): LabelTemplate {
+  return updateElements(template, kinds, (element) => ({
+    ...element,
+    xMm: round1(
+      clamp(element.xMm + dxMm, 0, template.widthMm - element.widthMm),
+    ),
+    yMm: round1(
+      clamp(
+        element.yMm + dyMm,
+        0,
+        template.heightMm - elementHeightMm(element),
+      ),
+    ),
+  }));
+}
+
+/** New width, and height for the image, up to the label's edge. */
+export function resizeElement(
+  template: LabelTemplate,
+  kind: LabelElementKind,
+  widthMm: number,
+  heightMm: number,
+): LabelTemplate {
+  return updateElements(template, [kind], (element) => ({
+    ...element,
+    widthMm: round1(clamp(widthMm, 2, template.widthMm - element.xMm)),
+    heightMm:
+      element.heightMm === null
+        ? null
+        : round1(clamp(heightMm, 2, template.heightMm - element.yMm)),
+  }));
+}
+
+export function styleElements(
+  template: LabelTemplate,
+  kinds: readonly LabelElementKind[],
+  style: Partial<Pick<LabelElement, "fontSizePt" | "bold" | "italic">>,
+): LabelTemplate {
+  return updateElements(template, kinds, (element) => ({
+    ...element,
+    ...style,
+  }));
+}

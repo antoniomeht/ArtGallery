@@ -63,11 +63,13 @@ Las capturas son de la aplicación real con los [datos de demostración](#datos-
 
 - Nombre, lugar, fechas, descripción y una selección ordenada de obras.
 - Catálogo en PDF (A4): portada con la obra principal y los datos de la exposición, y después cada obra con su miniatura y su cartela. El precio es opcional.
-- Cartelas en PDF:
-  - datos visibles a elegir;
-  - tamaños predefinidos o personalizados;
-  - vista previa a tamaño real;
-  - reparto automático en hojas A4 con márgenes y líneas de corte.
+- Cartelas en PDF, diseñadas sobre un lienzo:
+  - la imagen y cada dato son cajas que se seleccionan (clic, Mayús+clic o recuadro), se arrastran y cambian de tamaño desde la esquina;
+  - tamaño de letra en puntos, negrita y cursiva por caja, y fuente con o sin serifa para toda la cartela;
+  - Supr quita las cajas elegidas y desmarca su casilla; las flechas las mueven 0,5 mm (con Mayús, 5 mm);
+  - al arrastrar aparecen guías y las cajas se ajustan a los bordes, el centro, el margen y las demás cajas;
+  - se puede pasar de una obra a otra en el lienzo y avisa si un texto no cabe en la cartela de alguna obra;
+  - tamaños predefinidos o personalizados, y reparto automático en hojas A4 con márgenes y líneas de corte.
 
 **Documentación**
 
