@@ -31,7 +31,7 @@ async function renderJob(job: PrintJob): Promise<ReactNode> {
     case "labels": {
       const artworks = await loadSourceArtworks(job.source);
       return (
-        <LabelSheets artworks={artworks} options={job.options} unit={unit} />
+        <LabelSheets artworks={artworks} template={job.template} unit={unit} />
       );
     }
   }

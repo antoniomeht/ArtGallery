@@ -1,72 +1,85 @@
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import type { Artwork } from "../../../../shared/artwork";
 import type { DimensionUnit } from "../../../../shared/dimensions";
 import {
-  labelLines,
-  TEXT_SIZE_SCALE,
-  type LabelField,
-  type LabelOptions,
+  labelTexts,
+  LINE_HEIGHT,
+  type LabelElement,
+  type LabelTemplate,
 } from "../../../../shared/labels";
 import { thumbnailUrl } from "../../../../shared/media";
 
 interface LabelCardProps {
   artwork: Artwork;
-  options: LabelOptions;
+  template: LabelTemplate;
   unit: DimensionUnit;
+  /** Drawn over the label, in the same millimetre space; used by the editor. */
+  children?: ReactNode;
 }
 
-/** Height of the small preset; text grows in proportion to the label. */
-const REFERENCE_HEIGHT_MM = 50;
-
-const LINE_CLASS: Record<LabelField, string> = {
-  artist: "label-card__artist",
-  title: "label-card__title",
-  year: "label-card__detail",
-  medium: "label-card__detail",
-  dimensions: "label-card__detail",
-  price: "label-card__detail",
-};
+const boxStyle = (element: LabelElement): CSSProperties => ({
+  left: `${element.xMm}mm`,
+  top: `${element.yMm}mm`,
+  width: `${element.widthMm}mm`,
+  height: element.heightMm === null ? undefined : `${element.heightMm}mm`,
+  fontSize: `${element.fontSizePt}pt`,
+  lineHeight: LINE_HEIGHT,
+  fontWeight: element.bold ? 700 : 400,
+  fontStyle: element.italic ? "italic" : "normal",
+});
 
 /**
- * Wall label beside an artwork. Sized in millimetres so the preview and the
- * printed sheet are the same drawing.
+ * Wall label beside an artwork, with each box where the template puts it.
+ * Sized in millimetres so the preview and the printed sheet are the same
+ * drawing.
  */
-export function LabelCard({ artwork, options, unit }: LabelCardProps) {
-  const lines = labelLines(artwork, options.fields, unit);
-  const image = options.showImage ? artwork.images[0] : undefined;
-  const style = {
-    width: `${options.widthMm}mm`,
-    height: `${options.heightMm}mm`,
-    "--label-scale":
-      Math.min(2, Math.max(0.8, options.heightMm / REFERENCE_HEIGHT_MM)) *
-      TEXT_SIZE_SCALE[options.textSize],
-  } as CSSProperties;
+export function LabelCard({
+  artwork,
+  template,
+  unit,
+  children,
+}: LabelCardProps) {
+  const texts = labelTexts(artwork, unit);
+  const image = artwork.images[0];
 
   return (
     <div
-      className={`label-card label-card--${options.font}`}
-      data-image={image ? "" : undefined}
-      style={style}
+      className={`label-card label-card--${template.font}`}
+      style={{
+        width: `${template.widthMm}mm`,
+        height: `${template.heightMm}mm`,
+      }}
     >
-      {image && (
-        <img
-          className="label-card__image"
-          src={thumbnailUrl(image.id)}
-          alt=""
-        />
-      )}
-      <div className="label-card__text">
-        {lines.map(({ field, text, year }) => (
-          <p key={field} className={LINE_CLASS[field]}>
-            {field === "title" ? (
-              <span className="artwork-title">{text}</span>
-            ) : (
-              text
-            )}
-            {year && `, ${year}`}
-          </p>
-        ))}
-      </div>
+      {template.elements.map((element) => {
+        if (element.kind === "image") {
+          return (
+            image && (
+              <img
+                key="image"
+                className="label-card__box label-card__image"
+                data-kind="image"
+                src={thumbnailUrl(image.id)}
+                alt=""
+                style={boxStyle(element)}
+              />
+            )
+          );
+        }
+        const text = texts[element.kind];
+        return (
+          text && (
+            <p
+              key={element.kind}
+              className="label-card__box"
+              data-kind={element.kind}
+              style={boxStyle(element)}
+            >
+              {text}
+            </p>
+          )
+        );
+      })}
+      {children}
     </div>
   );
 }
