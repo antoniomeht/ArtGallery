@@ -241,12 +241,7 @@ export class ArtworkRepository {
            SET ${assignments.join(", ")}, needs_review = ?, updated_at = ?
            WHERE id = ?`,
         )
-        .run(
-          ...fieldValues(fields),
-          fields.needsReview ? 1 : 0,
-          updatedAt,
-          id,
-        );
+        .run(...fieldValues(fields), fields.needsReview ? 1 : 0, updatedAt, id);
       if (changes === 0) return false;
 
       this.writeTags(id, fields.tags);
