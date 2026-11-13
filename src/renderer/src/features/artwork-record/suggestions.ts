@@ -27,18 +27,6 @@ export function rankSuggestions(
     .map(({ value }) => value);
 }
 
-/** Adds to `values` the defaults they do not already have. */
-export function withDefaults(
-  values: readonly string[],
-  defaults: readonly string[],
-): string[] {
-  const existing = new Set(values.map(normalize));
-  return [
-    ...values,
-    ...defaults.filter((value) => !existing.has(normalize(value))),
-  ].sort((a, b) => a.localeCompare(b, "es"));
-}
-
 const parts = (text: string) => text.split(",");
 
 /** What is being typed: the whole text, or in a list what follows the last comma. */

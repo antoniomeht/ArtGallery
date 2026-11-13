@@ -21,7 +21,6 @@ import {
 } from "../../../../shared/dimensions";
 import { STATUS_LABELS } from "../../../../shared/artworkFormat";
 import {
-  COMMON_CATEGORIES,
   hiddenFieldsFor,
   type HiddenFields,
   type OptionalField,
@@ -38,7 +37,6 @@ import {
 import { nextField } from "./formNavigation";
 import { SuggestField } from "./SuggestField";
 import { useDefaultArtistOffer } from "./useDefaultArtistOffer";
-import { withDefaults } from "./suggestions";
 import { Button } from "../../components/Button";
 import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 
@@ -269,10 +267,7 @@ export function ArtworkForm({
       <div className="artwork-form__row">
         <SuggestField
           label="Categoría"
-          suggestions={withDefaults(
-            options?.categories ?? [],
-            COMMON_CATEGORIES,
-          )}
+          suggestions={options?.categories ?? []}
           {...bind("category")}
         />
         {shows("status") && (
