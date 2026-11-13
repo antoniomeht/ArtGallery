@@ -3,6 +3,7 @@ import { foldText } from "./text";
 
 /** Fields of the artwork form that a category may leave out. */
 export const OPTIONAL_FIELDS = [
+  "inventoryNumber",
   "status",
   "technique",
   "support",
@@ -17,6 +18,7 @@ export const OPTIONAL_FIELDS = [
 export type OptionalField = (typeof OPTIONAL_FIELDS)[number];
 
 export const OPTIONAL_FIELD_LABELS: Record<OptionalField, string> = {
+  inventoryNumber: "Nº de inventario",
   status: "Estado",
   technique: "Técnica",
   support: "Soporte",
@@ -71,6 +73,7 @@ export function withFieldShown(
 
 /** Fields held as one nullable value, blanked when hidden. */
 const NULLABLE_FIELDS = [
+  "inventoryNumber",
   "technique",
   "support",
   "year",
