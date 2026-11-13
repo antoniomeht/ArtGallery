@@ -29,13 +29,13 @@ Las capturas son de la aplicación real con los [datos de demostración](#datos-
 - Los campos de texto sugieren los valores ya usados en el inventario, e Intro toma el que más se parece a lo escrito.
 - Ficha con estilo de cartela de museo y edición de todos los campos:
   - número de inventario (por ejemplo, 007), que también se puede buscar; si en Ajustes la técnica tiene un rango (óleo del 1 al 199…), una obra sin número toma al guardarse el primero libre;
-  - artista, categoría, técnica y soporte;
+  - artista, categoría (solo sugiere las que ya usan tus obras), técnica y soporte;
   - año (exacto o aproximado);
   - alto, ancho y profundidad, en centímetros o pulgadas según los ajustes; cada obra guarda las dos unidades;
   - descripción, notas y etiquetas;
   - ubicación y estado;
   - precio con moneda.
-- Cada categoría puede tener su propio formulario: en Ajustes se eligen los campos que muestra (por defecto, Fotografía no muestra estado ni soporte). Lo escrito en un campo oculto se conserva.
+- Cada categoría puede tener su propio formulario: en Ajustes se eligen los campos que muestra. Lo escrito en un campo oculto se conserva.
 - Varias imágenes por obra: se pueden añadir más, también arrastrándolas a la ficha abierta, elegir la principal y quitar imágenes.
 - Papelera recuperable, con «Deshacer» al momento y borrado definitivo con confirmación.
 

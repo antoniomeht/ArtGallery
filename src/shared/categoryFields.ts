@@ -1,15 +1,6 @@
 import { z } from "zod";
 import { foldText } from "./text";
 
-/** Offered from the first artwork, when the inventory has no values yet. */
-export const COMMON_CATEGORIES = [
-  "Pintura",
-  "Dibujo",
-  "Grabado",
-  "Fotografía",
-  "Técnica mixta",
-];
-
 /** Fields of the artwork form that a category may leave out. */
 export const OPTIONAL_FIELDS = [
   "status",
@@ -41,7 +32,7 @@ export const OPTIONAL_FIELD_LABELS: Record<OptionalField, string> = {
 /** Hidden fields by category name, as the user wrote the category. */
 export const hiddenFieldsSchema = z
   .record(z.string().trim().min(1).max(100), z.array(z.enum(OPTIONAL_FIELDS)))
-  .default({ Fotografía: ["status", "support"] });
+  .default({});
 
 export type HiddenFields = z.output<typeof hiddenFieldsSchema>;
 

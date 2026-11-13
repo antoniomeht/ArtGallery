@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import {
-  COMMON_CATEGORIES,
   hiddenFieldsFor,
   OPTIONAL_FIELD_LABELS,
   OPTIONAL_FIELDS,
@@ -32,18 +31,14 @@ export function CategoryFieldsSection({
   const [used, setUsed] = useState<string[]>([]);
 
   useEffect(() => {
-    // Without the inventory's categories the common ones are still listed.
+    // Without the inventory's categories only those with rules are listed.
     window.artGallery.listFilterOptions().then(
       ({ categories }) => setUsed(categories),
       () => {},
     );
   }, []);
 
-  const categories = distinctCategories([
-    ...Object.keys(value),
-    ...used,
-    ...COMMON_CATEGORIES,
-  ]);
+  const categories = distinctCategories([...Object.keys(value), ...used]);
 
   return (
     <section className="page-section" aria-labelledby="category-fields">
