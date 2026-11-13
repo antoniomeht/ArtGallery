@@ -41,7 +41,7 @@ describe("CSV export", () => {
     );
 
     expect(row).toContain(";Marina;");
-    // Alto (cm), then in the inch columns 25.787 shown with one decimal.
+    // Ancho and Alto (cm), then in the inch columns 25.787 shown with one decimal.
     expect(row).toContain(";65,5;");
     expect(row).toContain(";25,8;");
     expect(row).toContain(";Prestada;");

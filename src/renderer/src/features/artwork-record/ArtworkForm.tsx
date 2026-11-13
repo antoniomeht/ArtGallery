@@ -16,9 +16,7 @@ import {
 } from "../../../../shared/artwork";
 import {
   AXIS_LABELS,
-  formatDimensions,
   MEASURE_AXES,
-  withEnteredMeasures,
   type DimensionUnit,
 } from "../../../../shared/dimensions";
 import { STATUS_LABELS } from "../../../../shared/artworkFormat";
@@ -29,7 +27,6 @@ import {
 } from "../../../../shared/categoryFields";
 import { Field } from "../../components/Field";
 import {
-  enteredMeasures,
   parseFormValues,
   saveFailureErrors,
   toFormValues,
@@ -161,12 +158,6 @@ export function ArtworkForm({
   /** The number the user chose to take from its owner, swapping theirs. */
   const [takenNumber, setTakenNumber] = useState<string | null>(null);
   const isTaking = owner !== null && takenNumber === typedNumber;
-
-  const otherUnit = unit === "cm" ? "in" : "cm";
-  const equivalent = formatDimensions(
-    withEnteredMeasures(artwork.dimensions, unit, enteredMeasures(values)),
-    otherUnit,
-  );
 
   /** The saved artwork, or null when nothing could be saved. */
   /** A blank number takes the first free one. */
@@ -393,8 +384,7 @@ export function ArtworkForm({
             ))}
           </div>
           <p className="artwork-form__hint">
-            {equivalent && `Equivale a ${equivalent}. `}La unidad se cambia en
-            Ajustes.
+            La unidad se cambia en Ajustes.
           </p>
         </fieldset>
       )}

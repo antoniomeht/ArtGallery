@@ -24,8 +24,8 @@ describe("dimensions", () => {
   });
 
   it("formats in the chosen unit with at most one decimal", () => {
-    expect(formatDimensions(painting, "cm")).toBe("46 × 55 cm");
-    expect(formatDimensions(painting, "in")).toBe("18,1 × 21,7 in");
+    expect(formatDimensions(painting, "cm")).toBe("55 × 46 cm");
+    expect(formatDimensions(painting, "in")).toBe("21,7 × 18,1 in");
     expect(formatDimensions(EMPTY_DIMENSIONS, "cm")).toBeNull();
   });
 
