@@ -126,73 +126,75 @@ export function GalleryPage({ inventoryVersion, onAdd }: GalleryPageProps) {
 
   return (
     <section className="gallery-page" aria-labelledby="gallery-title">
-      <header className="page-header">
-        <h1 id="gallery-title" className="page-header__title">
-          Galería
-        </h1>
-        {totalCount > 0 && (
-          <>
-            <p className="page-header__count" aria-live="polite">
-              {isFiltering
-                ? `${artworks.length} de ${countLabel(totalCount)}`
-                : countLabel(totalCount)}
-            </p>
-            <div className="page-header__action">
-              {visibleSelection ? (
-                <SelectionToolbar
-                  selectedIds={[...visibleSelection]}
-                  collections={collections}
-                  onCollectionsChanged={reload}
-                  totalCount={artworks.length}
-                  onSelectAll={() =>
-                    setSelectedIds(new Set(artworks.map(({ id }) => id)))
-                  }
-                  onClear={() => setSelectedIds(new Set())}
-                  onSetStatus={(status) =>
-                    setStatus([...visibleSelection], status)
-                  }
-                  onMoveToTrash={() => {
-                    void moveToTrash(
-                      [...visibleSelection],
-                      `${countLabel(visibleSelection.size)} movidas a la papelera.`,
-                    );
-                    setSelectedIds(null);
-                  }}
-                  onExport={async () => {
-                    const result = await window.artGallery.exportPackage([
-                      ...visibleSelection,
-                    ]);
-                    if (result) {
-                      setNotice({
-                        message: `${countLabel(result.artworks)} exportadas a ${result.path}`,
-                      });
+      <div className="gallery-page__top">
+        <header className="page-header">
+          <h1 id="gallery-title" className="page-header__title">
+            Galería
+          </h1>
+          {totalCount > 0 && (
+            <>
+              <p className="page-header__count" aria-live="polite">
+                {isFiltering
+                  ? `${artworks.length} de ${countLabel(totalCount)}`
+                  : countLabel(totalCount)}
+              </p>
+              <div className="page-header__action">
+                {visibleSelection ? (
+                  <SelectionToolbar
+                    selectedIds={[...visibleSelection]}
+                    collections={collections}
+                    onCollectionsChanged={reload}
+                    totalCount={artworks.length}
+                    onSelectAll={() =>
+                      setSelectedIds(new Set(artworks.map(({ id }) => id)))
                     }
-                  }}
-                  onAddToExhibition={() => setIsChoosingExhibition(true)}
-                  onPrintLabels={() => setIsPrintingLabels(true)}
-                  onDone={() => setSelectedIds(null)}
-                />
-              ) : (
-                <GalleryToolbar
-                  sort={sort}
-                  onSortChange={setSort}
-                  onAdd={onAdd}
-                />
-              )}
-            </div>
-          </>
-        )}
-      </header>
+                    onClear={() => setSelectedIds(new Set())}
+                    onSetStatus={(status) =>
+                      setStatus([...visibleSelection], status)
+                    }
+                    onMoveToTrash={() => {
+                      void moveToTrash(
+                        [...visibleSelection],
+                        `${countLabel(visibleSelection.size)} movidas a la papelera.`,
+                      );
+                      setSelectedIds(null);
+                    }}
+                    onExport={async () => {
+                      const result = await window.artGallery.exportPackage([
+                        ...visibleSelection,
+                      ]);
+                      if (result) {
+                        setNotice({
+                          message: `${countLabel(result.artworks)} exportadas a ${result.path}`,
+                        });
+                      }
+                    }}
+                    onAddToExhibition={() => setIsChoosingExhibition(true)}
+                    onPrintLabels={() => setIsPrintingLabels(true)}
+                    onDone={() => setSelectedIds(null)}
+                  />
+                ) : (
+                  <GalleryToolbar
+                    sort={sort}
+                    onSortChange={setSort}
+                    onAdd={onAdd}
+                  />
+                )}
+              </div>
+            </>
+          )}
+        </header>
 
-      {totalCount > 0 && (
-        <GalleryFilters
-          filters={filters}
-          options={options}
-          collections={collections}
-          onChange={setFilters}
-          onManageCollections={() => setIsManagingCollections(true)}
-        />
-      )}
+        {totalCount > 0 && (
+          <GalleryFilters
+            filters={filters}
+            options={options}
+            collections={collections}
+            onChange={setFilters}
+            onManageCollections={() => setIsManagingCollections(true)}
+          />
+        )}
+      </div>
 
       {state.status === "loading" && (
         <p className="gallery-status" role="status">

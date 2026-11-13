@@ -4,6 +4,15 @@
   min-height: 100%;
 }
 
+/* The title, tools and search stay put; only the artworks scroll. */
+.gallery-page__top {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--surface-page);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
 .gallery-empty {
   flex: 1;
   display: flex;
