@@ -191,6 +191,12 @@ const migrations: readonly string[] = [
   -- The label design of an exhibition, as JSON; null uses the default.
   ALTER TABLE exhibitions ADD COLUMN label_template TEXT;
   `,
+  `
+  -- No two artworks share an inventory number, whatever the case.
+  CREATE UNIQUE INDEX artworks_inventory_number
+    ON artworks (inventory_number COLLATE NOCASE)
+    WHERE inventory_number IS NOT NULL;
+  `,
 ];
 
 export const LATEST_SCHEMA_VERSION = migrations.length;

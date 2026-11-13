@@ -441,6 +441,18 @@ export class ArtworkRepository {
     ).map((row) => row.inventory_number);
   }
 
+  /** True when an artwork other than `exceptId` has `number`, any case. */
+  isInventoryNumberTaken(number: string, exceptId: string): boolean {
+    return (
+      this.db
+        .prepare(
+          `SELECT 1 FROM artworks
+           WHERE inventory_number = ? COLLATE NOCASE AND id <> ?`,
+        )
+        .get(number, exceptId) !== undefined
+    );
+  }
+
   /** Not a change to the record, so its date of change stays. */
   setFavorite(id: string, favorite: boolean): void {
     this.db

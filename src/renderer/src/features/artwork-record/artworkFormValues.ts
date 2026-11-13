@@ -1,3 +1,4 @@
+import { INVENTORY_NUMBER_TAKEN } from "../../../../shared/inventoryNumbers";
 import {
   artworkFieldsSchema,
   type Artwork,
@@ -53,6 +54,17 @@ const ERROR_MESSAGES: ArtworkFormErrors = {
 };
 
 const DEFAULT_ERROR = "Revisa este valor.";
+
+/** The field to blame when saving failed, or null for any other failure. */
+export function saveFailureErrors(error: unknown): ArtworkFormErrors | null {
+  // IPC errors arrive wrapped in text.
+  return String(error).includes(INVENTORY_NUMBER_TAKEN)
+    ? {
+        inventoryNumber:
+          "Este número ya lo tiene otra obra (también cuentan las de la papelera).",
+      }
+    : null;
+}
 
 const textOf = (value: string | number | null) =>
   value == null ? "" : String(value).replace(".", ",");

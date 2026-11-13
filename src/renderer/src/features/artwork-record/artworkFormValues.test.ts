@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { artworkFieldsSchema, type Artwork } from "../../../../shared/artwork";
 import { fromSingleUnit } from "../../../../shared/dimensions";
-import { parseFormValues, toFormValues } from "./artworkFormValues";
+import {
+  parseFormValues,
+  saveFailureErrors,
+  toFormValues,
+} from "./artworkFormValues";
 
 const artwork: Artwork = {
   ...artworkFieldsSchema.parse({ title: "Marina" }),
@@ -93,5 +97,15 @@ describe("artwork form values", () => {
         year: "Introduce un año, por ejemplo 1998.",
       },
     });
+  });
+
+  it("points at the inventory number when another artwork has it", () => {
+    const ipcError = new Error(
+      "Error invoking remote method 'artworks:update': Error: Inventory number taken",
+    );
+    expect(saveFailureErrors(ipcError)).toEqual({
+      inventoryNumber: expect.stringContaining("ya lo tiene otra obra"),
+    });
+    expect(saveFailureErrors(new Error("disk full"))).toBeNull();
   });
 });

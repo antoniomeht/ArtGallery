@@ -30,6 +30,7 @@ import { Field } from "../../components/Field";
 import {
   enteredMeasures,
   parseFormValues,
+  saveFailureErrors,
   toFormValues,
   type ArtworkFormErrors,
   type ArtworkFormValues,
@@ -174,8 +175,10 @@ export function ArtworkForm({
       // The artwork is already saved; a missing default is only an extra.
       await defaultArtist.apply(saved.artist).catch(() => {});
       return saved;
-    } catch {
-      setSaveError(true);
+    } catch (error) {
+      const fieldErrors = saveFailureErrors(error);
+      if (fieldErrors) setErrors(fieldErrors);
+      else setSaveError(true);
       setIsSaving(false);
       return null;
     }

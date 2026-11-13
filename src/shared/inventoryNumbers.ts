@@ -1,6 +1,9 @@
 import { z } from "zod";
 import { foldText } from "./text";
 
+/** How the main process names a number another artwork already has. */
+export const INVENTORY_NUMBER_TAKEN = "Inventory number taken";
+
 const rangeNumber = z.number().int().min(0).max(999_999);
 
 /** Inventory numbers kept for each technique, e.g. óleo 1–199. */
