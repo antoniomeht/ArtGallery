@@ -28,7 +28,10 @@ const title = z.string().trim().min(1).max(300);
 export const artworkFieldsSchema = z.object({
   title,
   /** The artist's own number for the work, e.g. "007". */
-  inventoryNumber: optionalText(30),
+  /** Short numbers take three digits, like the ones the app offers. */
+  inventoryNumber: optionalText(30).transform((number) =>
+    number && /^\d{1,2}$/.test(number) ? number.padStart(3, "0") : number,
+  ),
   artist: optionalText(300),
   category: optionalText(100),
   technique: optionalText(200),

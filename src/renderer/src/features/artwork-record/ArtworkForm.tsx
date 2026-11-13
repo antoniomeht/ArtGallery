@@ -1,3 +1,5 @@
+import type { InventoryNumberOwner } from "../../../../shared/inventoryNumbers";
+import { ownerText, swapText } from "./numberOwner";
 import {
   useEffect,
   useImperativeHandle,
@@ -121,7 +123,6 @@ export function ArtworkForm({
     number: string | null;
   } | null>(null);
   useEffect(() => {
-    if (!technique) return;
     let isCurrent = true;
     window.artGallery.nextInventoryNumber(technique).then(
       (number) => isCurrent && setSuggestion({ technique, number }),
@@ -132,7 +133,34 @@ export function ArtworkForm({
     };
   }, [technique]);
   const suggestedNumber =
-    technique && suggestion?.technique === technique ? suggestion.number : null;
+    suggestion?.technique === technique ? suggestion.number : null;
+
+  // Names the artwork that already has the number typed.
+  const typedNumber = useDebouncedValue(values.inventoryNumber.trim(), 300);
+  const [numberOwner, setNumberOwner] = useState<{
+    number: string;
+    owner: InventoryNumberOwner | null;
+  } | null>(null);
+  useEffect(() => {
+    if (!typedNumber) return;
+    let isCurrent = true;
+    window.artGallery.inventoryNumberOwner(typedNumber, artwork.id).then(
+      (owner) => isCurrent && setNumberOwner({ number: typedNumber, owner }),
+      () => {},
+    );
+    return () => {
+      isCurrent = false;
+    };
+  }, [typedNumber, artwork.id]);
+  const owner =
+    typedNumber &&
+    numberOwner?.number === typedNumber &&
+    values.inventoryNumber.trim() === typedNumber
+      ? numberOwner.owner
+      : null;
+  /** The number the user chose to take from its owner, swapping theirs. */
+  const [takenNumber, setTakenNumber] = useState<string | null>(null);
+  const isTaking = owner !== null && takenNumber === typedNumber;
 
   const otherUnit = unit === "cm" ? "in" : "cm";
   const equivalent = formatDimensions(
@@ -141,11 +169,9 @@ export function ArtworkForm({
   );
 
   /** The saved artwork, or null when nothing could be saved. */
-  /** A blank number takes the next one of the technique's range. */
+  /** A blank number takes the first free one. */
   async function withInventoryNumber(): Promise<ArtworkFormValues> {
-    if (values.inventoryNumber.trim() || !values.technique.trim()) {
-      return values;
-    }
+    if (values.inventoryNumber.trim()) return values;
     const next = await window.artGallery
       .nextInventoryNumber(values.technique)
       .catch(() => null);
@@ -169,6 +195,7 @@ export function ArtworkForm({
       const saved = await window.artGallery.updateArtwork(
         artwork.id,
         parsed.fields,
+        { takeInventoryNumber: isTaking },
       );
       // The artwork is already saved; a missing default is only an extra.
       await defaultArtist.apply(saved.artist).catch(() => {});
@@ -246,6 +273,19 @@ export function ArtworkForm({
         }
         {...bind("inventoryNumber")}
       />
+      {owner && !errors.inventoryNumber && (
+        <p className="artwork-form__number-owner" role="status">
+          {isTaking
+            ? swapText(owner, artwork.inventoryNumber)
+            : ownerText(owner)}
+          <Button
+            variant="subtle"
+            onClick={() => setTakenNumber(isTaking ? null : typedNumber)}
+          >
+            {isTaking ? "Deshacer" : "Quitárselo y ponérselo a esta"}
+          </Button>
+        </p>
+      )}
       <SuggestField
         label="Artista"
         suggestions={options?.artists ?? []}

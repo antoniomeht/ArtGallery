@@ -28,7 +28,7 @@ Las capturas son de la aplicación real con los [datos de demostración](#datos-
 - Las fotografías se copian al almacenamiento de ArtGallery, así que la obra sigue funcionando aunque se mueva o borre el archivo original.
 - Los campos de texto sugieren los valores ya usados en el inventario, e Intro toma el que más se parece a lo escrito.
 - Ficha con estilo de cartela de museo y edición de todos los campos:
-  - número de inventario (por ejemplo, 007), que también se puede buscar y no se repite entre obras, papelera incluida; si en Ajustes la técnica tiene un rango (óleo del 1 al 199…), una obra sin número toma al guardarse el primero libre;
+  - número de inventario (por ejemplo, 007), que también se puede buscar y no se repite entre obras, papelera incluida («7» y «007» cuentan como el mismo). El campo vacío muestra el primer número libre (con 001, 002, 004 propone 003) y lo toma al guardar; si en Ajustes la técnica tiene un rango (óleo del 1 al 199…), el número sale de ese rango. Si escribes uno que ya tiene otra obra, la ficha dice cuál es y permite quitárselo: al guardar, las dos obras intercambian sus números;
   - artista, categoría (solo sugiere las que ya usan tus obras), técnica y soporte;
   - año (exacto o aproximado);
   - alto, ancho y profundidad, en centímetros o pulgadas según los ajustes; cada obra guarda las dos unidades;
