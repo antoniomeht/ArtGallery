@@ -160,9 +160,11 @@ export function ArtworkForm({
   const isTaking = owner !== null && takenNumber === typedNumber;
 
   /** The saved artwork, or null when nothing could be saved. */
-  /** A blank number takes the first free one. */
+  /** A blank number takes the first free one, unless the category has none. */
   async function withInventoryNumber(): Promise<ArtworkFormValues> {
-    if (values.inventoryNumber.trim()) return values;
+    if (values.inventoryNumber.trim() || !shows("inventoryNumber")) {
+      return values;
+    }
     const next = await window.artGallery
       .nextInventoryNumber(values.technique)
       .catch(() => null);
@@ -256,15 +258,17 @@ export function ArtworkForm({
         onFocus={isUnsaved ? (event) => event.target.select() : undefined}
         {...bind("title")}
       />
-      <Field
-        label="Nº de inventario"
-        maxLength={30}
-        placeholder={
-          suggestedNumber ? `${suggestedNumber} (se asigna al guardar)` : ""
-        }
-        {...bind("inventoryNumber")}
-      />
-      {owner && !errors.inventoryNumber && (
+      {shows("inventoryNumber") && (
+        <Field
+          label="Nº de inventario"
+          maxLength={30}
+          placeholder={
+            suggestedNumber ? `${suggestedNumber} (se asigna al guardar)` : ""
+          }
+          {...bind("inventoryNumber")}
+        />
+      )}
+      {shows("inventoryNumber") && owner && !errors.inventoryNumber && (
         <p className="artwork-form__number-owner" role="status">
           {isTaking
             ? swapText(owner, artwork.inventoryNumber)

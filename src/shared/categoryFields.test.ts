@@ -63,3 +63,21 @@ describe("an artwork as shown for its category", () => {
     });
   });
 });
+
+describe("sketches without an inventory number", () => {
+  it("lets a category leave out the inventory number", () => {
+    const rules = withFieldShown({}, "Boceto", "inventoryNumber", false);
+    expect(hiddenFieldsFor("boceto", rules).has("inventoryNumber")).toBe(true);
+    expect(settingsSchema.parse({ hiddenFields: rules }).hiddenFields).toEqual({
+      Boceto: ["inventoryNumber"],
+    });
+  });
+
+  it("does not show a hidden inventory number on the label", () => {
+    const shown = shownFields(
+      { inventoryNumber: "012", technique: "Grafito" },
+      new Set(["inventoryNumber"] as const),
+    );
+    expect(shown).toEqual({ inventoryNumber: null, technique: "Grafito" });
+  });
+});
