@@ -1,11 +1,20 @@
 import { describe, expect, it } from "vitest";
-import { hiddenFieldsFor, shownFields, withFieldShown } from "./categoryFields";
+import {
+  hiddenFieldsFor,
+  shownFields,
+  withFieldShown,
+  type HiddenFields,
+} from "./categoryFields";
 import { settingsSchema } from "./settings";
 
 describe("fields shown for each category", () => {
-  const { hiddenFields } = settingsSchema.parse({});
+  const hiddenFields: HiddenFields = { Fotografía: ["status", "support"] };
 
-  it("leaves out status and support for photographs by default", () => {
+  it("has no rules until the user sets them", () => {
+    expect(settingsSchema.parse({}).hiddenFields).toEqual({});
+  });
+
+  it("leaves out the fields set for the category", () => {
     expect([...hiddenFieldsFor("Fotografía", hiddenFields)].sort()).toEqual([
       "status",
       "support",

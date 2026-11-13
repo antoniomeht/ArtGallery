@@ -4,7 +4,6 @@ import {
   currentTerm,
   otherListValues,
   rankSuggestions,
-  withDefaults,
 } from "./suggestions";
 
 describe("field suggestions", () => {
@@ -28,12 +27,6 @@ describe("field suggestions", () => {
   it("offers everything for an empty term and nothing without a match", () => {
     expect(rankSuggestions("  ", VALUES)).toEqual(VALUES);
     expect(rankSuggestions("bronce", VALUES)).toEqual([]);
-  });
-
-  it("adds only the defaults that are not there yet, in order", () => {
-    expect(
-      withDefaults(["pintura", "Serigrafía"], ["Pintura", "Dibujo"]),
-    ).toEqual(["Dibujo", "pintura", "Serigrafía"]);
   });
 
   it("works on the last part of a comma-separated list", () => {
