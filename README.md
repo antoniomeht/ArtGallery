@@ -43,7 +43,7 @@ Las capturas son de la aplicación real con los [datos de demostración](#datos-
 
 **Galería y búsqueda**
 
-- Cuadrícula de miniaturas al estilo de la galería de un móvil, ordenable por fecha de incorporación, título o año. El orden por título no distingue tildes ni mayúsculas.
+- Cuadrícula de miniaturas al estilo de la galería de un móvil, dividida por años (los más recientes primero, o los más antiguos) o por técnica, con un encabezado y el número de obras de cada grupo; las obras sin año o sin técnica van al final. Las favoritas salen las primeras de su grupo. También se puede ordenar por fecha de incorporación, sin divisiones.
 - Selección múltiple: mantén pulsada una obra (o Mayús+Intro) y marca las demás con un clic. Acciones en bloque:
   - cambiar el estado;
   - añadir a una exposición;

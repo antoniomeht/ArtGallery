@@ -82,12 +82,13 @@ export interface Artwork extends ArtworkFields {
   deletedAt: string | null;
 }
 
+/** The gallery's orders, then "title", used where artworks are picked. */
 export const ARTWORK_SORTS = [
-  "recent",
-  "oldest",
-  "title",
-  "year-asc",
   "year-desc",
+  "year-asc",
+  "technique",
+  "recent",
+  "title",
 ] as const;
 export type ArtworkSort = (typeof ARTWORK_SORTS)[number];
 
@@ -119,7 +120,7 @@ export const artworkFilterSchema = z.object({
 export type ArtworkFilter = z.output<typeof artworkFilterSchema>;
 
 export const artworkQuerySchema = artworkFilterSchema.extend({
-  sort: z.enum(ARTWORK_SORTS).default("recent"),
+  sort: z.enum(ARTWORK_SORTS).default("year-desc"),
 });
 
 export type ArtworkQuery = z.input<typeof artworkQuerySchema>;
@@ -142,6 +143,9 @@ export interface ArtworkSummary {
   primaryImageId: string | null;
   needsReview: boolean;
   favorite: boolean;
+  /** The gallery groups artworks by these. */
+  year: number | null;
+  technique: string | null;
   createdAt: string;
   /** When the artwork was moved to the trash, or null if it is not there. */
   deletedAt: string | null;

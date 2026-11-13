@@ -3,6 +3,7 @@ import type { ArtworkSummary } from "../../../../shared/artwork";
 import { thumbnailUrl } from "../../../../shared/media";
 import { useLongPress } from "../../hooks/useLongPress";
 import { dropTargetValue } from "../drop/dropRouter";
+import { countLabel, type GalleryGroup } from "./galleryGroups";
 import "./GalleryGrid.css";
 
 interface GalleryGridProps {
@@ -13,6 +14,8 @@ interface GalleryGridProps {
   onToggle: (artworkId: string) => void;
   /** Holding a tile, or Shift+Enter on it, starts selecting from that artwork. */
   onStartSelection?: (artworkId: string) => void;
+  /** Divisions of `artworks`, each under its heading; none shows one grid. */
+  groups?: readonly GalleryGroup[] | null;
 }
 
 export function GalleryGrid({
@@ -21,15 +24,16 @@ export function GalleryGrid({
   onOpen,
   onToggle,
   onStartSelection,
+  groups,
 }: GalleryGridProps) {
   // Holding a tile while selecting simply toggles it, like a click.
   const { pressHandlers, consumeClick } = useLongPress((artworkId: string) =>
     selectedIds ? onToggle(artworkId) : onStartSelection?.(artworkId),
   );
 
-  return (
-    <ul className="gallery-grid" aria-label="Obras">
-      {artworks.map((artwork) => {
+  const tiles = (shown: readonly ArtworkSummary[], label: string) => (
+    <ul className="gallery-grid" aria-label={label}>
+      {shown.map((artwork) => {
         const isSelected = selectedIds?.has(artwork.id) ?? false;
         return (
           <li key={artwork.id} className="gallery-grid__item">
@@ -97,5 +101,23 @@ export function GalleryGrid({
         );
       })}
     </ul>
+  );
+
+  if (!groups) return tiles(artworks, "Obras");
+  return (
+    <div className="gallery-groups">
+      {groups.map((group) => (
+        <section key={group.key} className="gallery-group">
+          <h2 className="gallery-group__title">
+            {group.label}
+            <span className="gallery-group__count">
+              {" · "}
+              {countLabel(group.artworks.length)}
+            </span>
+          </h2>
+          {tiles(group.artworks, `Obras de ${group.label}`)}
+        </section>
+      ))}
+    </div>
   );
 }

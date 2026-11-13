@@ -18,13 +18,11 @@ import { AddToExhibitionDialog } from "./AddToExhibitionDialog";
 import { GalleryFilters } from "./GalleryFilters";
 import { EMPTY_FILTERS, hasActiveFilters, toArtworkQuery } from "./filterModel";
 import { GalleryGrid } from "./GalleryGrid";
+import { countLabel, galleryGroups } from "./galleryGroups";
 import { GalleryToolbar } from "./GalleryToolbar";
 import { SelectionToolbar } from "./SelectionToolbar";
 import { Button } from "../../components/Button";
 import "./GalleryPage.css";
-
-const countLabel = (count: number) =>
-  count === 1 ? "1 obra" : `${count} obras`;
 
 interface GalleryPageProps {
   /** Changes when artworks were added from outside this page. */
@@ -33,7 +31,7 @@ interface GalleryPageProps {
 }
 
 export function GalleryPage({ inventoryVersion, onAdd }: GalleryPageProps) {
-  const [sort, setSort] = useState<ArtworkSort>("recent");
+  const [sort, setSort] = useState<ArtworkSort>("year-desc");
   const [chosenFilters, setFilters] = useState(EMPTY_FILTERS);
   const { collections, reload: reloadCollections } =
     useCollections(inventoryVersion);
@@ -237,6 +235,7 @@ export function GalleryPage({ inventoryVersion, onAdd }: GalleryPageProps) {
       {artworks.length > 0 && (
         <GalleryGrid
           artworks={artworks}
+          groups={galleryGroups(artworks, sort)}
           selectedIds={visibleSelection}
           onOpen={setOpenArtworkId}
           onToggle={toggle}

@@ -24,7 +24,7 @@ export interface NewArtworkRecord {
 /** Columns of an `ArtworkSummary`, from `artworks a` and its cover `i`. */
 export const SUMMARY_COLUMNS = `a.id, a.title, a.artist, a.created_at AS createdAt,
   a.deleted_at AS deletedAt, a.needs_review AS needsReview,
-  a.favorite AS favorite,
+  a.favorite AS favorite, a.year, a.technique,
   i.id AS primaryImageId`;
 
 /** Rows selected with `SUMMARY_COLUMNS`, with SQLite's 0/1 as booleans. */
@@ -69,13 +69,16 @@ interface ArtworkRow {
   inventory_number: string | null;
 }
 
-/** Every order puts favourites first. */
+/** Favourites come first within each year or technique. */
 const ORDER_BY: Record<ArtworkSort, string> = {
-  recent: "a.favorite DESC, a.created_at DESC",
-  oldest: "a.favorite DESC, a.created_at ASC",
-  title: "a.favorite DESC, sort_key(a.title), a.created_at DESC",
-  "year-asc": "a.favorite DESC, a.year ASC NULLS LAST, sort_key(a.title)",
-  "year-desc": "a.favorite DESC, a.year DESC NULLS LAST, sort_key(a.title)",
+  "year-desc":
+    "a.year DESC NULLS LAST, a.favorite DESC, sort_key(a.title), a.created_at DESC",
+  "year-asc":
+    "a.year ASC NULLS LAST, a.favorite DESC, sort_key(a.title), a.created_at DESC",
+  technique: `a.technique IS NULL, sort_key(a.technique), a.favorite DESC,
+    a.year DESC NULLS LAST, sort_key(a.title), a.created_at DESC`,
+  recent: "a.created_at DESC",
+  title: "sort_key(a.title), a.created_at DESC",
 };
 
 /** Editable columns, in the order `fieldValues` returns their values. */
@@ -365,7 +368,7 @@ export class ArtworkRepository {
 
   listSummaries({
     inTrash = false,
-    sort = "recent",
+    sort = "year-desc",
     filter = {},
   }: {
     inTrash?: boolean;
