@@ -1,11 +1,11 @@
 import type { ArtworkSort } from "../../../../shared/artwork";
 
-const SORT_LABELS: Record<ArtworkSort, string> = {
-  recent: "Añadidas recientemente",
-  oldest: "Añadidas hace más tiempo",
-  title: "Título (A–Z)",
-  "year-asc": "Año (más antiguas primero)",
+/** "title" is left out: it only orders lists for picking an artwork. */
+const SORT_LABELS: Partial<Record<ArtworkSort, string>> = {
   "year-desc": "Año (más recientes primero)",
+  "year-asc": "Año (más antiguas primero)",
+  technique: "Técnica",
+  recent: "Añadidas recientemente",
 };
 
 interface SortSelectProps {

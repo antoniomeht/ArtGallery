@@ -221,6 +221,8 @@ export class InventoryService {
       return {
         ...record,
         favorite: false,
+        year: null,
+        technique: null,
         primaryImageId: stored[0]?.id ?? null,
         deletedAt: null,
       };
@@ -263,6 +265,8 @@ export class InventoryService {
             return {
               ...record,
               favorite: false,
+              year: null,
+              technique: null,
               primaryImageId: image.id,
               deletedAt: null,
             };
