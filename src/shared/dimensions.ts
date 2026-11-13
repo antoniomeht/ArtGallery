@@ -1,7 +1,7 @@
 export const DIMENSION_UNITS = ["cm", "in"] as const;
 export type DimensionUnit = (typeof DIMENSION_UNITS)[number];
 
-export const MEASURE_AXES = ["height", "width", "depth"] as const;
+export const MEASURE_AXES = ["width", "height", "depth"] as const;
 export type MeasureAxis = (typeof MEASURE_AXES)[number];
 
 export type Measures = Record<MeasureAxis, number | null>;
@@ -87,13 +87,13 @@ const measureFormat = new Intl.NumberFormat("es-ES", {
   maximumFractionDigits: 1,
 });
 
-/** "46 × 55 cm" or "46 × 55 × 4 cm"; null when height or width is missing. */
+/** Width first: "55 × 46 cm" or "55 × 46 × 4 cm"; null when one is missing. */
 export function formatDimensions(
   dimensions: Dimensions,
   unit: DimensionUnit,
 ): string | null {
   const { height, width, depth } = dimensions[unit];
   if (height == null || width == null) return null;
-  const parts = [height, width, depth].filter((value) => value != null);
+  const parts = [width, height, depth].filter((value) => value != null);
   return `${parts.map((value) => measureFormat.format(value)).join(" × ")} ${unit}`;
 }

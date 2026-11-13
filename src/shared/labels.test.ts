@@ -62,7 +62,7 @@ describe("the texts of a label", () => {
       title: "Marina",
       year: "1998",
       medium: "Óleo sobre lienzo",
-      dimensions: "65 × 81 cm",
+      dimensions: "81 × 65 cm",
       price: null,
     });
   });
