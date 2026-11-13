@@ -444,16 +444,41 @@ export class ArtworkRepository {
     ).map((row) => row.inventory_number);
   }
 
-  /** True when an artwork other than `exceptId` has `number`, any case. */
-  isInventoryNumberTaken(number: string, exceptId: string): boolean {
+  /** Every artwork with an inventory number, the trash included. */
+  listNumberedArtworks(): {
+    id: string;
+    title: string;
+    inventoryNumber: string;
+    inTrash: boolean;
+  }[] {
+    type Row = {
+      id: string;
+      title: string;
+      inventoryNumber: string;
+      inTrash: number;
+    };
     return (
       this.db
         .prepare(
-          `SELECT 1 FROM artworks
-           WHERE inventory_number = ? COLLATE NOCASE AND id <> ?`,
+          `SELECT id, title, inventory_number AS inventoryNumber,
+                  deleted_at IS NOT NULL AS inTrash
+           FROM artworks WHERE inventory_number IS NOT NULL`,
         )
-        .get(number, exceptId) !== undefined
-    );
+        .all() as Row[]
+    ).map((row) => ({ ...row, inTrash: row.inTrash === 1 }));
+  }
+
+  /** Only the number changes; its date of change too. */
+  setInventoryNumber(
+    id: string,
+    number: string | null,
+    updatedAt: string,
+  ): void {
+    this.db
+      .prepare(
+        "UPDATE artworks SET inventory_number = ?, updated_at = ? WHERE id = ?",
+      )
+      .run(number, updatedAt, id);
   }
 
   /** Not a change to the record, so its date of change stays. */

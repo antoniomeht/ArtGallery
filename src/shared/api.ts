@@ -24,6 +24,7 @@ import type {
   ExhibitionFieldsInput,
   ExhibitionSummary,
 } from "./exhibition";
+import type { InventoryNumberOwner } from "./inventoryNumbers";
 import type { LabelTemplate } from "./labels";
 import type { PageSetupInput } from "./pageSetup";
 import type { PrintSource } from "./print";
@@ -64,12 +65,22 @@ export interface ArtGalleryApi {
   onCreationProgress(
     listener: (progress: CreationProgress) => void,
   ): () => void;
-  updateArtwork(id: string, fields: ArtworkFieldsInput): Promise<Artwork>;
+  /** With `takeInventoryNumber`, swaps numbers with the artwork that has it. */
+  updateArtwork(
+    id: string,
+    fields: ArtworkFieldsInput,
+    options?: { takeInventoryNumber?: boolean },
+  ): Promise<Artwork>;
   setStatus(artworkIds: string[], status: ArtworkStatus): Promise<void>;
   /** Favourites come first in the gallery. */
   setFavorite(artworkId: string, favorite: boolean): Promise<void>;
-  /** The number the technique's range offers next, if it has a range. */
+  /** The first free number, in the technique's range if it has one. */
   nextInventoryNumber(technique: string): Promise<string | null>;
+  /** The other artwork that has `number`, if any. */
+  inventoryNumberOwner(
+    number: string,
+    artworkId: string,
+  ): Promise<InventoryNumberOwner | null>;
   addImages(artworkId: string, imagePaths: string[]): Promise<Artwork>;
   removeImage(artworkId: string, imageId: string): Promise<Artwork>;
   setPrimaryImage(artworkId: string, imageId: string): Promise<Artwork>;
@@ -220,6 +231,7 @@ export const IpcChannel = {
   setStatus: "artworks:set-status",
   setFavorite: "artworks:set-favorite",
   nextInventoryNumber: "artworks:next-inventory-number",
+  inventoryNumberOwner: "artworks:inventory-number-owner",
   addImages: "artworks:add-images",
   removeImage: "artworks:remove-image",
   setPrimaryImage: "artworks:set-primary-image",

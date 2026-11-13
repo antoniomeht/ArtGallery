@@ -26,9 +26,14 @@ describe("the next inventory number of a technique", () => {
     expect(nextInventoryNumber(big, "Grabado", [])).toBe("0001");
   });
 
-  it("has none without a range, or when the range is full", () => {
-    expect(nextInventoryNumber(ranges, "Pastel", [])).toBeNull();
-    expect(nextInventoryNumber(ranges, null, [])).toBeNull();
+  it("fills the first gap from 1 when the technique has no range", () => {
+    const used = ["001", "2", "004", "5", "009", "A-7", null];
+    expect(nextInventoryNumber(ranges, "Pastel", used)).toBe("003");
+    expect(nextInventoryNumber(ranges, null, [...used, "003"])).toBe("006");
+    expect(nextInventoryNumber([], null, [])).toBe("001");
+  });
+
+  it("has none when the range is full", () => {
     const tiny = numberRangesSchema.parse([
       { technique: "Óleo", from: 1, to: 2 },
     ]);

@@ -273,6 +273,17 @@
   border: none;
 }
 
+/* Under the inventory number: who has it, and taking it from them. */
+.artwork-form__number-owner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin: calc(-1 * var(--space-2)) 0 0;
+  font-size: var(--font-size-caption);
+  color: var(--text-secondary);
+}
+
 .artwork-form__error {
   margin: 0;
   color: var(--danger);

@@ -19,14 +19,16 @@ const api: ArtGalleryApi = {
     ipcRenderer.on(IpcChannel.onCreationProgress, handle);
     return () => ipcRenderer.off(IpcChannel.onCreationProgress, handle);
   },
-  updateArtwork: (id, fields) =>
-    ipcRenderer.invoke(IpcChannel.updateArtwork, id, fields),
+  updateArtwork: (id, fields, options) =>
+    ipcRenderer.invoke(IpcChannel.updateArtwork, id, fields, options),
   setStatus: (artworkIds, status) =>
     ipcRenderer.invoke(IpcChannel.setStatus, artworkIds, status),
   setFavorite: (artworkId, favorite) =>
     ipcRenderer.invoke(IpcChannel.setFavorite, artworkId, favorite),
   nextInventoryNumber: (technique) =>
     ipcRenderer.invoke(IpcChannel.nextInventoryNumber, technique),
+  inventoryNumberOwner: (number, artworkId) =>
+    ipcRenderer.invoke(IpcChannel.inventoryNumberOwner, number, artworkId),
   addImages: (artworkId, imagePaths) =>
     ipcRenderer.invoke(IpcChannel.addImages, artworkId, imagePaths),
   removeImage: (artworkId, imageId) =>

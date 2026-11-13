@@ -44,6 +44,15 @@ export function registerIpcHandlers(
   );
 
   ipcMain.handle(
+    IpcChannel.inventoryNumberOwner,
+    (_event, number: unknown, artworkId: unknown) =>
+      inventory.inventoryNumberOwner(
+        z.string().max(30).parse(number),
+        z.string().min(1).parse(artworkId),
+      ),
+  );
+
+  ipcMain.handle(
     IpcChannel.setFavorite,
     (_event, id: unknown, favorite: unknown) =>
       inventory.setFavorite(
@@ -71,8 +80,15 @@ export function registerIpcHandlers(
   );
   ipcMain.handle(
     IpcChannel.updateArtwork,
-    (_event, id: string, fields: ArtworkFieldsInput) =>
-      inventory.updateArtwork(id, fields),
+    (_event, id: string, fields: ArtworkFieldsInput, options: unknown) =>
+      inventory.updateArtwork(
+        id,
+        fields,
+        z
+          .object({ takeInventoryNumber: z.boolean().optional() })
+          .optional()
+          .parse(options),
+      ),
   );
   ipcMain.handle(
     IpcChannel.addImages,

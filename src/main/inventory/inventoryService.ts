@@ -17,7 +17,9 @@ import {
 import type { Exhibition } from "../../shared/exhibition";
 import {
   INVENTORY_NUMBER_TAKEN,
+  isSameInventoryNumber,
   nextInventoryNumber,
+  type InventoryNumberOwner,
   type NumberRanges,
 } from "../../shared/inventoryNumbers";
 import type { ExhibitionRepository } from "../exhibitions/exhibitionRepository";
@@ -195,15 +197,47 @@ export class InventoryService {
     return artwork;
   }
 
-  updateArtwork(id: string, input: ArtworkFieldsInput): Artwork {
+  /** The artwork other than `exceptId` that has `number`, if any. */
+  inventoryNumberOwner(
+    number: string,
+    exceptId: string,
+  ): InventoryNumberOwner | null {
+    const owner = this.artworks
+      .listNumberedArtworks()
+      .find(
+        (artwork) =>
+          artwork.id !== exceptId &&
+          isSameInventoryNumber(number, artwork.inventoryNumber),
+      );
+    return owner
+      ? { id: owner.id, title: owner.title, inTrash: owner.inTrash }
+      : null;
+  }
+
+  /**
+   * Saves the record. A number another artwork has is refused, unless
+   * `takeInventoryNumber`: then the two artworks swap numbers.
+   */
+  updateArtwork(
+    id: string,
+    input: ArtworkFieldsInput,
+    { takeInventoryNumber = false } = {},
+  ): Artwork {
     const fields = artworkFieldsSchema.parse(input);
     const number = fields.inventoryNumber;
-    if (number && this.artworks.isInventoryNumberTaken(number, id)) {
-      throw new InventoryNumberTakenError();
-    }
-    if (!this.artworks.update(id, fields, this.timestamp())) {
-      throw new Error(`Artwork not found: ${id}`);
-    }
+    const owner = number ? this.inventoryNumberOwner(number, id) : null;
+    if (owner && !takeInventoryNumber) throw new InventoryNumberTakenError();
+    const timestamp = this.timestamp();
+    this.artworks.inTransaction(() => {
+      const previous = this.artworks.findById(id)?.inventoryNumber ?? null;
+      if (owner) this.artworks.setInventoryNumber(owner.id, null, timestamp);
+      if (!this.artworks.update(id, fields, timestamp)) {
+        throw new Error(`Artwork not found: ${id}`);
+      }
+      if (owner && previous) {
+        this.artworks.setInventoryNumber(owner.id, previous, timestamp);
+      }
+    });
     return this.getArtwork(id);
   }
 

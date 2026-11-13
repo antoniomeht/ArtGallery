@@ -237,6 +237,83 @@ describe("InventoryService", () => {
     db.close();
   });
 
+  it("names the artwork that has a number, the same in value or any case", async () => {
+    const { db, service } = openInventory(await useTempDir());
+    const create = async (title: string, inventoryNumber: string) => {
+      const { id } = await service.createArtwork({ title, imagePaths: [] });
+      service.updateArtwork(id, { title, inventoryNumber });
+      return id;
+    };
+    const marina = await create("Marina", "003");
+    const boceto = await create("Boceto", "A-7");
+    service.moveToTrash([boceto]);
+    const nueva = await create("Nueva", "010");
+
+    expect(service.inventoryNumberOwner("3", nueva)).toEqual({
+      id: marina,
+      title: "Marina",
+      inTrash: false,
+    });
+    expect(service.inventoryNumberOwner(" a-7 ", nueva)).toMatchObject({
+      title: "Boceto",
+      inTrash: true,
+    });
+    expect(service.inventoryNumberOwner("3", marina)).toBeNull();
+    expect(service.inventoryNumberOwner("4", nueva)).toBeNull();
+    expect(() =>
+      service.updateArtwork(nueva, { title: "Nueva", inventoryNumber: "3" }),
+    ).toThrow(InventoryNumberTakenError);
+    db.close();
+  });
+
+  it("writes short numbers with three digits", async () => {
+    const { db, service } = openInventory(await useTempDir());
+    const { id } = await service.createArtwork({
+      title: "Marina",
+      imagePaths: [],
+    });
+    const number = (inventoryNumber: string) =>
+      service.updateArtwork(id, { title: "Marina", inventoryNumber })
+        .inventoryNumber;
+
+    expect(number(" 2 ")).toBe("002");
+    expect(number("1500")).toBe("1500");
+    expect(number("A-7")).toBe("A-7");
+    db.close();
+  });
+
+  it("swaps numbers when taking one another artwork has", async () => {
+    const { db, service } = openInventory(await useTempDir());
+    const create = async (title: string, inventoryNumber?: string) => {
+      const { id } = await service.createArtwork({ title, imagePaths: [] });
+      if (inventoryNumber)
+        service.updateArtwork(id, { title, inventoryNumber });
+      return id;
+    };
+    const marina = await create("Marina", "003");
+    const retrato = await create("Retrato", "005");
+    const boceto = await create("Boceto");
+    const take = { takeInventoryNumber: true };
+
+    service.updateArtwork(
+      retrato,
+      { title: "Retrato", inventoryNumber: "003" },
+      take,
+    );
+    expect(service.getArtwork(retrato).inventoryNumber).toBe("003");
+    expect(service.getArtwork(marina).inventoryNumber).toBe("005");
+
+    // Without a number of its own, the other artwork is left without one.
+    service.updateArtwork(
+      boceto,
+      { title: "Boceto", inventoryNumber: "005" },
+      take,
+    );
+    expect(service.getArtwork(boceto).inventoryNumber).toBe("005");
+    expect(service.getArtwork(marina).inventoryNumber).toBeNull();
+    db.close();
+  });
+
   it("offers the next free number of the technique, counting the trash", async () => {
     const { db, service } = openInventory(await useTempDir());
     const ranges = [{ technique: "Óleo", from: 1, to: 199 }];
@@ -250,7 +327,7 @@ describe("InventoryService", () => {
     }
 
     expect(service.nextInventoryNumber(ranges, "óleo")).toBe("003");
-    expect(service.nextInventoryNumber(ranges, "Acuarela")).toBeNull();
+    expect(service.nextInventoryNumber(ranges, "Acuarela")).toBe("003");
     db.close();
   });
 
