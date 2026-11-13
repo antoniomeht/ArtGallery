@@ -31,6 +31,19 @@ describe("database migrations", () => {
     second.close();
   });
 
+  it("allows each inventory number only once", async () => {
+    const db = openDatabase(join(await useTempDir(), "test.sqlite"));
+    const insert = db.prepare(
+      "INSERT INTO artworks (id, title, inventory_number, created_at, updated_at) VALUES (?, 'Obra', ?, 'now', 'now')",
+    );
+    insert.run("a1", "A-7");
+    insert.run("a2", null);
+    insert.run("a3", null);
+
+    expect(() => insert.run("a4", "a-7")).toThrow(/UNIQUE/);
+    db.close();
+  });
+
   it("keeps data and saves a copy before upgrading an older database", async () => {
     const file = join(await useTempDir(), "artgallery.sqlite");
     const v1 = new DatabaseSync(file);

@@ -16,6 +16,7 @@ import {
 } from "../../shared/artwork";
 import type { Exhibition } from "../../shared/exhibition";
 import {
+  INVENTORY_NUMBER_TAKEN,
   nextInventoryNumber,
   type NumberRanges,
 } from "../../shared/inventoryNumbers";
@@ -34,6 +35,13 @@ function titleFromPath(path: string): string {
 export type RestoredArtwork = Omit<Artwork, "images"> & {
   imagePaths: string[];
 };
+
+/** Another artwork, perhaps in the trash, already has the number. */
+export class InventoryNumberTakenError extends Error {
+  constructor() {
+    super(INVENTORY_NUMBER_TAKEN);
+  }
+}
 
 export interface InventoryServiceOptions {
   artworks: ArtworkRepository;
@@ -189,6 +197,10 @@ export class InventoryService {
 
   updateArtwork(id: string, input: ArtworkFieldsInput): Artwork {
     const fields = artworkFieldsSchema.parse(input);
+    const number = fields.inventoryNumber;
+    if (number && this.artworks.isInventoryNumberTaken(number, id)) {
+      throw new InventoryNumberTakenError();
+    }
     if (!this.artworks.update(id, fields, this.timestamp())) {
       throw new Error(`Artwork not found: ${id}`);
     }

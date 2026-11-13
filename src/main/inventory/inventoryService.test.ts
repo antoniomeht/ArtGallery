@@ -5,6 +5,7 @@ import type { ArtworkSummary, CreationProgress } from "../../shared/artwork";
 import { fromSingleUnit } from "../../shared/dimensions";
 import { createTestImage, listFiles, useTempDir } from "../testing/fixtures";
 import { openInventory } from "../testing/inventory";
+import { InventoryNumberTakenError } from "./inventoryService";
 
 describe("InventoryService", () => {
   it("finds an artwork with its image after the app is reopened", async () => {
@@ -203,6 +204,37 @@ describe("InventoryService", () => {
       price: 1250.5,
     });
     reopened.db.close();
+  });
+
+  it("refuses an inventory number another artwork has, the trash included", async () => {
+    const { db, service } = openInventory(await useTempDir());
+    const create = async (inventoryNumber: string) => {
+      const { id } = await service.createArtwork({
+        title: "Obra",
+        imagePaths: [],
+      });
+      service.updateArtwork(id, { title: "Obra", inventoryNumber });
+      return id;
+    };
+    const marina = await create("A-7");
+    const boceto = await create("008");
+    service.moveToTrash([boceto]);
+    const nueva = await create("009");
+
+    for (const taken of ["A-7", " a-7 ", "008"]) {
+      expect(() =>
+        service.updateArtwork(nueva, { title: "Obra", inventoryNumber: taken }),
+      ).toThrow(InventoryNumberTakenError);
+    }
+    expect(service.getArtwork(nueva).inventoryNumber).toBe("009");
+    // Saving an artwork again keeps its own number.
+    expect(
+      service.updateArtwork(marina, {
+        title: "Marina",
+        inventoryNumber: "A-7",
+      }),
+    ).toMatchObject({ title: "Marina", inventoryNumber: "A-7" });
+    db.close();
   });
 
   it("offers the next free number of the technique, counting the trash", async () => {
