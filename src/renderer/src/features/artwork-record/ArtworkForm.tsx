@@ -383,9 +383,7 @@ export function ArtworkForm({
               />
             ))}
           </div>
-          <p className="artwork-form__hint">
-            La unidad se cambia en Ajustes.
-          </p>
+          <p className="artwork-form__hint">La unidad se cambia en Ajustes.</p>
         </fieldset>
       )}
 
