@@ -44,6 +44,66 @@ describe("artwork form values", () => {
     });
   });
 
+  it.each([
+    ["1.500", 1500],
+    ["12.345.678", 12345678],
+    ["1.500,50", 1500.5],
+    ["1500,5", 1500.5],
+    ["1.5", 1.5],
+    ["1.25", 1.25],
+    ["0.500", 0.5],
+    ["1,500", 1.5],
+  ])("reads the price %s as %d", (price, expected) => {
+    const result = parseFormValues(
+      { ...toFormValues(artwork, "cm"), price },
+      "cm",
+      artwork.dimensions,
+    );
+
+    expect(result).toMatchObject({ ok: true, fields: { price: expected } });
+  });
+
+  it("reads thousands in measures too", () => {
+    const result = parseFormValues(
+      { ...toFormValues(artwork, "cm"), width: "1.250", height: "1.250,5" },
+      "cm",
+      artwork.dimensions,
+    );
+
+    expect(result).toMatchObject({
+      ok: true,
+      fields: { dimensions: { cm: { width: 1250, height: 1250.5 } } },
+    });
+  });
+
+  it.each(["1.500.5", "1,500.5", "1.50,5"])(
+    "rejects the ambiguous price %s",
+    (price) => {
+      const result = parseFormValues(
+        { ...toFormValues(artwork, "cm"), price },
+        "cm",
+        artwork.dimensions,
+      );
+
+      expect(result).toMatchObject({
+        ok: false,
+        errors: { price: expect.any(String) },
+      });
+    },
+  );
+
+  it("round-trips a price with thousands and decimals", () => {
+    const record: Artwork = { ...artwork, price: 1500.5 };
+
+    const result = parseFormValues(
+      toFormValues(record, "cm"),
+      "cm",
+      record.dimensions,
+    );
+
+    expect(result).toMatchObject({ ok: true, fields: { price: 1500.5 } });
+  });
+
   it("round-trips an existing record without changes", () => {
     const record: Artwork = {
       ...artwork,
