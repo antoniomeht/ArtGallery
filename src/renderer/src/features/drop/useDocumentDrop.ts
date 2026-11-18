@@ -59,31 +59,40 @@ export function useDocumentDrop(
 
   const isDragging = useFileDrop({
     isActive: isDropAllowed,
-    onDrop: async (paths, element) => {
-      // With a record open its images belong to the record, on any page.
-      const isRecordOpen = document.querySelector("dialog.record[open]");
-      const { documents } = routeDrop(
-        paths,
-        isRecordOpen ? "gallery" : sectionRef.current,
+    onDrop: (paths, element) => {
+      uploadDropped(paths, element).catch(() =>
+        showBanner({
+          tone: "error",
+          message: "No se han podido añadir los documentos.",
+        }),
       );
-      if (documents.length === 0) return;
-      const result = await window.artGallery.uploadDocuments(documents);
-      onUploaded(result);
-      const targetElement = element?.closest(TARGET_SELECTOR);
-      const target = parseDropTarget(
-        targetElement?.getAttribute("data-drop-target") ?? null,
-      );
-      if (target && result.added.length > 0) {
-        setPendingLink({
-          target,
-          label: targetElement?.getAttribute("data-drop-label") ?? "",
-          result,
-        });
-      } else {
-        report(result);
-      }
     },
   });
+
+  async function uploadDropped(paths: string[], element: Element | null) {
+    // With a record open its images belong to the record, on any page.
+    const isRecordOpen = document.querySelector("dialog.record[open]");
+    const { documents } = routeDrop(
+      paths,
+      isRecordOpen ? "gallery" : sectionRef.current,
+    );
+    if (documents.length === 0) return;
+    const result = await window.artGallery.uploadDocuments(documents);
+    onUploaded(result);
+    const targetElement = element?.closest(TARGET_SELECTOR);
+    const target = parseDropTarget(
+      targetElement?.getAttribute("data-drop-target") ?? null,
+    );
+    if (target && result.added.length > 0) {
+      setPendingLink({
+        target,
+        label: targetElement?.getAttribute("data-drop-label") ?? "",
+        result,
+      });
+    } else {
+      report(result);
+    }
+  }
 
   // Marks link targets while documents are dragged, and the one under the pointer.
   useEffect(() => {
