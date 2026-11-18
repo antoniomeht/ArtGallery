@@ -100,12 +100,19 @@ export function toFormValues(
   };
 }
 
-/** Blank means "no value"; accepts both "12,5" and "12.5". */
+// Spanish grouping, as in "1.500" or "12.345.678,5". A dot not followed by
+// exactly three digits ("1.5") is still a decimal point from a numeric keypad.
+const THOUSANDS = /^-?[1-9]\d{0,2}(\.\d{3})+(,\d+)?$/;
+
+/** Blank means "no value"; accepts "1.500,5", "1500,5" and "1500.5". */
 function parseNumber(text: string): number | null {
   const trimmed = text.trim();
   if (!trimmed) return null;
-  return /^-?\d+([.,]\d+)?$/.test(trimmed)
-    ? Number(trimmed.replace(",", "."))
+  const ungrouped = THOUSANDS.test(trimmed)
+    ? trimmed.replace(/\./g, "")
+    : trimmed;
+  return /^-?\d+([.,]\d+)?$/.test(ungrouped)
+    ? Number(ungrouped.replace(",", "."))
     : Number.NaN;
 }
 
