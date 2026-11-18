@@ -146,7 +146,11 @@ export class TransferService {
       const { artworks, exhibitions, collections, ...counts } = resolveImport(
         session.plan,
         policy,
-        { newId: randomUUID, now: this.now() },
+        {
+          newId: randomUUID,
+          now: this.now(),
+          numberedArtworks: this.options.inventory.numberedArtworks(),
+        },
       );
       await this.options.inventory.importArtworks(
         restoredArtworks(session.pkg, artworks),

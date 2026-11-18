@@ -32,6 +32,8 @@ export interface ImportResult {
   added: number;
   replaced: number;
   skipped: number;
+  /** Artworks left without their inventory number because it was in use. */
+  withoutNumber: number;
   /** Exhibitions added or replaced. */
   exhibitions: number;
 }

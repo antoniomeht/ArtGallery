@@ -13,12 +13,16 @@ import "./TransferPage.css";
 const POLICY_LABELS: Record<DuplicatePolicy, string> = {
   skip: "Mantener lo que ya tengo y no importarlo",
   replace: "Sustituirlo por la versión del archivo",
-  copy: "Importarlo como elementos nuevos (duplicados)",
+  copy: "Importarlo como elementos nuevos (duplicados, sin nº de inventario)",
 };
 
 const count = (n: number) => (n === 1 ? "1 obra" : `${n} obras`);
 const exhibitionCount = (n: number) =>
   n === 1 ? "1 exposición" : `${n} exposiciones`;
+const withoutNumberText = (n: number) =>
+  n === 1
+    ? " 1 obra llega sin nº de inventario porque ya estaba en uso; está marcada «Por revisar»."
+    : ` ${n} obras llegan sin nº de inventario porque ya estaba en uso; están marcadas «Por revisar».`;
 
 /** What importing the package would do, one sentence per line. */
 function summaryLines(preview: ImportPreview): string[] {
@@ -127,7 +131,11 @@ export function TransferPage() {
         result.skipped > 0 && `${result.skipped} sin cambios`,
         result.exhibitions > 0 && exhibitionCount(result.exhibitions),
       ].filter(Boolean);
-      setNotice({ message: `Importación completada: ${parts.join(", ")}.` });
+      const numbers =
+        result.withoutNumber > 0 ? withoutNumberText(result.withoutNumber) : "";
+      setNotice({
+        message: `Importación completada: ${parts.join(", ")}.${numbers}`,
+      });
     }, "No se pudo completar la importación. Tu inventario no se ha modificado.");
 
   const cancelImport = (current: ImportPreview) => {
