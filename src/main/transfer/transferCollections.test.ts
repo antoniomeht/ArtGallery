@@ -54,6 +54,43 @@ describe("collections in exported selections", () => {
     home.db.close();
   });
 
+  it("writes nothing when a collection fails to import", async () => {
+    const root = await useTempDir();
+    const studio = openComputer(root, "studio");
+    const marina = await addArtwork(studio, "Marina");
+    const retrato = await addArtwork(studio, "Retrato");
+    for (const [name, artwork] of [
+      ["Serie del puerto", marina],
+      ["Retratos", retrato],
+    ] as const) {
+      const collection = studio.collections.create(name);
+      studio.collections.setMembership(collection.id, [artwork.id], true);
+    }
+    const show = studio.exhibitions.create({ name: "Verano" });
+    studio.exhibitions.addArtworks(show.id, [marina.id, retrato.id]);
+    const file = join(root, "verano.artgallery");
+    await studio.transfer.exportExhibition(file, show.id);
+
+    const home = openComputer(root, "home");
+    const setMembership = home.collections.setMembership.bind(home.collections);
+    let calls = 0;
+    home.collections.setMembership = (...args) => {
+      if (++calls === 2) throw new Error("disk full");
+      setMembership(...args);
+    };
+    const preview = await home.transfer.previewImport(file);
+    if (!preview.ok) throw new Error(preview.reason);
+
+    await expect(
+      home.transfer.applyImport(preview.preview.sessionId, "copy"),
+    ).rejects.toThrow("disk full");
+    expect(home.service.listAllArtworks()).toEqual([]);
+    expect(home.exhibitions.list()).toEqual([]);
+    expect(home.collections.list()).toEqual([]);
+    studio.db.close();
+    home.db.close();
+  });
+
   it("keeps the collections and documents of an artwork replaced on import", async () => {
     const root = await useTempDir();
     const studio = openComputer(root, "studio");

@@ -155,12 +155,19 @@ export class TransferService {
       await this.options.inventory.importArtworks(
         restoredArtworks(session.pkg, artworks),
         exhibitions,
+        () => {
+          // A collection with the same name, ignoring case and accents, is
+          // reused.
+          for (const { name, artworkIds } of collections) {
+            const collection = this.options.collections.findOrCreate(name);
+            this.options.collections.setMembership(
+              collection.id,
+              artworkIds,
+              true,
+            );
+          }
+        },
       );
-      // A collection with the same name, ignoring case and accents, is reused.
-      for (const { name, artworkIds } of collections) {
-        const collection = this.options.collections.findOrCreate(name);
-        this.options.collections.setMembership(collection.id, artworkIds, true);
-      }
       return { ...counts, exhibitions: exhibitions.length };
     } finally {
       await this.cancelImport(sessionId);

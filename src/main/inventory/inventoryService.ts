@@ -136,6 +136,8 @@ export class InventoryService {
   async importArtworks(
     artworks: readonly RestoredArtwork[],
     exhibitions: readonly Exhibition[] = [],
+    /** Further writes that must succeed or fail together with these. */
+    alsoWrite: () => void = () => undefined,
   ): Promise<void> {
     const available = new Set([
       ...this.artworks.listAllIds(),
@@ -155,6 +157,7 @@ export class InventoryService {
               ),
             })),
           );
+          alsoWrite();
         }),
     );
   }
