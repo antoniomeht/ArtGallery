@@ -371,9 +371,12 @@ function RowMenu({
       >
         {item("Abrir", onOpen)}
         {document.kind === "file" &&
-          item("Abrir con la aplicación del sistema", () =>
-            window.artGallery.openDocumentExternally(document.id),
-          )}
+          item("Abrir con la aplicación del sistema", async () => {
+            const result = await window.artGallery.openDocumentExternally(
+              document.id,
+            );
+            if (result === "saved") onChanged();
+          })}
         {document.kind === "file" &&
           item("Descargar…", () =>
             window.artGallery.saveDocumentAs(document.id),
