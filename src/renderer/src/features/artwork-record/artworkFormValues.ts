@@ -43,13 +43,16 @@ export type ArtworkFormErrors = Partial<
   Record<keyof ArtworkFormValues, string>
 >;
 
+const MEASURE_ERROR =
+  "Introduce un número mayor que 0, con coma para los decimales (45,5).";
+
 const ERROR_MESSAGES: ArtworkFormErrors = {
   title: "El título es obligatorio.",
   year: "Introduce un año, por ejemplo 1998.",
-  height: "Introduce un número mayor que 0.",
-  width: "Introduce un número mayor que 0.",
-  depth: "Introduce un número mayor que 0.",
-  price: "Introduce un importe, por ejemplo 1200 o 1200,50.",
+  height: MEASURE_ERROR,
+  width: MEASURE_ERROR,
+  depth: MEASURE_ERROR,
+  price: "Introduce un importe, por ejemplo 1.200 o 1.200,50.",
   currency: "Usa un código de moneda de tres letras, por ejemplo EUR.",
 };
 
@@ -113,19 +116,16 @@ export function hasChanges(
   return JSON.stringify(trimmed(values)) !== JSON.stringify(trimmed(initial));
 }
 
-// Spanish grouping, as in "1.500" or "12.345.678,5". A dot not followed by
-// exactly three digits ("1.5") is still a decimal point from a numeric keypad.
-const THOUSANDS = /^-?[1-9]\d{0,2}(\.\d{3})+(,\d+)?$/;
+// Spanish numbers: a dot only groups thousands and a comma marks decimals,
+// as in "1.500" or "12.345.678,5". "1.5" is refused rather than guessed.
+const SPANISH_NUMBER = /^-?(\d+|[1-9]\d{0,2}(\.\d{3})+)(,\d+)?$/;
 
-/** Blank means "no value"; accepts "1.500,5", "1500,5" and "1500.5". */
+/** Blank means "no value"; accepts "1.500,5" and "1500,5". */
 function parseNumber(text: string): number | null {
   const trimmed = text.trim();
   if (!trimmed) return null;
-  const ungrouped = THOUSANDS.test(trimmed)
-    ? trimmed.replace(/\./g, "")
-    : trimmed;
-  return /^-?\d+([.,]\d+)?$/.test(ungrouped)
-    ? Number(ungrouped.replace(",", "."))
+  return SPANISH_NUMBER.test(trimmed)
+    ? Number(trimmed.replace(/\./g, "").replace(",", "."))
     : Number.NaN;
 }
 
