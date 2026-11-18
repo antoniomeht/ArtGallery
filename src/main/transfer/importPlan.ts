@@ -1,4 +1,5 @@
 import type { Exhibition } from "../../shared/exhibition";
+import { isSameInventoryNumber } from "../../shared/inventoryNumbers";
 import type { DuplicatePolicy } from "../../shared/transfer";
 import type {
   PackageArtwork,
@@ -67,16 +68,27 @@ export interface ResolvedImport {
   added: number;
   replaced: number;
   skipped: number;
+  /** Artworks left without their number because another one has it. */
+  withoutNumber: number;
 }
 
 /**
  * Applies the user's choice for duplicates. The same choice covers artworks
  * and exhibitions, and exhibitions follow artworks that get a new id.
+ * `numberedArtworks` are the artworks of the inventory that have a number.
  */
 export function resolveImport(
   plan: ImportPlan,
   policy: DuplicatePolicy,
-  { newId, now }: { newId: () => string; now: Date },
+  {
+    newId,
+    now,
+    numberedArtworks,
+  }: {
+    newId: () => string;
+    now: Date;
+    numberedArtworks: readonly { id: string; inventoryNumber: string }[];
+  },
 ): ResolvedImport {
   const timestamp = now.toISOString();
   const copy = <T extends { id: string }>(item: T): T => ({
@@ -111,8 +123,12 @@ export function resolveImport(
     artworkIds: exhibition.artworkIds.map((id) => renamed.get(id) ?? id),
   }));
 
+  const { artworks, withoutNumber } = withFreeNumbers(
+    [...plan.fresh, ...duplicates],
+    numberedArtworks,
+  );
   return {
-    artworks: [...plan.fresh, ...duplicates],
+    artworks,
     exhibitions,
     collections: plan.collections.map(({ name, artworkIds }) => ({
       name,
@@ -121,7 +137,36 @@ export function resolveImport(
     added: plan.fresh.length + (policy === "copy" ? duplicates.length : 0),
     replaced: policy === "replace" ? duplicates.length : 0,
     skipped: policy === "skip" ? plan.duplicates.length : 0,
+    withoutNumber,
   };
+}
+
+/**
+ * An artwork keeps its inventory number unless an artwork that stays in the
+ * inventory, or one imported before it, already has it. Without it, the
+ * artwork is marked for review so the user can give it another one.
+ */
+function withFreeNumbers(
+  artworks: readonly PackageArtwork[],
+  numberedArtworks: readonly { id: string; inventoryNumber: string }[],
+): { artworks: PackageArtwork[]; withoutNumber: number } {
+  // An artwork being replaced gives up its number.
+  const written = new Set(artworks.map(({ id }) => id));
+  const taken = numberedArtworks
+    .filter(({ id }) => !written.has(id))
+    .map(({ inventoryNumber }) => inventoryNumber);
+  let withoutNumber = 0;
+  const result = artworks.map((artwork) => {
+    const number = artwork.inventoryNumber;
+    if (!number) return artwork;
+    if (!taken.some((other) => isSameInventoryNumber(number, other))) {
+      taken.push(number);
+      return artwork;
+    }
+    withoutNumber++;
+    return { ...artwork, inventoryNumber: null, needsReview: true };
+  });
+  return { artworks: result, withoutNumber };
 }
 
 function uniqueById<T extends { id: string }>(items: readonly T[]): T[] {

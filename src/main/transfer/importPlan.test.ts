@@ -56,6 +56,7 @@ describe("import plan", () => {
   const options = {
     newId: () => `copy-${++nextId}`,
     now: new Date("2026-11-02"),
+    numberedArtworks: [],
   };
 
   it("separates new items, duplicates and trashed artworks", () => {
@@ -90,5 +91,96 @@ describe("import plan", () => {
       { id: "new-show", artworkIds: ["new", "copy-1"] },
       { id: "copy-2", artworkIds: ["copy-1"] },
     ]);
+  });
+});
+
+describe("inventory numbers on import", () => {
+  const numbered = (id: string, inventoryNumber: string) => ({
+    ...artwork(id),
+    inventoryNumber,
+  });
+  const resolve = (
+    artworks: PackageArtwork[],
+    policy: "skip" | "replace" | "copy",
+    numberedArtworks: { id: string; inventoryNumber: string }[],
+  ) => {
+    let nextId = 0;
+    const plan = planImport(
+      { artworks, exhibitions: [] },
+      {
+        artworkIds: new Set(numberedArtworks.map(({ id }) => id)),
+        exhibitionIds: new Set(),
+      },
+    );
+    return resolveImport(plan, policy, {
+      newId: () => `copy-${++nextId}`,
+      now: new Date("2026-11-18"),
+      numberedArtworks,
+    });
+  };
+  const numbers = ({ artworks }: { artworks: PackageArtwork[] }) =>
+    artworks.map(({ id, inventoryNumber, needsReview }) => ({
+      id,
+      inventoryNumber,
+      needsReview,
+    }));
+
+  it("keeps numbers nobody has", () => {
+    const resolved = resolve([numbered("new", "008")], "skip", [
+      { id: "local", inventoryNumber: "007" },
+    ]);
+    expect(numbers(resolved)).toEqual([
+      { id: "new", inventoryNumber: "008", needsReview: false },
+    ]);
+    expect(resolved.withoutNumber).toBe(0);
+  });
+
+  it("leaves out a number another artwork has, by value, for review", () => {
+    const resolved = resolve([numbered("new", "007")], "skip", [
+      { id: "local", inventoryNumber: "0007" },
+    ]);
+    expect(numbers(resolved)).toEqual([
+      { id: "new", inventoryNumber: null, needsReview: true },
+    ]);
+    expect(resolved.withoutNumber).toBe(1);
+  });
+
+  it("leaves copies without the number of their original", () => {
+    const resolved = resolve([numbered("local", "007")], "copy", [
+      { id: "local", inventoryNumber: "007" },
+    ]);
+    expect(numbers(resolved)).toEqual([
+      { id: "copy-1", inventoryNumber: null, needsReview: true },
+    ]);
+  });
+
+  it("frees the number of a replaced artwork", () => {
+    const resolved = resolve(
+      [numbered("local", "009"), numbered("new", "007")],
+      "replace",
+      [{ id: "local", inventoryNumber: "007" }],
+    );
+    expect(numbers(resolved)).toEqual([
+      { id: "new", inventoryNumber: "007", needsReview: false },
+      { id: "local", inventoryNumber: "009", needsReview: false },
+    ]);
+  });
+
+  it("keeps the number of a replaced artwork that brings it back", () => {
+    const resolved = resolve([numbered("local", "007")], "replace", [
+      { id: "local", inventoryNumber: "007" },
+    ]);
+    expect(resolved.withoutNumber).toBe(0);
+  });
+
+  it("gives a number only once within the package", () => {
+    const resolved = resolve(
+      [numbered("first", "007"), numbered("second", "7")],
+      "skip",
+      [],
+    );
+    expect(
+      numbers(resolved).map(({ inventoryNumber }) => inventoryNumber),
+    ).toEqual(["007", null]);
   });
 });

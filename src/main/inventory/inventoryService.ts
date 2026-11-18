@@ -197,6 +197,11 @@ export class InventoryService {
     return artwork;
   }
 
+  /** Every artwork with an inventory number, the trash included. */
+  numberedArtworks(): { id: string; inventoryNumber: string }[] {
+    return this.artworks.listNumberedArtworks();
+  }
+
   /** The artwork other than `exceptId` that has `number`, if any. */
   inventoryNumberOwner(
     number: string,

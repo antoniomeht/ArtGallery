@@ -61,6 +61,7 @@ describe("export and import", () => {
       added: 1,
       replaced: 0,
       skipped: 0,
+      withoutNumber: 0,
       exhibitions: 0,
     });
     const imported = home.service.getArtwork(marina.id);
@@ -108,6 +109,55 @@ describe("export and import", () => {
     expect(await importWith("copy")).toMatchObject({ added: 1 });
     expect(titles(studio)).toEqual(["Marina", "Marina"]);
     studio.db.close();
+  });
+
+  it("leaves out an inventory number that is already in use", async () => {
+    const root = await useTempDir();
+    const studio = openComputer(root, "studio");
+    const marina = await addArtwork(studio, "Marina");
+    studio.service.updateArtwork(marina.id, {
+      title: "Marina",
+      inventoryNumber: "007",
+    });
+    const file = join(root, "marina.artgallery");
+    await studio.transfer.exportPackage(file, null);
+    const home = openComputer(root, "home");
+    const local = await addArtwork(home, "Retrato");
+    home.service.updateArtwork(local.id, {
+      title: "Retrato",
+      inventoryNumber: "0007",
+    });
+
+    const importInto = async (
+      computer: ReturnType<typeof openComputer>,
+      policy: "skip" | "copy",
+    ) => {
+      const result = await computer.transfer.previewImport(file);
+      if (!result.ok) throw new Error(result.reason);
+      return computer.transfer.applyImport(result.preview.sessionId, policy);
+    };
+
+    expect(await importInto(home, "skip")).toMatchObject({
+      added: 1,
+      withoutNumber: 1,
+    });
+    expect(home.service.getArtwork(marina.id)).toMatchObject({
+      inventoryNumber: null,
+      needsReview: true,
+    });
+    expect(home.service.getArtwork(local.id).inventoryNumber).toBe("0007");
+
+    expect(await importInto(studio, "copy")).toMatchObject({
+      added: 1,
+      withoutNumber: 1,
+    });
+    const copy = studio.service
+      .listAllArtworks()
+      .find(({ id }) => id !== marina.id)!;
+    expect(copy.inventoryNumber).toBeNull();
+    expect(studio.service.getArtwork(marina.id).inventoryNumber).toBe("007");
+    studio.db.close();
+    home.db.close();
   });
 
   it("moves an exhibition with its artworks in order", async () => {
