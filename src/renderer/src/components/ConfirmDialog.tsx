@@ -8,6 +8,10 @@ interface ConfirmDialogProps {
   confirmLabel: string;
   onConfirm: () => void;
   onCancel: () => void;
+  /** Names the way back, "Cancelar" by default. */
+  cancelLabel?: string;
+  /** A safe way forward, e.g. saving before leaving; shown as the main one. */
+  alternative?: { label: string; onClick: () => void };
 }
 
 /** Modal confirmation for actions that remove data. Cancel has focus. */
@@ -17,6 +21,8 @@ export function ConfirmDialog({
   confirmLabel,
   onConfirm,
   onCancel,
+  cancelLabel = "Cancelar",
+  alternative,
 }: ConfirmDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
 
@@ -42,11 +48,16 @@ export function ConfirmDialog({
         </p>
         <div className="dialog__actions">
           <Button autoFocus onClick={() => dialogRef.current?.close()}>
-            Cancelar
+            {cancelLabel}
           </Button>
           <Button variant="danger" onClick={onConfirm}>
             {confirmLabel}
           </Button>
+          {alternative && (
+            <Button variant="primary" onClick={alternative.onClick}>
+              {alternative.label}
+            </Button>
+          )}
         </div>
       </div>
     </dialog>

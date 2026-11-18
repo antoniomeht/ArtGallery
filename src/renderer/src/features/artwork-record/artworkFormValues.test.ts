@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { artworkFieldsSchema, type Artwork } from "../../../../shared/artwork";
 import { fromSingleUnit } from "../../../../shared/dimensions";
 import {
+  hasChanges,
   parseFormValues,
   saveFailureErrors,
   toFormValues,
@@ -156,6 +157,25 @@ describe("artwork form values", () => {
         width: "Introduce un número mayor que 0.",
         year: "Introduce un año, por ejemplo 1998.",
       },
+    });
+  });
+
+  describe("hasChanges", () => {
+    const shown = toFormValues(artwork, "cm");
+
+    it("sees no change in a record just opened", () => {
+      expect(hasChanges(toFormValues(artwork, "cm"), shown)).toBe(false);
+    });
+
+    it("ignores spaces that saving trims", () => {
+      expect(
+        hasChanges({ ...shown, title: " Marina ", notes: "\n" }, shown),
+      ).toBe(false);
+    });
+
+    it("sees typed text and ticked boxes", () => {
+      expect(hasChanges({ ...shown, title: "Marina II" }, shown)).toBe(true);
+      expect(hasChanges({ ...shown, needsReview: true }, shown)).toBe(true);
     });
   });
 
