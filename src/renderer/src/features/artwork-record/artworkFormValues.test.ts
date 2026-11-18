@@ -50,9 +50,6 @@ describe("artwork form values", () => {
     ["12.345.678", 12345678],
     ["1.500,50", 1500.5],
     ["1500,5", 1500.5],
-    ["1.5", 1.5],
-    ["1.25", 1.25],
-    ["0.500", 0.5],
     ["1,500", 1.5],
   ])("reads the price %s as %d", (price, expected) => {
     const result = parseFormValues(
@@ -77,8 +74,8 @@ describe("artwork form values", () => {
     });
   });
 
-  it.each(["1.500.5", "1,500.5", "1.50,5"])(
-    "rejects the ambiguous price %s",
+  it.each(["1.5", "1.25", "0.500", "1500.5", "1.500.5", "1,500.5", "1.50,5"])(
+    "rejects a dot that does not group thousands, as in %s",
     (price) => {
       const result = parseFormValues(
         { ...toFormValues(artwork, "cm"), price },
@@ -154,7 +151,8 @@ describe("artwork form values", () => {
       ok: false,
       errors: {
         title: "El título es obligatorio.",
-        width: "Introduce un número mayor que 0.",
+        width:
+          "Introduce un número mayor que 0, con coma para los decimales (45,5).",
         year: "Introduce un año, por ejemplo 1998.",
       },
     });
