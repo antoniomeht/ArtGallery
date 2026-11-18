@@ -1,8 +1,9 @@
-import { mkdtemp, readdir, rm } from "node:fs/promises";
+import { mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import sharp from "sharp";
 import { afterEach } from "vitest";
+import { ZipFile } from "yazl";
 
 /** Creates a temporary folder that is removed after the current test. */
 export async function useTempDir(): Promise<string> {
@@ -32,4 +33,16 @@ export async function listFiles(dir: string): Promise<string[]> {
   } catch {
     return [];
   }
+}
+
+/** Writes a ZIP file with the given text entries, e.g. a hand-made package. */
+export async function zipWith(path: string, entries: Record<string, string>) {
+  const zip = new ZipFile();
+  for (const [name, content] of Object.entries(entries)) {
+    zip.addBuffer(Buffer.from(content), name);
+  }
+  zip.end();
+  const chunks: Buffer[] = [];
+  for await (const chunk of zip.outputStream) chunks.push(chunk as Buffer);
+  await writeFile(path, Buffer.concat(chunks));
 }

@@ -70,10 +70,13 @@ export function BackupsPage() {
     try {
       const result = await window.artGallery.restoreBackup(path);
       if (result.ok) {
+        const restored = result.safetyBackup
+          ? `Copia restaurada. El inventario anterior se guardó en ${result.safetyBackup}.`
+          : "Copia restaurada.";
         setNotice({
-          message: result.safetyBackup
-            ? `Copia restaurada. El inventario anterior se guardó en ${result.safetyBackup}.`
-            : "Copia restaurada.",
+          message: result.settingsFailed
+            ? `${restored} No se pudieron recuperar los ajustes de la copia: se mantienen los actuales.`
+            : restored,
         });
         load();
       } else {
@@ -162,8 +165,9 @@ export function BackupsPage() {
             </h2>
             <p className="page-section__text">
               Una copia guarda en un solo archivo todo el inventario, incluida
-              la papelera, y los originales de todas las imágenes. Cada copia se
-              comprueba completa al terminar.
+              la papelera, los originales de todas las imágenes y los ajustes
+              (salvo la carpeta de copias). Cada copia se comprueba completa al
+              terminar.
             </p>
 
             <div className="folder-row">

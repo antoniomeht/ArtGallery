@@ -11,6 +11,7 @@ import {
 } from "../../shared/documentFormats";
 import { textContentSchema } from "../../shared/editorSchema";
 import { pageSetupSchema } from "../../shared/pageSetup";
+import { settingsSchema } from "../../shared/settings";
 import type { PackageFailure } from "../../shared/transfer";
 import { SUPPORTED_IMAGE_EXTENSIONS } from "../../shared/media";
 
@@ -18,7 +19,7 @@ import { SUPPORTED_IMAGE_EXTENSIONS } from "../../shared/media";
  * Portable `.artgallery` package (a ZIP file):
  *
  *   manifest.json          what the package is, see `manifestSchema`
- *   data.json              artworks and exhibitions, see `packageDataSchema`
+ *   data.json              artworks, exhibitions…, see `packageDataSchema`
  *   images/<id>.<ext>      exact copies of the original images
  *   documents/<id>.<ext>   uploaded documents and images of text documents
  *
@@ -28,10 +29,11 @@ import { SUPPORTED_IMAGE_EXTENSIONS } from "../../shared/media";
 export const PACKAGE_FORMAT = "artgallery";
 /**
  * v2 added exhibitions; v3 keeps measures in both units; v4 adds collections
- * and documents. Older packages are still read: v1 with no exhibitions,
- * v1–v2 measures are converted, and v1–v3 have no collections or documents.
+ * and documents; v5 adds the settings to backups. Older packages are still
+ * read: v1 with no exhibitions, v1–v2 measures are converted, v1–v3 have no
+ * collections or documents, and v1–v4 have no settings.
  */
-export const PACKAGE_FORMAT_VERSION = 4;
+export const PACKAGE_FORMAT_VERSION = 5;
 export const PACKAGE_EXTENSION = ".artgallery";
 
 export const MANIFEST_ENTRY = "manifest.json";
@@ -205,11 +207,20 @@ export const packageDocumentSchema = z
 
 export type PackageDocument = z.infer<typeof packageDocumentSchema>;
 
+/** The backup folder belongs to the computer, so it never travels. */
+export const packageSettingsSchema = settingsSchema.omit({
+  backupFolder: true,
+});
+
+export type PackageSettings = z.infer<typeof packageSettingsSchema>;
+
 export const packageDataSchema = z.object({
   artworks: z.array(packageArtworkSchema),
   exhibitions: z.array(packageExhibitionSchema).default([]),
   collections: z.array(packageCollectionSchema).default([]),
   documents: z.array(packageDocumentSchema).default([]),
+  /** Only in backups. */
+  settings: packageSettingsSchema.optional(),
 });
 
 export type PackageData = z.infer<typeof packageDataSchema>;

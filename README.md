@@ -225,7 +225,7 @@ Si una actualización cambia la estructura de la base de datos, antes de migrarl
 
 Desde **Copias y ajustes**:
 
-- **Qué incluye una copia**: un archivo `.artgallery` con todo el inventario, papelera, exposiciones, colecciones y documentos incluidos (con sus vínculos, comentarios y archivos), y los originales de todas las imágenes. Tras escribirla, ArtGallery la vuelve a leer completa y comprueba cada imagen antes de darla por buena.
+- **Qué incluye una copia**: un archivo `.artgallery` con todo el inventario, papelera, exposiciones, colecciones y documentos incluidos (con sus vínculos, comentarios y archivos), los originales de todas las imágenes y los ajustes, salvo la carpeta de copias, que es de cada equipo. Tras escribirla, ArtGallery la vuelve a leer completa y comprueba cada imagen antes de darla por buena.
 - **Dónde se guarda**: por defecto en `Documentos/ArtGallery/Copias de seguridad`, fuera de la instalación y de la carpeta de datos. Se puede elegir otra carpeta, por ejemplo un disco externo o una carpeta sincronizada.
 - **Copias automáticas**: diarias (por defecto), semanales o desactivadas.
   - Se comprueban al iniciar la aplicación y cada hora mientras está abierta.
@@ -236,6 +236,7 @@ Desde **Copias y ajustes**:
   1. ArtGallery valida la copia entera; si algo falla, el inventario no se toca.
   2. Guarda el inventario actual como copia «antes de restaurar».
   3. Sustituye obras, exposiciones, colecciones y documentos en una sola transacción.
+  4. Sustituye los ajustes por los de la copia, conservando la carpeta de copias de este equipo. Las copias anteriores a la versión 5 del formato no tienen ajustes y dejan los actuales.
 
   Se puede restaurar desde la lista o desde cualquier archivo `.artgallery`. Importar, en cambio, solo añade obras y nunca borra nada.
 
@@ -249,12 +250,12 @@ Desde **Copias y ajustes**:
 
 Las copias de seguridad y las exportaciones usan un mismo formato documentado y versionado: un ZIP con extensión `.artgallery`.
 
-| Entrada                | Contenido                                                                                                                                                                                                                                                                                                                                                                  |
-| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `manifest.json`        | `format: "artgallery"`, `formatVersion` (actualmente `4`; se siguen leyendo paquetes `1` a `3`), `kind` (`backup` para el inventario completo o `artworks` para obras o exposiciones), fecha, versión de la app y recuentos.                                                                                                                                               |
-| `data.json`            | Obras con todos sus campos, etiquetas, fechas y la lista ordenada de imágenes (la primera es la principal), cada una con su ruta relativa, tamaño y SHA-256. Desde la versión 2, las exposiciones con sus obras en orden; desde la 3, las medidas en cm y pulgadas; desde la 4, las colecciones y, en las copias, los documentos con su contenido, vínculos y comentarios. |
-| `images/<id>.<ext>`    | Copia exacta de cada imagen original. Las miniaturas no se incluyen: se regeneran al importar.                                                                                                                                                                                                                                                                             |
-| `documents/<id>.<ext>` | Desde la versión 4, los archivos subidos y las imágenes de los documentos de texto, con tamaño y SHA-256.                                                                                                                                                                                                                                                                  |
+| Entrada                | Contenido                                                                                                                                                                                                                                                                                                                                                                                                          |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `manifest.json`        | `format: "artgallery"`, `formatVersion` (actualmente `5`; se siguen leyendo paquetes `1` a `4`), `kind` (`backup` para el inventario completo o `artworks` para obras o exposiciones), fecha, versión de la app y recuentos.                                                                                                                                                                                       |
+| `data.json`            | Obras con todos sus campos, etiquetas, fechas y la lista ordenada de imágenes (la primera es la principal), cada una con su ruta relativa, tamaño y SHA-256. Desde la versión 2, las exposiciones con sus obras en orden; desde la 3, las medidas en cm y pulgadas; desde la 4, las colecciones y, en las copias, los documentos con su contenido, vínculos y comentarios; desde la 5, en las copias, los ajustes. |
+| `images/<id>.<ext>`    | Copia exacta de cada imagen original. Las miniaturas no se incluyen: se regeneran al importar.                                                                                                                                                                                                                                                                                                                     |
+| `documents/<id>.<ext>` | Desde la versión 4, los archivos subidos y las imágenes de los documentos de texto, con tamaño y SHA-256.                                                                                                                                                                                                                                                                                                          |
 
 Al leer un paquete, ArtGallery:
 
