@@ -33,6 +33,8 @@ import { loadRenderer, PRELOAD_PATH } from "./windows";
 
 const HOUR_MS = 60 * 60 * 1000;
 
+let mainWindow: BrowserWindow | undefined;
+
 function createMainWindow(): BrowserWindow {
   const window = new BrowserWindow({
     width: 1280,
@@ -92,7 +94,7 @@ if (isDemo) {
   app.setPath("documents", join(demoDir, "documents"));
 }
 
-void app.whenReady().then(async () => {
+async function startApp(): Promise<void> {
   // Per-user data folder: %APPDATA%\ArtGallery on Windows and
   // ~/Library/Application Support/ArtGallery on macOS.
   const dataDir = app.getPath("userData");
@@ -161,7 +163,7 @@ void app.whenReady().then(async () => {
   registerBackupHandlers({ backups, settings, dataFolder: dataDir });
   registerTransferHandlers(transfer);
   registerUpdateHandlers(settings, join(dataDir, "tmp", "update"));
-  createMainWindow();
+  mainWindow = createMainWindow();
 
   const runAutomaticBackup = () =>
     backups
@@ -173,10 +175,27 @@ void app.whenReady().then(async () => {
   setInterval(runAutomaticBackup, HOUR_MS);
 
   app.on("activate", () => {
-    if (BrowserWindow.getAllWindows().length === 0) createMainWindow();
+    if (BrowserWindow.getAllWindows().length === 0) {
+      mainWindow = createMainWindow();
+    }
   });
   app.on("will-quit", () => db.close());
-});
+}
+
+function showMainWindow(): void {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  if (mainWindow.isMinimized()) mainWindow.restore();
+  mainWindow.focus();
+}
+
+// A second copy would share the database and folders with this one, purging
+// and backing up behind its back, so it only brings this one to the front.
+if (app.requestSingleInstanceLock()) {
+  app.on("second-instance", showMainWindow);
+  void app.whenReady().then(startApp);
+} else {
+  app.quit();
+}
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();
