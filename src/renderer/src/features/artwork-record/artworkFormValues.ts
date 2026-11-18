@@ -100,6 +100,19 @@ export function toFormValues(
   };
 }
 
+/** Whether saving `values` would change what `initial` showed. */
+export function hasChanges(
+  values: ArtworkFormValues,
+  initial: ArtworkFormValues,
+): boolean {
+  // Saving trims every text, so spaces alone are not a change.
+  const trimmed = (current: ArtworkFormValues) =>
+    Object.values(current).map((value) =>
+      typeof value === "string" ? value.trim() : value,
+    );
+  return JSON.stringify(trimmed(values)) !== JSON.stringify(trimmed(initial));
+}
+
 // Spanish grouping, as in "1.500" or "12.345.678,5". A dot not followed by
 // exactly three digits ("1.5") is still a decimal point from a numeric keypad.
 const THOUSANDS = /^-?[1-9]\d{0,2}(\.\d{3})+(,\d+)?$/;

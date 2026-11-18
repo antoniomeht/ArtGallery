@@ -11,6 +11,8 @@ import { ImageViewer } from "./ImageViewer";
 import { RecordCarousel } from "./RecordCarousel";
 import { navigationStep, neighbourId } from "./recordNavigation";
 import { Button } from "../../components/Button";
+import { ConfirmDialog } from "../../components/ConfirmDialog";
+import { NavigationContext, useNavigation } from "../../components/Navigation";
 import { dropTargetValue } from "../drop/dropRouter";
 import "./ArtworkRecordDialog.css";
 
@@ -60,15 +62,33 @@ export function ArtworkRecordDialog({
   const unit = useDimensionUnit();
   const hiddenFields = useHiddenFields();
   const formHandle = useRef<ArtworkFormHandle>(null);
+  /** Where the user was going when asked about unsaved changes. */
+  const [pendingLeave, setPendingLeave] = useState<(() => void) | null>(null);
+  const navigation = useNavigation();
+
+  /** Saves the open form; false when it needs fixing, which it shows. */
+  async function saveForm(): Promise<boolean> {
+    const saved = await formHandle.current?.saveChanges();
+    if (!saved) return false;
+    setState({ status: "ready", artwork: saved });
+    setIsUnsaved(false);
+    onChanged();
+    return true;
+  }
+
+  /** Leaves the form without saving, asking first if it has changes. */
+  function leaveForm(leave: () => void) {
+    if (isEditing && formHandle.current?.isDirty()) {
+      setPendingLeave(() => leave);
+    } else {
+      leave();
+    }
+  }
 
   /** Moves to another artwork, saving the open form first. */
   async function navigate(targetId: string) {
     if (!gallery) return;
-    if (isEditing) {
-      if (!(await formHandle.current?.saveChanges())) return;
-      setIsUnsaved(false);
-      onChanged();
-    }
+    if (isEditing && !(await saveForm())) return;
     gallery.onNavigate(targetId);
   }
 
@@ -94,8 +114,15 @@ export function ArtworkRecordDialog({
       aria-label="Ficha de la obra"
       data-drop-target={dropTargetValue({ type: "artwork", id: artworkId })}
       data-drop-label={state.status === "ready" ? state.artwork.title : ""}
-      onClose={onClose}
+      // React passes on the close and cancel of dialogs opened inside.
+      onClose={(event) => event.target === event.currentTarget && onClose()}
       onKeyDown={(event) => {
+        // Arrows in a dialog opened inside, such as a confirmation, stay there.
+        if (
+          event.target instanceof Element &&
+          event.target.closest("dialog") !== event.currentTarget
+        )
+          return;
         const step = navigationStep(event.key, {
           inField: isTypingTarget(event.target),
           alt: event.altKey,
@@ -109,15 +136,16 @@ export function ArtworkRecordDialog({
         void navigate(target);
       }}
       onCancel={(event) => {
+        if (event.target !== event.currentTarget) return;
         // Escape leaves edit mode first instead of closing the record.
         if (isEditing) {
           event.preventDefault();
-          setIsEditing(false);
+          leaveForm(() => setIsEditing(false));
         }
       }}
     >
       <header className="record__toolbar">
-        <Button onClick={() => dialogRef.current?.close()}>
+        <Button onClick={() => leaveForm(() => dialogRef.current?.close())}>
           <ArrowLeft aria-hidden size={16} />
           Galería
         </Button>
@@ -219,10 +247,19 @@ export function ArtworkRecordDialog({
               artworkId={state.artwork.id}
               onChanged={onChanged}
             />
-            <LinkedDocuments
-              target={{ type: "artwork", id: state.artwork.id }}
-              targetLabel={state.artwork.title}
-            />
+            {/* Opening a document leaves for Documentación. */}
+            <NavigationContext
+              value={{
+                ...navigation,
+                showDocuments: (route) =>
+                  leaveForm(() => navigation.showDocuments(route)),
+              }}
+            >
+              <LinkedDocuments
+                target={{ type: "artwork", id: state.artwork.id }}
+                targetLabel={state.artwork.title}
+              />
+            </NavigationContext>
           </div>
         </div>
       )}
@@ -235,6 +272,27 @@ export function ArtworkRecordDialog({
             onNavigate={(id) => void navigate(id)}
           />
         </div>
+      )}
+
+      {pendingLeave && (
+        <ConfirmDialog
+          title="¿Guardar los cambios?"
+          message="Hay cambios en la ficha que aún no se han guardado."
+          cancelLabel="Seguir editando"
+          confirmLabel="Descartar"
+          onCancel={() => setPendingLeave(null)}
+          onConfirm={() => {
+            setPendingLeave(null);
+            pendingLeave();
+          }}
+          alternative={{
+            label: "Guardar",
+            onClick: () => {
+              setPendingLeave(null);
+              void saveForm().then((saved) => saved && pendingLeave());
+            },
+          }}
+        />
       )}
     </dialog>
   );

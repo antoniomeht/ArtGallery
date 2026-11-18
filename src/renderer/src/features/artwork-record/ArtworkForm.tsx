@@ -27,6 +27,7 @@ import {
 } from "../../../../shared/categoryFields";
 import { Field } from "../../components/Field";
 import {
+  hasChanges,
   parseFormValues,
   saveFailureErrors,
   toFormValues,
@@ -39,10 +40,12 @@ import { useDefaultArtistOffer } from "./useDefaultArtistOffer";
 import { Button } from "../../components/Button";
 import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 
-/** Lets the record save the form before moving to another artwork. */
+/** Lets the record save the form, or ask first, before leaving it. */
 export interface ArtworkFormHandle {
-  /** Saves what changed; false when a field needs fixing or saving failed. */
-  saveChanges: () => Promise<boolean>;
+  /** Whether anything typed is not saved yet. */
+  isDirty: () => boolean;
+  /** Saves what changed; null when a field needs fixing or saving failed. */
+  saveChanges: () => Promise<Artwork | null>;
 }
 
 interface ArtworkFormProps {
@@ -202,11 +205,11 @@ export function ArtworkForm({
     }
   }
 
+  const isDirty = () => hasChanges(values, initialValues);
+
   useImperativeHandle(handle, () => ({
-    saveChanges: async () =>
-      (JSON.stringify(values) === JSON.stringify(initialValues) &&
-        !isUnsaved) ||
-      (await save()) !== null,
+    isDirty,
+    saveChanges: async () => (isDirty() || isUnsaved ? await save() : artwork),
   }));
 
   async function handleSubmit(event: FormEvent) {
