@@ -1,5 +1,6 @@
 import { app, BrowserWindow, Menu, shell } from "electron";
 import { join } from "node:path";
+import { appMenuTemplate } from "./appMenu";
 import { BackupService } from "./backup/backupService";
 import { CollectionRepository } from "./collections/collectionRepository";
 import { CollectionService } from "./collections/collectionService";
@@ -96,6 +97,11 @@ if (isDemo) {
 }
 
 async function startApp(): Promise<void> {
+  // While developing, the default menu keeps reload and the developer tools.
+  if (app.isPackaged) {
+    const template = appMenuTemplate(process.platform, app.name);
+    Menu.setApplicationMenu(template && Menu.buildFromTemplate(template));
+  }
   // Per-user data folder: %APPDATA%\ArtGallery on Windows and
   // ~/Library/Application Support/ArtGallery on macOS.
   const dataDir = app.getPath("userData");
