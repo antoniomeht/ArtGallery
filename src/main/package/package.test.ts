@@ -3,9 +3,8 @@ import { existsSync } from "node:fs";
 import { readdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { ZipFile } from "yazl";
 import { fromSingleUnit } from "../../shared/dimensions";
-import { createTestImage, useTempDir } from "../testing/fixtures";
+import { createTestImage, useTempDir, zipWith } from "../testing/fixtures";
 import { openInventory } from "../testing/inventory";
 import { toExportArtwork } from "./exportArtwork";
 import { PackageError, type PackageErrorCode } from "./packageFormat";
@@ -33,17 +32,6 @@ async function exportableInventory(dataDir: string) {
     .listArtworks()
     .map(({ id }) => toExportArtwork(service.getArtwork(id), images));
   return { db, artworks };
-}
-
-async function zipWith(path: string, entries: Record<string, string>) {
-  const zip = new ZipFile();
-  for (const [name, content] of Object.entries(entries)) {
-    zip.addBuffer(Buffer.from(content), name);
-  }
-  zip.end();
-  const chunks: Buffer[] = [];
-  for await (const chunk of zip.outputStream) chunks.push(chunk as Buffer);
-  await writeFile(path, Buffer.concat(chunks));
 }
 
 const MANIFEST = JSON.stringify({
@@ -362,6 +350,26 @@ describe("artgallery package", () => {
     await expectPackageError(
       readPackage(missing, join(dir, "s2")),
       "missing-image",
+    );
+  });
+
+  it("rejects invalid settings", async () => {
+    const dir = await useTempDir();
+    const file = join(dir, "invalid.artgallery");
+    await zipWith(file, {
+      "manifest.json": MANIFEST.replace(
+        '"formatVersion":1',
+        '"formatVersion":5',
+      ),
+      "data.json": JSON.stringify({
+        artworks: [],
+        settings: { dimensionUnit: "furlong" },
+      }),
+    });
+
+    await expectPackageError(
+      readPackage(file, join(dir, "staging")),
+      "invalid-data",
     );
   });
 

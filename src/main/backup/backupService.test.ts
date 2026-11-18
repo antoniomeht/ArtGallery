@@ -1,10 +1,15 @@
 import { readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { defaultLabelTemplate } from "../../shared/labels";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { writePackage } from "../package/writePackage";
 import { SettingsStore } from "../settings/settingsStore";
-import { createTestImage, listFiles, useTempDir } from "../testing/fixtures";
+import {
+  createTestImage,
+  listFiles,
+  useTempDir,
+  zipWith,
+} from "../testing/fixtures";
 import { openInventory } from "../testing/inventory";
 import { BackupService } from "./backupService";
 
@@ -17,18 +22,19 @@ function openApp(
 ) {
   const dataDir = join(root, "data");
   const inventory = openInventory(dataDir);
+  const settings = new SettingsStore(join(dataDir, "settings.json"));
   const backups = new BackupService({
     inventory: inventory.service,
     images: inventory.images,
     collections: inventory.collections,
     documents: inventory.documents,
-    settings: new SettingsStore(join(dataDir, "settings.json")),
+    settings,
     defaultFolder: join(root, "Documents", "ArtGallery backups"),
     workDir: join(dataDir, "tmp"),
     appVersion: "0.1.0",
     now: () => new Date(clock.now),
   });
-  return { ...inventory, backups, clock, dataDir };
+  return { ...inventory, backups, settings, clock, dataDir };
 }
 
 async function addArtwork(app: ReturnType<typeof openApp>, title: string) {
@@ -67,6 +73,7 @@ describe("backups", () => {
     expect(await after.backups.restore(backup!.path)).toEqual({
       ok: true,
       safetyBackup: null,
+      settingsFailed: false,
     });
 
     const restored = after.service.getArtwork(marina.id);
@@ -127,6 +134,76 @@ describe("backups", () => {
     expect(
       await listFiles(join(app.dataDir, "images", "originals")),
     ).toHaveLength(1);
+    app.db.close();
+  });
+
+  it("brings the settings back on another computer, keeping its backup folder", async () => {
+    const root = await useTempDir();
+    const studio = openApp(join(root, "studio"));
+    await addArtwork(studio, "Marina");
+    const chosen = await studio.settings.update({
+      backupFolder: join(root, "studio", "Copias"),
+      autoBackup: "weekly",
+      keepAutomaticBackups: 5,
+      defaultArtist: "Lucía Ferrer",
+      dimensionUnit: "in",
+      checkForUpdates: false,
+      numberRanges: [{ technique: "Óleo", from: 1, to: 199 }],
+      hiddenFields: { Escultura: ["support"] },
+    });
+    const backup = await studio.backups.createBackup();
+
+    const home = openApp(join(root, "home"));
+    const homeFolder = join(root, "home", "Copias");
+    await home.settings.update({ backupFolder: homeFolder });
+    expect(await home.backups.restore(backup.path)).toMatchObject({
+      ok: true,
+      settingsFailed: false,
+    });
+
+    expect(await home.settings.read()).toEqual({
+      ...chosen,
+      backupFolder: homeFolder,
+    });
+    studio.db.close();
+    home.db.close();
+  });
+
+  it("keeps the current settings when the backup predates them", async () => {
+    const root = await useTempDir();
+    const app = openApp(root);
+    const current = await app.settings.update({ defaultArtist: "Lucía" });
+    const v4 = join(root, "v4.artgallery");
+    await zipWith(v4, {
+      "manifest.json": JSON.stringify({
+        format: "artgallery",
+        formatVersion: 4,
+        kind: "backup",
+        createdAt: "2026-11-02T10:00:00.000Z",
+        app: { name: "ArtGallery", version: "0.1.0" },
+        counts: { artworks: 0, images: 0, documents: 0 },
+      }),
+      "data.json": JSON.stringify({ artworks: [] }),
+    });
+
+    expect(await app.backups.restore(v4)).toMatchObject({ ok: true });
+    expect(await app.settings.read()).toEqual(current);
+    app.db.close();
+  });
+
+  it("says so when the inventory was restored but the settings were not", async () => {
+    const root = await useTempDir();
+    const app = openApp(root);
+    await addArtwork(app, "Marina");
+    const backup = await app.backups.createBackup();
+    await addArtwork(app, "Retrato");
+    vi.spyOn(app.settings, "update").mockRejectedValue(new Error("disk full"));
+
+    expect(await app.backups.restore(backup.path)).toMatchObject({
+      ok: true,
+      settingsFailed: true,
+    });
+    expect(app.service.listArtworks().map((a) => a.title)).toEqual(["Marina"]);
     app.db.close();
   });
 
@@ -205,7 +282,11 @@ describe("backups", () => {
 
     app.clock.now += 25 * HOUR_MS;
     expect(await app.backups.runAutomaticIfDue()).toBeNull();
-    expect(await app.backups.listBackups()).toHaveLength(2);
+
+    // Settings are part of the backup too.
+    await app.settings.update({ defaultArtist: "Lucía Ferrer" });
+    expect(await app.backups.runAutomaticIfDue()).not.toBeNull();
+    expect(await app.backups.listBackups()).toHaveLength(3);
     app.db.close();
   });
 

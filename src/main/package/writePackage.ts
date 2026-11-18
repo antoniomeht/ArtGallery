@@ -16,6 +16,7 @@ import {
   type PackageExhibition,
   type PackageKind,
   type PackageManifest,
+  type PackageSettings,
 } from "./packageFormat";
 
 /** An artwork to export: its fields plus where each original image lives. */
@@ -44,6 +45,8 @@ export interface WritePackageOptions {
   collections?: readonly PackageCollection[];
   /** Links must only refer to what the package holds. */
   documents?: readonly ExportDocument[];
+  /** Only for backups. */
+  settings?: PackageSettings;
   appVersion: string;
   now?: Date;
   dataHash?: string;
@@ -62,6 +65,7 @@ export async function writePackage(
     exhibitions = [],
     collections = [],
     documents = [],
+    settings,
     appVersion,
     now = new Date(),
     dataHash,
@@ -158,6 +162,7 @@ export async function writePackage(
           : null,
         assets: assets.map(packaged),
       })),
+      ...(settings ? { settings } : {}),
     };
     callback(null, Readable.from([jsonBuffer(data)]));
   });

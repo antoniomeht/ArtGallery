@@ -17,5 +17,10 @@ export type BackupInfo = {
 export type RestoreFailure = PackageFailure | "not-a-backup";
 
 export type RestoreResult =
-  | { ok: true; safetyBackup: string | null }
+  | {
+      ok: true;
+      safetyBackup: string | null;
+      /** The inventory was restored, but the settings in the backup were not. */
+      settingsFailed: boolean;
+    }
   | { ok: false; reason: RestoreFailure };

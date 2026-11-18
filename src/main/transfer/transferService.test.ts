@@ -1,6 +1,7 @@
 import { readdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { readPackage } from "../package/readPackage";
 import { createTestImage, useTempDir } from "../testing/fixtures";
 import { openInventory } from "../testing/inventory";
 import { TransferService } from "./transferService";
@@ -46,6 +47,9 @@ describe("export and import", () => {
       path: file,
       artworks: 1,
     });
+    // Settings travel only in backups.
+    const exported = await readPackage(file, join(root, "exported"));
+    expect(exported.data).not.toHaveProperty("settings");
 
     const home = openComputer(root, "home");
     const preview = await home.transfer.previewImport(file);

@@ -12,7 +12,12 @@ import type { DocumentService } from "../documents/documentService";
 import type { ImageStore } from "../images/imageStore";
 import type { InventoryService } from "../inventory/inventoryService";
 import { toExportArtwork } from "../package/exportArtwork";
-import { PACKAGE_EXTENSION, PackageError } from "../package/packageFormat";
+import {
+  PACKAGE_EXTENSION,
+  PackageError,
+  packageSettingsSchema,
+  type PackageSettings,
+} from "../package/packageFormat";
 import { readManifest, readPackage } from "../package/readPackage";
 import { restoredArtworks } from "../package/restoredArtworks";
 import { writePackage } from "../package/writePackage";
@@ -62,7 +67,7 @@ export class BackupService {
     const folder = await this.folder();
     await mkdir(folder, { recursive: true });
     const path = this.availablePath(folder, origin);
-    const contents = this.contents();
+    const contents = await this.contents();
 
     await writePackage(path, {
       kind: "backup",
@@ -172,13 +177,35 @@ export class BackupService {
         // Files of the old inventory, or copies a failed restore left behind.
         await documents.removeUnusedFiles();
       }
-      return { ok: true, safetyBackup: safety?.fileName ?? null };
+      return {
+        ok: true,
+        safetyBackup: safety?.fileName ?? null,
+        settingsFailed: !(await this.restoreSettings(backup.data.settings)),
+      };
     });
   }
 
+  /**
+   * Written after the inventory, as settings.json cannot join its
+   * transaction. Older backups have no settings: the current ones stay.
+   */
+  private async restoreSettings(
+    settings: PackageSettings | undefined,
+  ): Promise<boolean> {
+    if (!settings) return true;
+    try {
+      await this.options.settings.update(settings);
+      return true;
+    } catch (error) {
+      console.error("Restoring the settings failed", error);
+      return false;
+    }
+  }
+
   /** Everything a backup holds, with where each file lives now. */
-  private contents() {
-    const { inventory, images, collections, documents } = this.options;
+  private async contents() {
+    const { inventory, images, collections, documents, settings } =
+      this.options;
     return {
       artworks: inventory
         .listAllArtworks()
@@ -186,6 +213,8 @@ export class BackupService {
       exhibitions: inventory.listAllExhibitions(),
       collections: collections.listRecords(),
       documents: documents.listForExport(),
+      // Parsing leaves out what belongs to this computer.
+      settings: packageSettingsSchema.parse(await settings.read()),
     };
   }
 
@@ -194,7 +223,7 @@ export class BackupService {
     const [newest] = await this.listBackups();
     if (!newest?.readable) return false;
     const { dataHash } = await readManifest(newest.path);
-    return dataHash === fingerprint(this.contents());
+    return dataHash === fingerprint(await this.contents());
   }
 
   private async describe(path: string): Promise<BackupInfo | null> {
