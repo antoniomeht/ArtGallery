@@ -17,6 +17,23 @@ export default tseslint.config(
     languageOptions: { globals: globals.node },
   },
   {
+    // A promise nobody awaits or catches fails silently.
+    files: ["src/**/*.{ts,tsx}"],
+    languageOptions: {
+      parserOptions: {
+        project: ["./tsconfig.node.json", "./tsconfig.web.json"],
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    rules: {
+      "@typescript-eslint/no-floating-promises": "error",
+      "@typescript-eslint/no-misused-promises": [
+        "error",
+        { checksVoidReturn: { attributes: false } },
+      ],
+    },
+  },
+  {
     files: ["src/renderer/**/*.{ts,tsx}"],
     languageOptions: { globals: globals.browser },
     extends: [reactHooks.configs.flat.recommended],

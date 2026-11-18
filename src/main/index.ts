@@ -172,12 +172,13 @@ async function startApp(): Promise<void> {
   registerUpdateHandlers(settings, join(dataDir, "tmp", "update"));
   mainWindow = createMainWindow();
 
-  const runAutomaticBackup = () =>
+  const runAutomaticBackup = () => {
     backups
       .runAutomaticIfDue()
       .catch((error: unknown) =>
         console.error("Automatic backup failed", error),
       );
+  };
   setTimeout(runAutomaticBackup, 10_000);
   setInterval(runAutomaticBackup, HOUR_MS);
 

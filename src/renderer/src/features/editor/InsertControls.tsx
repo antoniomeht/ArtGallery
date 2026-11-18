@@ -128,6 +128,8 @@ export function InsertControls({
             />
             <MenuItem
               label="Desde un archivo…"
+              // The editor has nowhere to show a failure yet.
+              // eslint-disable-next-line @typescript-eslint/no-misused-promises
               onClick={run(close, async () => {
                 const added =
                   await window.artGallery.addDocumentImage(documentId);
