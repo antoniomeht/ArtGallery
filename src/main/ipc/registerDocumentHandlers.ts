@@ -1,5 +1,5 @@
 import { ipcMain, shell } from "electron";
-import { copyFile, mkdir, stat, writeFile } from "node:fs/promises";
+import { copyFile, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { z } from "zod";
@@ -7,6 +7,7 @@ import { IpcChannel } from "../../shared/api";
 import {
   documentLinkRefSchema,
   documentQuerySchema,
+  type ExternalOpenResult,
 } from "../../shared/document";
 import {
   DOCUMENT_EXTENSIONS,
@@ -15,9 +16,13 @@ import {
 import { ARTWORK_IMAGE_SRC } from "../../shared/editorSchema";
 import type { ImageStore } from "../images/imageStore";
 import type { DocumentService } from "../documents/documentService";
+import {
+  externalCopyState,
+  writeExternalCopy,
+} from "../documents/externalCopy";
 import { readPdfLoadState } from "../media/pdfLoadState";
 import { MEDIA_SCHEME } from "../../shared/media";
-import { showOpenDialog, showSaveDialog } from "./dialogs";
+import { showMessageBox, showOpenDialog, showSaveDialog } from "./dialogs";
 
 const id = z.string().min(1);
 const paths = z.array(z.string().min(1)).max(500);
@@ -195,21 +200,32 @@ export function registerDocumentHandlers(
   );
   ipcMain.handle(
     IpcChannel.openDocumentExternally,
-    async (_event, documentId: unknown) => {
+    async (event, documentId: unknown): Promise<ExternalOpenResult> => {
       const document = documents.get(id.parse(documentId));
+      const stored = documents.filePath(document.id);
       // A copy with its real name: the stored file is never edited by mistake.
-      const folder = join(tmpdir(), "ArtGallery", document.id);
       const copy = join(
-        folder,
+        tmpdir(),
+        "ArtGallery",
+        document.id,
         externalFileName(
           document.originalName ?? document.title,
           document.extension ?? "",
         ),
       );
-      await mkdir(folder, { recursive: true });
-      await copyFile(documents.filePath(document.id), copy);
-      const error = await shell.openPath(copy);
-      if (error) throw new Error(error);
+      let opened: ExternalOpenResult = "opened";
+      const state = await externalCopyState(stored, copy);
+      if (state === "fresh") await writeExternalCopy(stored, copy);
+      if (state === "changed") {
+        const choice = await askAboutChangedCopy(event.sender);
+        if (choice === "cancel") return "canceled";
+        if (choice === "stored") await writeExternalCopy(stored, copy);
+        if (choice === "save") {
+          await documents.replaceFile(document.id, copy);
+          opened = "saved";
+        }
+      }
+      return (await shell.openPath(copy)) ? "no-app" : opened;
     },
   );
   ipcMain.handle(
@@ -228,4 +244,29 @@ export function registerDocumentHandlers(
       return { path };
     },
   );
+}
+
+const CHANGED_COPY_CHOICES = ["save", "copy", "stored", "cancel"] as const;
+
+/** The copy opened earlier was edited outside: what to do with those changes. */
+async function askAboutChangedCopy(
+  sender: Electron.WebContents,
+): Promise<(typeof CHANGED_COPY_CHOICES)[number]> {
+  const response = await showMessageBox(sender, {
+    type: "warning",
+    message:
+      "Este documento tiene cambios hechos fuera de ArtGallery que no se han guardado en ArtGallery.",
+    detail:
+      "La copia que se abrió antes con otra aplicación se ha modificado. Si abres la versión guardada, esos cambios se pierden.",
+    buttons: [
+      "Guardar los cambios en ArtGallery",
+      "Abrir la copia con cambios",
+      "Abrir la versión guardada y perder los cambios",
+      "Cancelar",
+    ],
+    defaultId: 0,
+    cancelId: 3,
+    noLink: true,
+  });
+  return CHANGED_COPY_CHOICES[response] ?? "cancel";
 }

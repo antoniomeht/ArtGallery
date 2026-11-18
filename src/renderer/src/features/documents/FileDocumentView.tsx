@@ -63,12 +63,19 @@ export function FileDocumentView({
   }
 
   async function openOutside() {
-    try {
-      setOpenError(null);
-      await window.artGallery.openDocumentExternally(documentId);
-    } catch {
+    setOpenError(null);
+    const result = await window.artGallery
+      .openDocumentExternally(documentId)
+      .catch(() => null);
+    if (result === "saved") load();
+    if (result === "no-app") {
       setOpenError(
         "No hay ninguna aplicación en este equipo para abrir este archivo.",
+      );
+    }
+    if (result === null) {
+      setOpenError(
+        "No se ha podido preparar una copia del archivo para abrirlo.",
       );
     }
   }
@@ -178,11 +185,12 @@ export function FileDocumentView({
               )}
               {extension === "docx" ? (
                 <WordPreview
+                  key={fileName}
                   documentId={document.id}
                   className="document-view__word-page"
                 />
               ) : (
-                <SpreadsheetPreview documentId={document.id} />
+                <SpreadsheetPreview key={fileName} documentId={document.id} />
               )}
             </div>
           )}

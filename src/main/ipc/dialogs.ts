@@ -23,3 +23,15 @@ export async function showSaveDialog(
     : await dialog.showSaveDialog(options);
   return result.canceled || !result.filePath ? null : result.filePath;
 }
+
+/** Asks a question; returns the index of the button chosen. */
+export async function showMessageBox(
+  sender: Electron.WebContents,
+  options: Electron.MessageBoxOptions,
+): Promise<number> {
+  const window = BrowserWindow.fromWebContents(sender);
+  const result = window
+    ? await dialog.showMessageBox(window, options)
+    : await dialog.showMessageBox(options);
+  return result.response;
+}

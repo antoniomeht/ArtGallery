@@ -79,6 +79,12 @@ export interface UploadResult {
   failed: { name: string; reason: UploadFailureReason }[];
 }
 
+/**
+ * How opening a copy of the file outside the app went. `saved`: changes made
+ * to the copy were saved into the document first.
+ */
+export type ExternalOpenResult = "opened" | "saved" | "canceled" | "no-app";
+
 /** A note on part of a text document, for the user only. */
 export interface DocumentComment {
   id: string;

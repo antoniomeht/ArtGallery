@@ -16,6 +16,7 @@ import type {
   DocumentLinkRef,
   DocumentQuery,
   DocumentSummary,
+  ExternalOpenResult,
   UploadResult,
 } from "./document";
 import type {
@@ -137,8 +138,12 @@ export interface ArtGalleryApi {
   /** Hides the document; `restoreDocument` undoes it until the app restarts. */
   deleteDocument(id: string): Promise<void>;
   restoreDocument(id: string): Promise<void>;
-  /** Opens a copy of the file with the system's application for it. */
-  openDocumentExternally(id: string): Promise<void>;
+  /**
+   * Opens a copy of the file with the system's application for it, asking
+   * first if that copy has changes not saved here. Rejects if the copy cannot
+   * be prepared.
+   */
+  openDocumentExternally(id: string): Promise<ExternalOpenResult>;
   createTextDocument(title: string): Promise<DocumentDetail>;
   /** Checked against what the editor can make before it is written. */
   saveDocumentContent(id: string, content: unknown): Promise<DocumentDetail>;
