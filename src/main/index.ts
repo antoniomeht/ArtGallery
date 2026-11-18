@@ -26,6 +26,7 @@ import {
   registerMediaScheme,
 } from "./media/mediaProtocol";
 import { SettingsStore } from "./settings/settingsStore";
+import { reportStartupFailure } from "./startup/startupFailure";
 import { TransferService } from "./transfer/transferService";
 import { isSafeHref } from "../shared/editorSchema";
 import { contextMenuItems } from "./spelling/contextMenu";
@@ -192,7 +193,12 @@ function showMainWindow(): void {
 // and backing up behind its back, so it only brings this one to the front.
 if (app.requestSingleInstanceLock()) {
   app.on("second-instance", showMainWindow);
-  void app.whenReady().then(startApp);
+  void app
+    .whenReady()
+    .then(startApp)
+    .catch((error: unknown) =>
+      reportStartupFailure(error, app.getPath("userData")),
+    );
 } else {
   app.quit();
 }

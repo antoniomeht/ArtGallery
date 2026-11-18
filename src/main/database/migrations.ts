@@ -208,6 +208,15 @@ export function getSchemaVersion(db: DatabaseSync): number {
   return row.user_version;
 }
 
+/** The database was made by a newer version of the app. */
+export class NewerDatabaseError extends Error {
+  constructor(databaseVersion: number, appVersion: number) {
+    super(
+      `The database uses schema v${databaseVersion}, newer than this app (v${appVersion}). Update ArtGallery to open it.`,
+    );
+  }
+}
+
 /**
  * Applies pending migrations up to `targetVersion`. Before touching a
  * database that already has a schema, a full copy is written to
@@ -225,9 +234,7 @@ export function migrate(
 ): void {
   const current = getSchemaVersion(db);
   if (current > LATEST_SCHEMA_VERSION) {
-    throw new Error(
-      `The database uses schema v${current}, newer than this app (v${LATEST_SCHEMA_VERSION}). Update ArtGallery to open it.`,
-    );
+    throw new NewerDatabaseError(current, LATEST_SCHEMA_VERSION);
   }
   if (current >= targetVersion) return;
 
